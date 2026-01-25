@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingBag, FileText, MessageSquare, Shield } from 'lucide-react'
 
 export default function AuthLayout({
@@ -12,9 +13,7 @@ export default function AuthLayout({
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-500 to-primary-600 p-12 flex-col justify-between">
         {/* 로고 */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-primary-600 font-bold text-xl">OD</span>
-          </div>
+          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-xl p-1" />
           <span className="font-bold text-3xl text-white">OnTheDeal</span>
         </Link>
 
@@ -66,9 +65,7 @@ export default function AuthLayout({
         {/* 모바일 헤더 */}
         <header className="lg:hidden p-6">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">OD</span>
-            </div>
+            <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
             <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
           </Link>
         </header>

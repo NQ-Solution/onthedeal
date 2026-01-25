@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button, Input, Card, CardContent } from '@/components/ui'
 import { Send, Phone, Mail, MapPin, Clock, MessageSquare, HelpCircle, CheckCircle } from 'lucide-react'
 
@@ -75,9 +76,7 @@ export default function ContactPage() {
       <header className="container mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">OD</span>
-            </div>
+            <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12" />
             <span className="font-bold text-3xl text-gray-900">OnTheDeal</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
@@ -277,12 +276,10 @@ export default function ContactPage() {
       {/* Footer */}
       <footer className="container mx-auto px-6 py-10 border-t-2 border-gray-200">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">OD</span>
-            </div>
+          <Link href="/" className="flex items-center gap-3">
+            <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
             <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
-          </div>
+          </Link>
           <div className="flex gap-6">
             <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600">회사소개</Link>
             <Link href="/contact" className="text-lg text-gray-600 hover:text-primary-600">문의하기</Link>
