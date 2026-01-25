@@ -1,121 +1,111 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Eye, Trash2, Package, Truck, CheckCircle, XCircle, Clock, Download, DollarSign } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Eye, Package, Truck, CheckCircle, XCircle, Clock, DollarSign, Loader2 } from 'lucide-react'
 import { Button, Input, Select, Card, CardContent, Badge } from '@/components/ui'
 
 interface Order {
   id: string
-  order_number: string
-  rfq_title: string
-  buyer: { company_name: string }
-  supplier: { company_name: string }
-  total_amount: number
-  commission_amount: number
+  rfq: { title: string }
+  buyer: { companyName: string }
+  supplier: { companyName: string }
+  totalAmount: number
+  commissionAmount: number
   status: string
-  payment_method: string
-  created_at: string
+  paymentMethod: string
+  createdAt: string
 }
 
-const mockOrders: Order[] = [
-  {
-    id: 'o1',
-    order_number: 'ORD-2024-0001',
-    rfq_title: '한우 등심 대량 구매',
-    buyer: { company_name: '맛있는식당' },
-    supplier: { company_name: '프리미엄 한우농장' },
-    total_amount: 600000,
-    commission_amount: 18000,
-    status: 'completed',
-    payment_method: 'escrow',
-    created_at: '2024-02-08',
-  },
-  {
-    id: 'o2',
-    order_number: 'ORD-2024-0002',
-    rfq_title: '돼지고기 삼겹살 납품',
-    buyer: { company_name: '고기천국' },
-    supplier: { company_name: '돼지농장' },
-    total_amount: 350000,
-    commission_amount: 10500,
-    status: 'shipped',
-    payment_method: 'escrow',
-    created_at: '2024-02-09',
-  },
-  {
-    id: 'o3',
-    order_number: 'ORD-2024-0003',
-    rfq_title: '닭고기 냉동 대량',
-    buyer: { company_name: '치킨마을' },
-    supplier: { company_name: '치킨팜' },
-    total_amount: 240000,
-    commission_amount: 7200,
-    status: 'paid',
-    payment_method: 'escrow',
-    created_at: '2024-02-10',
-  },
-  {
-    id: 'o4',
-    order_number: 'ORD-2024-0004',
-    rfq_title: '수입 소고기 안심',
-    buyer: { company_name: '스테이크하우스' },
-    supplier: { company_name: '한우마을' },
-    total_amount: 550000,
-    commission_amount: 16500,
-    status: 'pending',
-    payment_method: 'escrow',
-    created_at: '2024-02-11',
-  },
-  {
-    id: 'o5',
-    order_number: 'ORD-2024-0005',
-    rfq_title: '닭가슴살 구매',
-    buyer: { company_name: '헬시푸드' },
-    supplier: { company_name: '치킨팜' },
-    total_amount: 180000,
-    commission_amount: 5400,
-    status: 'cancelled',
-    payment_method: 'escrow',
-    created_at: '2024-02-05',
-  },
-]
+interface Stats {
+  total: number
+  pending: number
+  completed: number
+  totalRevenue: { _sum: { commissionAmount: number | null } }
+}
 
 const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'error' | 'info'; icon: any }> = {
   pending: { label: '대기', variant: 'warning', icon: Clock },
   confirmed: { label: '확정', variant: 'info', icon: CheckCircle },
   paid: { label: '결제완료', variant: 'success', icon: DollarSign },
-  shipped: { label: '배송중', variant: 'info', icon: Truck },
+  preparing: { label: '준비중', variant: 'info', icon: Package },
+  shipping: { label: '배송중', variant: 'info', icon: Truck },
   delivered: { label: '배송완료', variant: 'default', icon: Package },
   completed: { label: '완료', variant: 'success', icon: CheckCircle },
   cancelled: { label: '취소', variant: 'error', icon: XCircle },
 }
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState(mockOrders)
+  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  useEffect(() => {
+    fetchOrders()
+  }, [statusFilter])
+
+  const fetchOrders = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (statusFilter) params.append('status', statusFilter)
+      if (searchTerm) params.append('search', searchTerm)
+
+      const res = await fetch(`/api/admin/orders?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        setOrders(data.orders)
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSearch = () => {
+    setLoading(true)
+    fetchOrders()
+  }
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch =
-      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.rfq_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.buyer.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.supplier.company_name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = !statusFilter || order.status === statusFilter
-    return matchesSearch && matchesStatus
+    if (!searchTerm) return true
+    return order.rfq.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.buyer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.supplier.companyName.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
-  const totalRevenue = orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.commission_amount, 0)
-  const completedCount = orders.filter(o => o.status === 'completed').length
-  const pendingCount = orders.filter(o => ['pending', 'confirmed', 'paid', 'shipped'].includes(o.status)).length
-
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: newStatus })
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    setActionLoading(true)
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: newStatus }),
+      })
+      if (res.ok) {
+        fetchOrders()
+        if (selectedOrder) setSelectedOrder({ ...selectedOrder, status: newStatus })
+      }
+    } catch (error) {
+      console.error('Failed to update order:', error)
+    } finally {
+      setActionLoading(false)
     }
+  }
+
+  const totalRevenue = stats?.totalRevenue?._sum?.commissionAmount || 0
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -127,7 +117,7 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">전체 주문</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{orders.length}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Package className="w-7 h-7 text-blue-600" />
@@ -140,7 +130,7 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">진행중</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-1">{pendingCount}</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.pending || 0}</p>
               </div>
               <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
                 <Truck className="w-7 h-7 text-yellow-600" />
@@ -153,7 +143,7 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">완료</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{completedCount}</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats?.completed || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
                 <CheckCircle className="w-7 h-7 text-green-600" />
@@ -184,9 +174,10 @@ export default function AdminOrdersPage() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  placeholder="주문번호, RFQ, 구매자, 공급자 검색..."
+                  placeholder="RFQ, 구매자, 공급자 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-12"
                 />
               </div>
@@ -195,10 +186,8 @@ export default function AdminOrdersPage() {
               options={[
                 { value: '', label: '전체 상태' },
                 { value: 'pending', label: '대기' },
-                { value: 'confirmed', label: '확정' },
                 { value: 'paid', label: '결제완료' },
-                { value: 'shipped', label: '배송중' },
-                { value: 'delivered', label: '배송완료' },
+                { value: 'shipping', label: '배송중' },
                 { value: 'completed', label: '완료' },
                 { value: 'cancelled', label: '취소' },
               ]}
@@ -206,9 +195,9 @@ export default function AdminOrdersPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full md:w-40"
             />
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              내보내기
+            <Button variant="outline" className="gap-2" onClick={handleSearch}>
+              <Search className="w-4 h-4" />
+              검색
             </Button>
           </div>
         </CardContent>
@@ -232,26 +221,25 @@ export default function AdminOrdersPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredOrders.map((order) => {
-                  const status = statusConfig[order.status]
+                  const status = statusConfig[order.status] || statusConfig.pending
                   const StatusIcon = status.icon
                   return (
                     <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-bold text-gray-900">{order.order_number}</p>
-                        <p className="text-sm text-gray-500">{order.rfq_title}</p>
+                        <p className="font-bold text-gray-900">{order.id.slice(0, 8)}...</p>
+                        <p className="text-sm text-gray-500">{order.rfq.title}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-gray-900">{order.buyer.company_name}</p>
+                        <p className="text-gray-900">{order.buyer.companyName}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-gray-900">{order.supplier.company_name}</p>
+                        <p className="text-gray-900">{order.supplier.companyName}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-bold text-primary-600">{order.total_amount.toLocaleString()}원</p>
+                        <p className="font-bold text-primary-600">{order.totalAmount.toLocaleString()}원</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-bold text-green-600">{order.commission_amount.toLocaleString()}원</p>
-                        <p className="text-xs text-gray-500">3%</p>
+                        <p className="font-bold text-green-600">{order.commissionAmount.toLocaleString()}원</p>
                       </td>
                       <td className="px-6 py-4">
                         <Badge variant={status.variant}>
@@ -260,16 +248,14 @@ export default function AdminOrdersPage() {
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => { setSelectedOrder(order); setShowModal(true); }}
-                            className="p-2"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setSelectedOrder(order); setShowModal(true); }}
+                          className="p-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
                       </td>
                     </tr>
                   )
@@ -279,7 +265,7 @@ export default function AdminOrdersPage() {
             {filteredOrders.length === 0 && (
               <div className="text-center py-16 text-gray-500">
                 <Package className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <p className="text-lg">검색 결과가 없습니다</p>
+                <p className="text-lg">주문이 없습니다</p>
               </div>
             )}
           </div>
@@ -300,28 +286,28 @@ export default function AdminOrdersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500">주문번호</p>
-                  <p className="font-bold text-lg font-mono">{selectedOrder.order_number}</p>
+                  <p className="text-sm text-gray-500">RFQ</p>
+                  <p className="font-bold">{selectedOrder.rfq.title}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500">RFQ</p>
-                  <p className="font-bold">{selectedOrder.rfq_title}</p>
+                  <p className="text-sm text-gray-500">결제방식</p>
+                  <p className="font-bold">{selectedOrder.paymentMethod === 'escrow' ? '에스크로' : '직접결제'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">구매자</p>
-                  <p className="font-bold">{selectedOrder.buyer.company_name}</p>
+                  <p className="font-bold">{selectedOrder.buyer.companyName}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">공급자</p>
-                  <p className="font-bold">{selectedOrder.supplier.company_name}</p>
+                  <p className="font-bold">{selectedOrder.supplier.companyName}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">주문 금액</p>
-                  <p className="font-bold text-primary-600 text-lg">{selectedOrder.total_amount.toLocaleString()}원</p>
+                  <p className="font-bold text-primary-600 text-lg">{selectedOrder.totalAmount.toLocaleString()}원</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500">수수료 (3%)</p>
-                  <p className="font-bold text-green-600 text-lg">{selectedOrder.commission_amount.toLocaleString()}원</p>
+                  <p className="text-sm text-gray-500">수수료</p>
+                  <p className="font-bold text-green-600 text-lg">{selectedOrder.commissionAmount.toLocaleString()}원</p>
                 </div>
               </div>
 
@@ -334,6 +320,7 @@ export default function AdminOrdersPage() {
                       variant={selectedOrder.status === key ? 'primary' : 'outline'}
                       size="sm"
                       onClick={() => handleStatusChange(selectedOrder.id, key)}
+                      disabled={actionLoading}
                     >
                       {config.label}
                     </Button>
@@ -341,11 +328,9 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" className="flex-1" onClick={() => setShowModal(false)}>
-                  닫기
-                </Button>
-              </div>
+              <Button variant="outline" className="w-full" onClick={() => setShowModal(false)}>
+                닫기
+              </Button>
             </CardContent>
           </Card>
         </div>

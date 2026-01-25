@@ -1,115 +1,126 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Eye, Trash2, Mail, Clock, CheckCircle, Reply, Download, XCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Eye, Trash2, Mail, Clock, CheckCircle, Reply, Loader2, XCircle } from 'lucide-react'
 import { Button, Input, Select, Card, CardContent, Badge, Textarea } from '@/components/ui'
 
 interface Inquiry {
   id: string
   name: string
   email: string
-  phone: string
+  phone: string | null
   subject: string
   message: string
   status: string
-  reply?: string
-  replied_at?: string
-  created_at: string
+  response: string | null
+  respondedAt: string | null
+  createdAt: string
 }
 
-const mockInquiries: Inquiry[] = [
-  {
-    id: 'inq1',
-    name: '김철수',
-    email: 'kim@restaurant.com',
-    phone: '010-1234-5678',
-    subject: '회원가입 승인 문의',
-    message: '회원가입 신청 후 승인이 얼마나 걸리나요? 급하게 식자재가 필요해서요.',
-    status: 'pending',
-    created_at: '2024-02-10 14:30',
-  },
-  {
-    id: 'inq2',
-    name: '이영희',
-    email: 'lee@supplier.com',
-    phone: '010-2345-6789',
-    subject: '수수료 관련 문의',
-    message: '거래 수수료가 정확히 어떻게 계산되는지 알고 싶습니다.',
-    status: 'replied',
-    reply: '안녕하세요. 거래 수수료는 거래 성사 금액의 3%로 계산됩니다. 추가 문의사항 있으시면 말씀해주세요.',
-    replied_at: '2024-02-09 10:00',
-    created_at: '2024-02-08 16:45',
-  },
-  {
-    id: 'inq3',
-    name: '박지민',
-    email: 'park@cafe.com',
-    phone: '010-3456-7890',
-    subject: '결제 관련 문의',
-    message: '에스크로 결제 후 환불은 어떻게 처리되나요?',
-    status: 'pending',
-    created_at: '2024-02-10 09:15',
-  },
-  {
-    id: 'inq4',
-    name: '최바다',
-    email: 'choi@farm.com',
-    phone: '010-4567-8901',
-    subject: '채팅 오류 신고',
-    message: '채팅 메시지가 전송되지 않는 오류가 있습니다. 확인 부탁드립니다.',
-    status: 'in_progress',
-    created_at: '2024-02-09 11:30',
-  },
-]
+interface Stats {
+  total: number
+  pending: number
+  inProgress: number
+  resolved: number
+}
 
 const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'info' }> = {
   pending: { label: '대기', variant: 'warning' },
   in_progress: { label: '처리중', variant: 'info' },
-  replied: { label: '답변완료', variant: 'success' },
+  resolved: { label: '답변완료', variant: 'success' },
+  closed: { label: '종료', variant: 'default' },
 }
 
 export default function AdminInquiriesPage() {
-  const [inquiries, setInquiries] = useState(mockInquiries)
+  const [loading, setLoading] = useState(true)
+  const [inquiries, setInquiries] = useState<Inquiry[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [replyText, setReplyText] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
-  const filteredInquiries = inquiries.filter(inquiry => {
-    const matchesSearch =
-      inquiry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inquiry.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inquiry.subject.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = !statusFilter || inquiry.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  useEffect(() => {
+    fetchInquiries()
+  }, [statusFilter])
 
-  const pendingCount = inquiries.filter(i => i.status === 'pending').length
-  const inProgressCount = inquiries.filter(i => i.status === 'in_progress').length
-  const repliedCount = inquiries.filter(i => i.status === 'replied').length
+  const fetchInquiries = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (statusFilter) params.append('status', statusFilter)
+      if (searchTerm) params.append('search', searchTerm)
 
-  const handleReply = () => {
-    if (!replyText.trim()) {
-      alert('답변 내용을 입력해주세요.')
-      return
-    }
-    if (selectedInquiry) {
-      setInquiries(inquiries.map(i =>
-        i.id === selectedInquiry.id
-          ? { ...i, status: 'replied', reply: replyText, replied_at: new Date().toISOString() }
-          : i
-      ))
-      setShowModal(false)
-      setSelectedInquiry(null)
-      setReplyText('')
+      const res = await fetch(`/api/admin/inquiries?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        setInquiries(data.inquiries)
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Failed to fetch inquiries:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleDelete = (inquiryId: string) => {
-    if (confirm('정말 삭제하시겠습니까?')) {
-      setInquiries(inquiries.filter(i => i.id !== inquiryId))
+  const handleSearch = () => {
+    setLoading(true)
+    fetchInquiries()
+  }
+
+  const handleReply = async () => {
+    if (!replyText.trim() || !selectedInquiry) {
+      alert('답변 내용을 입력해주세요.')
+      return
     }
+    setActionLoading(true)
+    try {
+      const res = await fetch('/api/admin/inquiries', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inquiryId: selectedInquiry.id, response: replyText }),
+      })
+      if (res.ok) {
+        fetchInquiries()
+        setShowModal(false)
+        setSelectedInquiry(null)
+        setReplyText('')
+      }
+    } catch (error) {
+      console.error('Failed to reply:', error)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleDelete = async (inquiryId: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return
+    try {
+      const res = await fetch(`/api/admin/inquiries?id=${inquiryId}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchInquiries()
+        setShowModal(false)
+      }
+    } catch (error) {
+      console.error('Failed to delete inquiry:', error)
+    }
+  }
+
+  const filteredInquiries = inquiries.filter(inquiry => {
+    if (!searchTerm) return true
+    return inquiry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inquiry.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inquiry.subject.toLowerCase().includes(searchTerm.toLowerCase())
+  })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -121,7 +132,7 @@ export default function AdminInquiriesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">전체 문의</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{inquiries.length}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Mail className="w-7 h-7 text-blue-600" />
@@ -134,7 +145,7 @@ export default function AdminInquiriesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-yellow-700">대기중</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-1">{pendingCount}</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.pending || 0}</p>
               </div>
               <div className="w-14 h-14 bg-yellow-200 rounded-2xl flex items-center justify-center">
                 <Clock className="w-7 h-7 text-yellow-700" />
@@ -147,7 +158,7 @@ export default function AdminInquiriesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">처리중</p>
-                <p className="text-3xl font-bold text-blue-600 mt-1">{inProgressCount}</p>
+                <p className="text-3xl font-bold text-blue-600 mt-1">{stats?.inProgress || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Reply className="w-7 h-7 text-blue-600" />
@@ -160,7 +171,7 @@ export default function AdminInquiriesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">답변완료</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{repliedCount}</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats?.resolved || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
                 <CheckCircle className="w-7 h-7 text-green-600" />
@@ -181,6 +192,7 @@ export default function AdminInquiriesPage() {
                   placeholder="이름, 이메일, 제목 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-12"
                 />
               </div>
@@ -190,15 +202,15 @@ export default function AdminInquiriesPage() {
                 { value: '', label: '전체 상태' },
                 { value: 'pending', label: '대기' },
                 { value: 'in_progress', label: '처리중' },
-                { value: 'replied', label: '답변완료' },
+                { value: 'resolved', label: '답변완료' },
               ]}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full md:w-40"
             />
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              내보내기
+            <Button variant="outline" className="gap-2" onClick={handleSearch}>
+              <Search className="w-4 h-4" />
+              검색
             </Button>
           </div>
         </CardContent>
@@ -221,7 +233,7 @@ export default function AdminInquiriesPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredInquiries.map((inquiry) => {
-                  const status = statusConfig[inquiry.status]
+                  const status = statusConfig[inquiry.status] || statusConfig.pending
                   return (
                     <tr
                       key={inquiry.id}
@@ -241,14 +253,14 @@ export default function AdminInquiriesPage() {
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </td>
                       <td className="px-6 py-4 text-gray-600 text-sm">
-                        {inquiry.created_at}
+                        {new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => { setSelectedInquiry(inquiry); setShowModal(true); setReplyText(inquiry.reply || ''); }}
+                            onClick={() => { setSelectedInquiry(inquiry); setShowModal(true); setReplyText(inquiry.response || ''); }}
                             className="p-2"
                           >
                             <Eye className="w-4 h-4" />
@@ -271,7 +283,7 @@ export default function AdminInquiriesPage() {
             {filteredInquiries.length === 0 && (
               <div className="text-center py-16 text-gray-500">
                 <Mail className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <p className="text-lg">검색 결과가 없습니다</p>
+                <p className="text-lg">문의가 없습니다</p>
               </div>
             )}
           </div>
@@ -297,8 +309,8 @@ export default function AdminInquiriesPage() {
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">상태</p>
-                  <Badge variant={statusConfig[selectedInquiry.status].variant} className="mt-1">
-                    {statusConfig[selectedInquiry.status].label}
+                  <Badge variant={statusConfig[selectedInquiry.status]?.variant || 'default'} className="mt-1">
+                    {statusConfig[selectedInquiry.status]?.label || selectedInquiry.status}
                   </Badge>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
@@ -307,7 +319,7 @@ export default function AdminInquiriesPage() {
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">연락처</p>
-                  <p className="font-bold">{selectedInquiry.phone}</p>
+                  <p className="font-bold">{selectedInquiry.phone || '-'}</p>
                 </div>
               </div>
 
@@ -321,15 +333,17 @@ export default function AdminInquiriesPage() {
                 <p className="text-gray-800 whitespace-pre-wrap">{selectedInquiry.message}</p>
               </div>
 
-              {selectedInquiry.status === 'replied' && selectedInquiry.reply && (
+              {selectedInquiry.status === 'resolved' && selectedInquiry.response && (
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                   <p className="text-sm text-green-700 font-bold mb-2">답변 내용</p>
-                  <p className="text-green-800 whitespace-pre-wrap">{selectedInquiry.reply}</p>
-                  <p className="text-sm text-green-600 mt-2">답변일: {selectedInquiry.replied_at}</p>
+                  <p className="text-green-800 whitespace-pre-wrap">{selectedInquiry.response}</p>
+                  {selectedInquiry.respondedAt && (
+                    <p className="text-sm text-green-600 mt-2">답변일: {new Date(selectedInquiry.respondedAt).toLocaleDateString('ko-KR')}</p>
+                  )}
                 </div>
               )}
 
-              {selectedInquiry.status !== 'replied' && (
+              {selectedInquiry.status !== 'resolved' && (
                 <div className="border-t pt-4">
                   <label className="block text-sm font-bold text-gray-700 mb-2">답변 작성</label>
                   <Textarea
@@ -345,9 +359,9 @@ export default function AdminInquiriesPage() {
                 <Button variant="outline" className="flex-1" onClick={() => setShowModal(false)}>
                   닫기
                 </Button>
-                {selectedInquiry.status !== 'replied' && (
-                  <Button variant="primary" className="flex-1" onClick={handleReply}>
-                    <Reply className="w-4 h-4 mr-2" />
+                {selectedInquiry.status !== 'resolved' && (
+                  <Button variant="primary" className="flex-1" onClick={handleReply} disabled={actionLoading}>
+                    {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Reply className="w-4 h-4 mr-2" />}
                     답변 보내기
                   </Button>
                 )}

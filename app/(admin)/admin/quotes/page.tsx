@@ -1,67 +1,26 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Eye, Trash2, Clock, CheckCircle, XCircle, Receipt, Download } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Eye, Trash2, Clock, CheckCircle, XCircle, Receipt, Loader2 } from 'lucide-react'
 import { Button, Input, Select, Card, CardContent, Badge } from '@/components/ui'
 
 interface Quote {
   id: string
-  rfq_title: string
-  supplier: { company_name: string; email: string }
-  buyer: { company_name: string }
-  unit_price: number
-  total_price: number
-  delivery_date: string
+  rfq: { title: string; buyer: { companyName: string } }
+  supplier: { companyName: string; email: string }
+  unitPrice: number
+  totalPrice: number
+  deliveryDate: string
   status: string
-  created_at: string
+  createdAt: string
 }
 
-const mockQuotes: Quote[] = [
-  {
-    id: 'q1',
-    rfq_title: '한우 등심 대량 구매',
-    supplier: { company_name: '프리미엄 한우농장', email: 'supplier1@farm.com' },
-    buyer: { company_name: '맛있는식당' },
-    unit_price: 12000,
-    total_price: 600000,
-    delivery_date: '2024-02-12',
-    status: 'pending',
-    created_at: '2024-02-05',
-  },
-  {
-    id: 'q2',
-    rfq_title: '한우 등심 대량 구매',
-    supplier: { company_name: '한우마을', email: 'hanwoo@village.com' },
-    buyer: { company_name: '맛있는식당' },
-    unit_price: 11500,
-    total_price: 575000,
-    delivery_date: '2024-02-13',
-    status: 'accepted',
-    created_at: '2024-02-06',
-  },
-  {
-    id: 'q3',
-    rfq_title: '돼지고기 삼겹살 납품',
-    supplier: { company_name: '돼지농장', email: 'pork@farm.com' },
-    buyer: { company_name: '고기천국' },
-    unit_price: 3500,
-    total_price: 350000,
-    delivery_date: '2024-02-18',
-    status: 'rejected',
-    created_at: '2024-02-07',
-  },
-  {
-    id: 'q4',
-    rfq_title: '닭고기 냉동 대량',
-    supplier: { company_name: '치킨팜', email: 'chicken@farm.com' },
-    buyer: { company_name: '치킨마을' },
-    unit_price: 1200,
-    total_price: 240000,
-    delivery_date: '2024-02-15',
-    status: 'expired',
-    created_at: '2024-01-28',
-  },
-]
+interface Stats {
+  total: number
+  pending: number
+  accepted: number
+  totalAmount: { _sum: { totalPrice: number | null } }
+}
 
 const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'error' }> = {
   pending: { label: '대기중', variant: 'warning' },
@@ -71,27 +30,65 @@ const statusConfig: Record<string, { label: string; variant: 'success' | 'warnin
 }
 
 export default function AdminQuotesPage() {
-  const [quotes, setQuotes] = useState(mockQuotes)
+  const [loading, setLoading] = useState(true)
+  const [quotes, setQuotes] = useState<Quote[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
+  useEffect(() => {
+    fetchQuotes()
+  }, [statusFilter])
+
+  const fetchQuotes = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (statusFilter) params.append('status', statusFilter)
+      if (searchTerm) params.append('search', searchTerm)
+
+      const res = await fetch(`/api/admin/quotes?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        setQuotes(data.quotes)
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Failed to fetch quotes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSearch = () => {
+    setLoading(true)
+    fetchQuotes()
+  }
+
+  const handleDelete = async (quoteId: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return
+    try {
+      const res = await fetch(`/api/admin/quotes?id=${quoteId}`, { method: 'DELETE' })
+      if (res.ok) fetchQuotes()
+    } catch (error) {
+      console.error('Failed to delete quote:', error)
+    }
+  }
+
   const filteredQuotes = quotes.filter(quote => {
-    const matchesSearch =
-      quote.rfq_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quote.supplier.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quote.buyer.company_name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = !statusFilter || quote.status === statusFilter
-    return matchesSearch && matchesStatus
+    if (!searchTerm) return true
+    return quote.rfq.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.supplier.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.rfq.buyer.companyName.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
-  const pendingCount = quotes.filter(q => q.status === 'pending').length
-  const acceptedCount = quotes.filter(q => q.status === 'accepted').length
-  const totalAmount = quotes.reduce((sum, q) => sum + q.total_price, 0)
+  const totalAmount = stats?.totalAmount?._sum?.totalPrice || 0
 
-  const handleDelete = (quoteId: string) => {
-    if (confirm('정말 삭제하시겠습니까?')) {
-      setQuotes(quotes.filter(q => q.id !== quoteId))
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -103,7 +100,7 @@ export default function AdminQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">전체 견적</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{quotes.length}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Receipt className="w-7 h-7 text-blue-600" />
@@ -116,7 +113,7 @@ export default function AdminQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">대기중</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-1">{pendingCount}</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.pending || 0}</p>
               </div>
               <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
                 <Clock className="w-7 h-7 text-yellow-600" />
@@ -129,7 +126,7 @@ export default function AdminQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">수락됨</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{acceptedCount}</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats?.accepted || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
                 <CheckCircle className="w-7 h-7 text-green-600" />
@@ -163,6 +160,7 @@ export default function AdminQuotesPage() {
                   placeholder="RFQ, 공급자, 구매자 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-12"
                 />
               </div>
@@ -179,9 +177,9 @@ export default function AdminQuotesPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full md:w-40"
             />
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              내보내기
+            <Button variant="outline" className="gap-2" onClick={handleSearch}>
+              <Search className="w-4 h-4" />
+              검색
             </Button>
           </div>
         </CardContent>
@@ -205,35 +203,32 @@ export default function AdminQuotesPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredQuotes.map((quote) => {
-                  const status = statusConfig[quote.status]
+                  const status = statusConfig[quote.status] || statusConfig.pending
                   return (
                     <tr key={quote.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-bold text-gray-900">{quote.rfq_title}</p>
-                        <p className="text-sm text-gray-500">등록: {quote.created_at}</p>
+                        <p className="font-bold text-gray-900">{quote.rfq.title}</p>
+                        <p className="text-sm text-gray-500">{new Date(quote.createdAt).toLocaleDateString('ko-KR')}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-gray-900">{quote.supplier.company_name}</p>
+                        <p className="text-gray-900">{quote.supplier.companyName}</p>
                         <p className="text-sm text-gray-500">{quote.supplier.email}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-gray-900">{quote.buyer.company_name}</p>
+                        <p className="text-gray-900">{quote.rfq.buyer.companyName}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-bold text-primary-600">{quote.total_price.toLocaleString()}원</p>
-                        <p className="text-sm text-gray-500">단가: {quote.unit_price.toLocaleString()}원</p>
+                        <p className="font-bold text-primary-600">{quote.totalPrice.toLocaleString()}원</p>
+                        <p className="text-sm text-gray-500">단가: {quote.unitPrice.toLocaleString()}원</p>
                       </td>
                       <td className="px-6 py-4 text-gray-600">
-                        {quote.delivery_date}
+                        {new Date(quote.deliveryDate).toLocaleDateString('ko-KR')}
                       </td>
                       <td className="px-6 py-4">
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-1">
-                          <Button variant="ghost" size="sm" className="p-2">
-                            <Eye className="w-4 h-4" />
-                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -252,7 +247,7 @@ export default function AdminQuotesPage() {
             {filteredQuotes.length === 0 && (
               <div className="text-center py-16 text-gray-500">
                 <Receipt className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <p className="text-lg">검색 결과가 없습니다</p>
+                <p className="text-lg">견적이 없습니다</p>
               </div>
             )}
           </div>
