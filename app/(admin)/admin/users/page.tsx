@@ -1,44 +1,36 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Check, X, Eye, Filter, UserCheck, UserX, Clock, MoreVertical, Download, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Check, X, Eye, UserCheck, UserX, Clock, Download, Loader2 } from 'lucide-react'
 import { Button, Input, Select, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui'
-import { mockAllUsers, mockPendingUsers } from '@/lib/mock-data'
 
 interface User {
   id: string
   email: string
   role: string
-  company_name: string
-  business_number?: string
-  contact_name: string
+  companyName: string
+  businessNumber?: string
+  contactName: string
   phone: string
   address?: string
-  approval_status: string
-  approved_at?: string
-  rejection_reason?: string
-  created_at: string
-  rfq_count?: number
-  order_count?: number
+  approvalStatus: string
+  approvedAt?: string
+  rejectionReason?: string
+  createdAt: string
+  _count?: {
+    rfqs: number
+    buyerOrders: number
+    supplierOrders: number
+  }
 }
 
-// 중앙 mock 데이터 + pending 유저 통합
-const allUsers: User[] = [
-  ...mockAllUsers.map(u => ({
-    ...u,
-    business_number: u.business_number || '',
-    address: u.address || '',
-    rfq_count: u.role === 'buyer' ? 3 : 0,
-    order_count: u.role === 'supplier' ? 5 : 2,
-  })),
-  ...mockPendingUsers.map(u => ({
-    ...u,
-    business_number: u.business_number || '',
-    address: u.address || '',
-    rfq_count: 0,
-    order_count: 0,
-  })),
-]
+interface Stats {
+  total: number
+  pending: number
+  approved: number
+  buyers: number
+  suppliers: number
+}
 
 const statusConfig = {
   pending: { label: '대기중', variant: 'warning' as const, icon: Clock },
@@ -53,57 +45,115 @@ const roleLabels = {
 }
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(allUsers)
+  const [loading, setLoading] = useState(true)
+  const [users, setUsers] = useState<User[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch =
-      user.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.contact_name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = !statusFilter || user.approval_status === statusFilter
-    const matchesRole = !roleFilter || user.role === roleFilter
-    return matchesSearch && matchesStatus && matchesRole
-  })
+  useEffect(() => {
+    fetchUsers()
+  }, [statusFilter, roleFilter])
 
-  const pendingCount = users.filter(u => u.approval_status === 'pending').length
-  const approvedCount = users.filter(u => u.approval_status === 'approved').length
-  const buyerCount = users.filter(u => u.role === 'buyer').length
-  const supplierCount = users.filter(u => u.role === 'supplier').length
+  const fetchUsers = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (statusFilter) params.append('status', statusFilter)
+      if (roleFilter) params.append('role', roleFilter)
+      if (searchTerm) params.append('search', searchTerm)
 
-  const handleApprove = (userId: string) => {
-    setUsers(users.map(u =>
-      u.id === userId
-        ? { ...u, approval_status: 'approved', approved_at: new Date().toISOString() }
-        : u
-    ))
-    setShowModal(false)
-    setSelectedUser(null)
+      const res = await fetch(`/api/admin/users?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        setUsers(data.users)
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Failed to fetch users:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleReject = (userId: string) => {
+  const handleSearch = () => {
+    setLoading(true)
+    fetchUsers()
+  }
+
+  const filteredUsers = users.filter(user => {
+    if (!searchTerm) return true
+    const matchesSearch =
+      user.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.contactName.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesSearch
+  })
+
+  const handleApprove = async (userId: string) => {
+    setActionLoading(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action: 'approve' }),
+      })
+      if (res.ok) {
+        fetchUsers()
+        setShowModal(false)
+        setSelectedUser(null)
+      }
+    } catch (error) {
+      console.error('Failed to approve user:', error)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleReject = async (userId: string) => {
     if (!rejectReason.trim()) {
       alert('거절 사유를 입력해주세요.')
       return
     }
-    setUsers(users.map(u =>
-      u.id === userId
-        ? { ...u, approval_status: 'rejected', rejection_reason: rejectReason }
-        : u
-    ))
-    setShowModal(false)
-    setSelectedUser(null)
-    setRejectReason('')
+    setActionLoading(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action: 'reject', rejectionReason: rejectReason }),
+      })
+      if (res.ok) {
+        fetchUsers()
+        setShowModal(false)
+        setSelectedUser(null)
+        setRejectReason('')
+      }
+    } catch (error) {
+      console.error('Failed to reject user:', error)
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   const openUserDetail = (user: User) => {
     setSelectedUser(user)
     setShowModal(true)
+  }
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('ko-KR')
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -115,7 +165,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">전체 회원</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{users.length}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <UserCheck className="w-7 h-7 text-blue-600" />
@@ -128,7 +178,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">승인 대기</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-1">{pendingCount}</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.pending || 0}</p>
               </div>
               <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
                 <Clock className="w-7 h-7 text-yellow-600" />
@@ -141,7 +191,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">구매자</p>
-                <p className="text-3xl font-bold text-primary-600 mt-1">{buyerCount}</p>
+                <p className="text-3xl font-bold text-primary-600 mt-1">{stats?.buyers || 0}</p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <UserCheck className="w-7 h-7 text-primary-600" />
@@ -154,7 +204,7 @@ export default function AdminUsersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">공급자</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{supplierCount}</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats?.suppliers || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
                 <UserCheck className="w-7 h-7 text-green-600" />
@@ -175,6 +225,7 @@ export default function AdminUsersPage() {
                   placeholder="회사명, 이메일, 담당자 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-12"
                 />
               </div>
@@ -200,9 +251,9 @@ export default function AdminUsersPage() {
               onChange={(e) => setRoleFilter(e.target.value)}
               className="w-full md:w-40"
             />
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              내보내기
+            <Button variant="outline" className="gap-2" onClick={handleSearch}>
+              <Search className="w-4 h-4" />
+              검색
             </Button>
           </div>
         </CardContent>
@@ -226,33 +277,33 @@ export default function AdminUsersPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredUsers.map((user) => {
-                  const status = statusConfig[user.approval_status as keyof typeof statusConfig]
+                  const status = statusConfig[user.approvalStatus as keyof typeof statusConfig]
                   const role = roleLabels[user.role as keyof typeof roleLabels]
                   return (
                     <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-bold text-gray-900">{user.company_name}</p>
+                          <p className="font-bold text-gray-900">{user.companyName}</p>
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-gray-900">{user.contact_name}</p>
+                          <p className="text-gray-900">{user.contactName}</p>
                           <p className="text-sm text-gray-500">{user.phone}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant={role.variant}>{role.label}</Badge>
+                        <Badge variant={role?.variant || 'default'}>{role?.label || user.role}</Badge>
                       </td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{user.business_number}</td>
+                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{user.businessNumber || '-'}</td>
                       <td className="px-6 py-4">
-                        <Badge variant={status.variant}>{status.label}</Badge>
+                        <Badge variant={status?.variant || 'default'}>{status?.label || user.approvalStatus}</Badge>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
-                          <p className="text-gray-600">RFQ: {user.rfq_count || 0}건</p>
-                          <p className="text-gray-600">주문: {user.order_count || 0}건</p>
+                          <p className="text-gray-600">RFQ: {user._count?.rfqs || 0}건</p>
+                          <p className="text-gray-600">주문: {(user._count?.buyerOrders || 0) + (user._count?.supplierOrders || 0)}건</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -265,7 +316,7 @@ export default function AdminUsersPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          {user.approval_status === 'pending' && (
+                          {user.approvalStatus === 'pending' && (
                             <>
                               <Button
                                 variant="ghost"
@@ -317,15 +368,15 @@ export default function AdminUsersPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">회사명</p>
-                  <p className="font-bold text-lg">{selectedUser.company_name}</p>
+                  <p className="font-bold text-lg">{selectedUser.companyName}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">사업자등록번호</p>
-                  <p className="font-bold text-lg font-mono">{selectedUser.business_number}</p>
+                  <p className="font-bold text-lg font-mono">{selectedUser.businessNumber || '-'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">담당자</p>
-                  <p className="font-bold text-lg">{selectedUser.contact_name}</p>
+                  <p className="font-bold text-lg">{selectedUser.contactName}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">연락처</p>
@@ -337,13 +388,13 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">역할</p>
-                  <Badge variant={roleLabels[selectedUser.role as keyof typeof roleLabels].variant} className="text-base">
-                    {roleLabels[selectedUser.role as keyof typeof roleLabels].label}
+                  <Badge variant={roleLabels[selectedUser.role as keyof typeof roleLabels]?.variant || 'default'} className="text-base">
+                    {roleLabels[selectedUser.role as keyof typeof roleLabels]?.label || selectedUser.role}
                   </Badge>
                 </div>
                 <div className="col-span-2 bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">주소</p>
-                  <p className="font-bold text-lg">{selectedUser.address}</p>
+                  <p className="font-bold text-lg">{selectedUser.address || '-'}</p>
                 </div>
               </div>
 
@@ -351,28 +402,28 @@ export default function AdminUsersPage() {
               <div className="border-t pt-6">
                 <div className="flex items-center gap-3 mb-4">
                   <p className="text-gray-600">현재 상태:</p>
-                  <Badge variant={statusConfig[selectedUser.approval_status as keyof typeof statusConfig].variant} className="text-base px-4 py-1">
-                    {statusConfig[selectedUser.approval_status as keyof typeof statusConfig].label}
+                  <Badge variant={statusConfig[selectedUser.approvalStatus as keyof typeof statusConfig]?.variant || 'default'} className="text-base px-4 py-1">
+                    {statusConfig[selectedUser.approvalStatus as keyof typeof statusConfig]?.label || selectedUser.approvalStatus}
                   </Badge>
                 </div>
 
-                {selectedUser.approval_status === 'rejected' && selectedUser.rejection_reason && (
+                {selectedUser.approvalStatus === 'rejected' && selectedUser.rejectionReason && (
                   <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-4">
                     <p className="text-red-700">
-                      <span className="font-bold">거절 사유:</span> {selectedUser.rejection_reason}
+                      <span className="font-bold">거절 사유:</span> {selectedUser.rejectionReason}
                     </p>
                   </div>
                 )}
 
-                {selectedUser.approval_status === 'approved' && selectedUser.approved_at && (
+                {selectedUser.approvalStatus === 'approved' && selectedUser.approvedAt && (
                   <div className="bg-green-50 border border-green-200 p-4 rounded-xl mb-4">
                     <p className="text-green-700">
-                      <span className="font-bold">승인일:</span> {new Date(selectedUser.approved_at).toLocaleDateString('ko-KR')}
+                      <span className="font-bold">승인일:</span> {formatDate(selectedUser.approvedAt)}
                     </p>
                   </div>
                 )}
 
-                {selectedUser.approval_status === 'pending' && (
+                {selectedUser.approvalStatus === 'pending' && (
                   <div className="space-y-4 mt-6">
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -389,8 +440,9 @@ export default function AdminUsersPage() {
                         size="lg"
                         className="flex-1 bg-green-600 hover:bg-green-700"
                         onClick={() => handleApprove(selectedUser.id)}
+                        disabled={actionLoading}
                       >
-                        <Check className="w-5 h-5 mr-2" />
+                        {actionLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />}
                         승인하기
                       </Button>
                       <Button
@@ -398,8 +450,9 @@ export default function AdminUsersPage() {
                         variant="outline"
                         className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
                         onClick={() => handleReject(selectedUser.id)}
+                        disabled={actionLoading}
                       >
-                        <X className="w-5 h-5 mr-2" />
+                        {actionLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <X className="w-5 h-5 mr-2" />}
                         거절하기
                       </Button>
                     </div>

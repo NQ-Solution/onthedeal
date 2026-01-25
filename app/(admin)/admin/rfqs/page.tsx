@@ -1,82 +1,31 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Eye, Trash2, Clock, CheckCircle, XCircle, AlertTriangle, FileText, Download } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Eye, Trash2, Clock, CheckCircle, XCircle, AlertTriangle, FileText, Download, Loader2 } from 'lucide-react'
 import { Button, Input, Select, Card, CardContent, Badge } from '@/components/ui'
 
 interface RFQ {
   id: string
   title: string
-  buyer: { company_name: string; email: string }
+  buyer: { id: string; companyName: string; email: string }
   category: string
   quantity: number
   unit: string
-  budget_min: number
-  budget_max: number
-  deadline: string
+  budgetMin: number | null
+  budgetMax: number | null
+  deliveryDate: string
   status: string
-  quote_count: number
-  created_at: string
+  _count: { quotes: number }
+  createdAt: string
 }
 
-const mockRFQs: RFQ[] = [
-  {
-    id: 'rfq1',
-    title: '한우 등심 대량 구매',
-    buyer: { company_name: '맛있는식당', email: 'buyer1@restaurant.com' },
-    category: '육류',
-    quantity: 50,
-    unit: 'kg',
-    budget_min: 500000,
-    budget_max: 700000,
-    deadline: '2024-02-15',
-    status: 'open',
-    quote_count: 5,
-    created_at: '2024-02-01',
-  },
-  {
-    id: 'rfq2',
-    title: '돼지고기 삼겹살 납품',
-    buyer: { company_name: '고기천국', email: 'meat@heaven.com' },
-    category: '육류',
-    quantity: 100,
-    unit: 'kg',
-    budget_min: 300000,
-    budget_max: 400000,
-    deadline: '2024-02-20',
-    status: 'in_progress',
-    quote_count: 3,
-    created_at: '2024-02-03',
-  },
-  {
-    id: 'rfq3',
-    title: '닭고기 냉동 대량',
-    buyer: { company_name: '치킨마을', email: 'chicken@village.com' },
-    category: '육류',
-    quantity: 200,
-    unit: 'kg',
-    budget_min: 200000,
-    budget_max: 300000,
-    deadline: '2024-02-10',
-    status: 'closed',
-    quote_count: 8,
-    created_at: '2024-01-25',
-  },
-  {
-    id: 'rfq4',
-    title: '수입 소고기 안심',
-    buyer: { company_name: '스테이크하우스', email: 'steak@house.com' },
-    category: '육류',
-    quantity: 30,
-    unit: 'kg',
-    budget_min: 450000,
-    budget_max: 600000,
-    deadline: '2024-02-08',
-    status: 'cancelled',
-    quote_count: 2,
-    created_at: '2024-01-28',
-  },
-]
+interface Stats {
+  total: number
+  open: number
+  inProgress: number
+  closed: number
+  totalQuotes: number
+}
 
 const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'error'; icon: any }> = {
   open: { label: '모집중', variant: 'success', icon: Clock },
@@ -86,32 +35,108 @@ const statusConfig: Record<string, { label: string; variant: 'success' | 'warnin
 }
 
 export default function AdminRFQsPage() {
-  const [rfqs, setRfqs] = useState(mockRFQs)
+  const [loading, setLoading] = useState(true)
+  const [rfqs, setRfqs] = useState<RFQ[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [selectedRfq, setSelectedRfq] = useState<RFQ | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
 
-  const filteredRfqs = rfqs.filter(rfq => {
-    const matchesSearch =
-      rfq.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rfq.buyer.company_name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = !statusFilter || rfq.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  useEffect(() => {
+    fetchRFQs()
+  }, [statusFilter])
 
-  const openCount = rfqs.filter(r => r.status === 'open').length
-  const inProgressCount = rfqs.filter(r => r.status === 'in_progress').length
-  const totalQuotes = rfqs.reduce((sum, r) => sum + r.quote_count, 0)
+  const fetchRFQs = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (statusFilter) params.append('status', statusFilter)
+      if (searchTerm) params.append('search', searchTerm)
 
-  const handleDelete = (rfqId: string) => {
-    if (confirm('정말 삭제하시겠습니까?')) {
-      setRfqs(rfqs.filter(r => r.id !== rfqId))
+      const res = await fetch(`/api/admin/rfqs?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        setRfqs(data.rfqs)
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Failed to fetch RFQs:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleStatusChange = (rfqId: string, newStatus: string) => {
-    setRfqs(rfqs.map(r => r.id === rfqId ? { ...r, status: newStatus } : r))
+  const handleSearch = () => {
+    setLoading(true)
+    fetchRFQs()
+  }
+
+  const filteredRfqs = rfqs.filter(rfq => {
+    if (!searchTerm) return true
+    const matchesSearch =
+      rfq.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      rfq.buyer.companyName.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesSearch
+  })
+
+  const handleDelete = async (rfqId: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return
+
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/admin/rfqs?id=${rfqId}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchRFQs()
+        setShowModal(false)
+        setSelectedRfq(null)
+      }
+    } catch (error) {
+      console.error('Failed to delete RFQ:', error)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleStatusChange = async (rfqId: string, newStatus: string) => {
+    setActionLoading(true)
+    try {
+      const res = await fetch('/api/admin/rfqs', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rfqId, status: newStatus }),
+      })
+      if (res.ok) {
+        fetchRFQs()
+        if (selectedRfq) {
+          setSelectedRfq({ ...selectedRfq, status: newStatus })
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update RFQ status:', error)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('ko-KR')
+  }
+
+  const formatPrice = (min: number | null, max: number | null) => {
+    if (!min && !max) return '-'
+    const minStr = min ? `${(min / 10000).toFixed(0)}만` : ''
+    const maxStr = max ? `${(max / 10000).toFixed(0)}만원` : ''
+    if (min && max) return `${minStr} ~ ${maxStr}`
+    return minStr || maxStr
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -123,7 +148,7 @@ export default function AdminRFQsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">전체 발주</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{rfqs.length}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <FileText className="w-7 h-7 text-blue-600" />
@@ -136,7 +161,7 @@ export default function AdminRFQsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">모집중</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{openCount}</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats?.open || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
                 <Clock className="w-7 h-7 text-green-600" />
@@ -149,7 +174,7 @@ export default function AdminRFQsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">진행중</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-1">{inProgressCount}</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.inProgress || 0}</p>
               </div>
               <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
                 <AlertTriangle className="w-7 h-7 text-yellow-600" />
@@ -162,7 +187,7 @@ export default function AdminRFQsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">총 견적</p>
-                <p className="text-3xl font-bold text-primary-600 mt-1">{totalQuotes}</p>
+                <p className="text-3xl font-bold text-primary-600 mt-1">{stats?.totalQuotes || 0}</p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <FileText className="w-7 h-7 text-primary-600" />
@@ -183,6 +208,7 @@ export default function AdminRFQsPage() {
                   placeholder="제목, 구매자 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-12"
                 />
               </div>
@@ -199,9 +225,9 @@ export default function AdminRFQsPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full md:w-40"
             />
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              내보내기
+            <Button variant="outline" className="gap-2" onClick={handleSearch}>
+              <Search className="w-4 h-4" />
+              검색
             </Button>
           </div>
         </CardContent>
@@ -226,18 +252,18 @@ export default function AdminRFQsPage() {
               <tbody className="divide-y divide-gray-100">
                 {filteredRfqs.map((rfq) => {
                   const status = statusConfig[rfq.status]
-                  const StatusIcon = status.icon
+                  const StatusIcon = status?.icon || Clock
                   return (
                     <tr key={rfq.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-bold text-gray-900">{rfq.title}</p>
-                          <p className="text-sm text-gray-500">{rfq.quantity} {rfq.unit} | 마감: {rfq.deadline}</p>
+                          <p className="text-sm text-gray-500">{rfq.quantity} {rfq.unit} | 마감: {formatDate(rfq.deliveryDate)}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-gray-900">{rfq.buyer.company_name}</p>
+                          <p className="text-gray-900">{rfq.buyer.companyName}</p>
                           <p className="text-sm text-gray-500">{rfq.buyer.email}</p>
                         </div>
                       </td>
@@ -246,17 +272,17 @@ export default function AdminRFQsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <p className="font-bold text-primary-600">
-                          {(rfq.budget_min / 10000).toFixed(0)}만 ~ {(rfq.budget_max / 10000).toFixed(0)}만원
+                          {formatPrice(rfq.budgetMin, rfq.budgetMax)}
                         </p>
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant={status.variant}>
+                        <Badge variant={status?.variant || 'default'}>
                           <StatusIcon className="w-3 h-3 mr-1" />
-                          {status.label}
+                          {status?.label || rfq.status}
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-bold text-gray-900">{rfq.quote_count}건</span>
+                        <span className="font-bold text-gray-900">{rfq._count.quotes}건</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-1">
@@ -316,7 +342,7 @@ export default function AdminRFQsPage() {
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">구매자</p>
-                  <p className="font-bold">{selectedRfq.buyer.company_name}</p>
+                  <p className="font-bold">{selectedRfq.buyer.companyName}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">수량</p>
@@ -325,12 +351,12 @@ export default function AdminRFQsPage() {
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">예산</p>
                   <p className="font-bold text-primary-600">
-                    {(selectedRfq.budget_min / 10000).toFixed(0)}만 ~ {(selectedRfq.budget_max / 10000).toFixed(0)}만원
+                    {formatPrice(selectedRfq.budgetMin, selectedRfq.budgetMax)}
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500">마감일</p>
-                  <p className="font-bold">{selectedRfq.deadline}</p>
+                  <p className="font-bold">{formatDate(selectedRfq.deliveryDate)}</p>
                 </div>
               </div>
 
@@ -342,10 +368,8 @@ export default function AdminRFQsPage() {
                       key={key}
                       variant={selectedRfq.status === key ? 'primary' : 'outline'}
                       size="sm"
-                      onClick={() => {
-                        handleStatusChange(selectedRfq.id, key)
-                        setSelectedRfq({ ...selectedRfq, status: key })
-                      }}
+                      onClick={() => handleStatusChange(selectedRfq.id, key)}
+                      disabled={actionLoading}
                     >
                       {config.label}
                     </Button>
@@ -360,9 +384,10 @@ export default function AdminRFQsPage() {
                 <Button
                   variant="primary"
                   className="flex-1 bg-red-600 hover:bg-red-700"
-                  onClick={() => { handleDelete(selectedRfq.id); setShowModal(false); }}
+                  onClick={() => handleDelete(selectedRfq.id)}
+                  disabled={actionLoading}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
                   삭제
                 </Button>
               </div>
