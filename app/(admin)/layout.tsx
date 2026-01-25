@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -45,9 +46,7 @@ export default function AdminLayout({
         {/* Logo */}
         <div className="h-20 flex items-center px-6 border-b border-gray-700">
           <Link href="/admin" className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary-500 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">OD</span>
-            </div>
+            <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-xl p-1" />
             <div>
               <span className="font-bold text-xl text-white block">OnTheDeal</span>
               <span className="text-xs text-gray-400">Admin Console</span>

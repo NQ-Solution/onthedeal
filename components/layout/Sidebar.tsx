@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   FileText,
@@ -46,9 +47,7 @@ export function Sidebar({ userRole = 'buyer' }: SidebarProps) {
       {/* 로고 */}
       <div className="h-20 flex items-center px-6 border-b border-primary-400/30">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-primary-600 font-bold text-xl">OD</span>
-          </div>
+          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-xl p-1" />
           <span className="font-bold text-2xl text-white">OnTheDeal</span>
         </Link>
       </div>
@@ -60,7 +59,7 @@ export function Sidebar({ userRole = 'buyer' }: SidebarProps) {
             ? 'bg-white text-primary-600'
             : 'bg-white text-green-600'
         }`}>
-          {userRole === 'buyer' ? '🛒 구매자 모드' : '🏭 공급자 모드'}
+          {userRole === 'buyer' ? '🛒 구매자 모드' : '🏭 판매자 모드'}
         </div>
       </div>
 
@@ -93,7 +92,7 @@ export function Sidebar({ userRole = 'buyer' }: SidebarProps) {
       {/* 하단 정보 */}
       <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/20">
         <div className="text-base text-white/70 text-center">
-          © 2026 OnTheDeal | <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">NQ Solution</a>
+          © 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">NQ Solution</a>
         </div>
       </div>
     </aside>

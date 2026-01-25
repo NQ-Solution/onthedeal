@@ -1,97 +1,142 @@
 'use client'
 
-import { useState } from 'react'
-import { FileText, Edit, Eye, Save, X, Globe, Shield, FileCheck } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FileText, Edit, Eye, Save, X, Globe, Shield, FileCheck, Loader2, Plus, Trash2 } from 'lucide-react'
 import { Button, Card, CardContent, CardHeader, CardTitle, Textarea, Input, Badge } from '@/components/ui'
 
-interface ContentPage {
+interface Page {
   id: string
-  title: string
   slug: string
-  description: string
+  title: string
+  description: string | null
   content: string
-  lastUpdated: string
   status: 'published' | 'draft'
+  createdAt: string
+  updatedAt: string
 }
 
-const mockPages: ContentPage[] = [
-  {
-    id: 'terms',
-    title: '이용약관',
-    slug: '/terms',
-    description: '서비스 이용약관 페이지',
-    content: '제1조 (목적)\n본 약관은 온더딜(OnTheDeal, 이하 "회사")이 제공하는 B2B 식자재 거래 플랫폼 서비스의 이용과 관련하여...',
-    lastUpdated: '2024-02-01',
-    status: 'published',
-  },
-  {
-    id: 'privacy',
-    title: '개인정보처리방침',
-    slug: '/privacy',
-    description: '개인정보 처리방침 페이지',
-    content: '온더딜(OnTheDeal, 이하 "회사")은 이용자의 개인정보를 중요시하며, 「개인정보 보호법」 등 관련 법령을 준수하고 있습니다...',
-    lastUpdated: '2024-02-01',
-    status: 'published',
-  },
-  {
-    id: 'about',
-    title: '회사소개',
-    slug: '/about',
-    description: '온더딜 회사 소개 페이지',
-    content: 'OnTheDeal은 B2B 식자재 거래의 혁신을 이끄는 플랫폼입니다...',
-    lastUpdated: '2024-01-28',
-    status: 'published',
-  },
-  {
-    id: 'faq',
-    title: '자주 묻는 질문',
-    slug: '/faq',
-    description: 'FAQ 페이지',
-    content: 'Q: 가입 후 바로 거래할 수 있나요?\nA: 회원가입 후 사업자 승인 과정이 필요합니다...',
-    lastUpdated: '2024-02-05',
-    status: 'draft',
-  },
-]
+interface Stats {
+  total: number
+  published: number
+  draft: number
+}
+
+const pageIcons: Record<string, any> = {
+  terms: FileText,
+  privacy: Shield,
+  about: Globe,
+  faq: FileCheck,
+}
 
 export default function AdminContentPage() {
-  const [pages, setPages] = useState(mockPages)
-  const [selectedPage, setSelectedPage] = useState<ContentPage | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [pages, setPages] = useState<Page[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [selectedPage, setSelectedPage] = useState<Page | null>(null)
   const [editMode, setEditMode] = useState(false)
   const [editContent, setEditContent] = useState('')
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const handleEdit = (page: ContentPage) => {
+  useEffect(() => {
+    fetchPages()
+  }, [])
+
+  const fetchPages = async () => {
+    try {
+      const res = await fetch('/api/admin/content')
+      if (res.ok) {
+        const data = await res.json()
+        setPages(data.pages)
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Failed to fetch pages:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEdit = (page: Page) => {
     setSelectedPage(page)
     setEditContent(page.content)
+    setEditTitle(page.title)
+    setEditDescription(page.description || '')
     setEditMode(true)
   }
 
   const handleSave = async () => {
     if (!selectedPage) return
     setSaving(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
 
-    setPages(pages.map(p =>
-      p.id === selectedPage.id
-        ? { ...p, content: editContent, lastUpdated: new Date().toISOString().split('T')[0] }
-        : p
-    ))
+    try {
+      const res = await fetch('/api/admin/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedPage.id,
+          title: editTitle,
+          description: editDescription,
+          content: editContent,
+        }),
+      })
 
-    setSaving(false)
-    setEditMode(false)
-    setSelectedPage(null)
+      if (res.ok) {
+        fetchPages()
+        setEditMode(false)
+        setSelectedPage(null)
+      }
+    } catch (error) {
+      console.error('Failed to save page:', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handlePublish = (pageId: string) => {
-    setPages(pages.map(p =>
-      p.id === pageId
-        ? { ...p, status: p.status === 'published' ? 'draft' : 'published' }
-        : p
-    ))
+  const handlePublish = async (page: Page) => {
+    try {
+      const newStatus = page.status === 'published' ? 'draft' : 'published'
+      const res = await fetch('/api/admin/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: page.id, status: newStatus }),
+      })
+
+      if (res.ok) {
+        fetchPages()
+      }
+    } catch (error) {
+      console.error('Failed to update page status:', error)
+    }
   }
 
-  const publishedCount = pages.filter(p => p.status === 'published').length
-  const draftCount = pages.filter(p => p.status === 'draft').length
+  const handleDelete = async (pageId: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return
+
+    try {
+      const res = await fetch(`/api/admin/content?id=${pageId}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchPages()
+      }
+    } catch (error) {
+      console.error('Failed to delete page:', error)
+    }
+  }
+
+  const getPageIcon = (slug: string) => {
+    const iconKey = slug.replace('/', '')
+    const Icon = pageIcons[iconKey] || FileText
+    return Icon
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -102,7 +147,7 @@ export default function AdminContentPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">전체 페이지</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{pages.length}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <FileText className="w-7 h-7 text-blue-600" />
@@ -115,7 +160,7 @@ export default function AdminContentPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">게시됨</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{publishedCount}</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">{stats?.published || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
                 <Globe className="w-7 h-7 text-green-600" />
@@ -128,7 +173,7 @@ export default function AdminContentPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">초안</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-1">{draftCount}</p>
+                <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.draft || 0}</p>
               </div>
               <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center">
                 <FileCheck className="w-7 h-7 text-yellow-600" />
@@ -144,56 +189,66 @@ export default function AdminContentPage() {
           <CardTitle>콘텐츠 페이지 관리</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y divide-gray-100">
-            {pages.map((page) => (
-              <div key={page.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                      {page.id === 'terms' && <FileText className="w-6 h-6 text-primary-600" />}
-                      {page.id === 'privacy' && <Shield className="w-6 h-6 text-primary-600" />}
-                      {page.id === 'about' && <Globe className="w-6 h-6 text-primary-600" />}
-                      {page.id === 'faq' && <FileCheck className="w-6 h-6 text-primary-600" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-bold text-gray-900">{page.title}</h3>
-                        <Badge variant={page.status === 'published' ? 'success' : 'warning'}>
-                          {page.status === 'published' ? '게시됨' : '초안'}
-                        </Badge>
+          {pages.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">
+              <FileText className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+              <p className="text-lg">등록된 페이지가 없습니다</p>
+              <p className="text-sm mt-2">시드 데이터를 실행하여 기본 페이지를 생성하세요</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {pages.map((page) => {
+                const Icon = getPageIcon(page.slug)
+                return (
+                  <div key={page.id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                          <Icon className="w-6 h-6 text-primary-600" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-bold text-gray-900">{page.title}</h3>
+                            <Badge variant={page.status === 'published' ? 'success' : 'warning'}>
+                              {page.status === 'published' ? '게시됨' : '초안'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-500">{page.slug}</p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            최종 수정: {new Date(page.updatedAt).toLocaleDateString('ko-KR')}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-500">{page.slug}</p>
-                      <p className="text-sm text-gray-400 mt-1">최종 수정: {page.lastUpdated}</p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePublish(page)}
+                        >
+                          {page.status === 'published' ? '비게시' : '게시'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(page.slug, '_blank')}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleEdit(page)}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          편집
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePublish(page.id)}
-                    >
-                      {page.status === 'published' ? '비게시' : '게시'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(page.slug, '_blank')}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleEdit(page)}
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      편집
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -214,8 +269,8 @@ export default function AdminContentPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="페이지 제목"
-                    value={selectedPage.title}
-                    disabled
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
                   />
                   <Input
                     label="URL 경로"
@@ -223,9 +278,15 @@ export default function AdminContentPage() {
                     disabled
                   />
                 </div>
+                <Input
+                  label="설명"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="페이지 설명"
+                />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    페이지 내용
+                    페이지 내용 (HTML)
                   </label>
                   <Textarea
                     value={editContent}
@@ -236,7 +297,7 @@ export default function AdminContentPage() {
                   />
                 </div>
                 <p className="text-sm text-gray-500">
-                  * 실제 페이지는 React 컴포넌트로 작성되어 있습니다. 여기서 수정하면 데이터베이스의 콘텐츠가 업데이트됩니다.
+                  * HTML 태그를 사용할 수 있습니다. 저장 후 실제 페이지에서 확인하세요.
                 </p>
               </div>
             </CardContent>
@@ -252,9 +313,9 @@ export default function AdminContentPage() {
                 variant="primary"
                 className="flex-1"
                 onClick={handleSave}
-                isLoading={saving}
+                disabled={saving}
               >
-                <Save className="w-4 h-4 mr-2" />
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 저장
               </Button>
             </div>

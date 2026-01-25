@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui'
-import { Users, Shield, Zap, TrendingUp, Award, Heart, ArrowRight, CheckCircle } from 'lucide-react'
+import { Users, Shield, Zap, Heart, ArrowRight, CheckCircle, Code } from 'lucide-react'
 
 export default function AboutPage() {
   return (
@@ -37,17 +37,17 @@ export default function AboutPage() {
         <div className="text-center mb-16">
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">About Us</h1>
           <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            OnTheDeal은 B2B 식자재 거래의 혁신을 이끄는 플랫폼입니다.
-            신뢰할 수 있는 거래 환경을 통해 구매자와 공급자를 연결합니다.
+            OnTheDeal은 식자재 거래를 더 쉽고 공정하게 만드는 플랫폼입니다.
+            구매자와 판매자를 연결하여 모두에게 이로운 거래 환경을 제공합니다.
           </p>
         </div>
 
-        {/* Mission Section */}
+        {/* Mission & Vision Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 text-white">
             <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
             <p className="text-xl text-white/90 leading-relaxed mb-6">
-              복잡하고 불투명했던 B2B 식자재 거래를 투명하고 효율적으로 만들어,
+              복잡하고 불투명했던 식자재 거래를 투명하고 효율적으로 만들어,
               모든 참여자가 공정한 가치를 얻을 수 있는 생태계를 구축합니다.
             </p>
             <ul className="space-y-4">
@@ -68,19 +68,15 @@ export default function AboutPage() {
 
           <div className="bg-white rounded-3xl p-10 shadow-xl border-2 border-gray-100">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Vision</h2>
-            <p className="text-xl text-gray-600 leading-relaxed mb-6">
-              대한민국 모든 식자재 거래가 OnTheDeal을 통해 이루어지는 날을 목표로 합니다.
-              기술과 데이터를 활용해 더 나은 거래 경험을 제공하겠습니다.
+            <p className="text-xl text-gray-600 leading-relaxed">
+              식자재 거래의 새로운 기준을 만들어 갑니다.
+              기술과 데이터를 활용해 구매자에게는 더 좋은 조건을,
+              판매자에게는 더 많은 기회를 제공하는 플랫폼이 되겠습니다.
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-primary-50 rounded-2xl p-6 text-center">
-                <p className="text-4xl font-bold text-primary-600">1,000+</p>
-                <p className="text-lg text-gray-600 mt-2">등록 기업</p>
-              </div>
-              <div className="bg-green-50 rounded-2xl p-6 text-center">
-                <p className="text-4xl font-bold text-green-600">10억+</p>
-                <p className="text-lg text-gray-600 mt-2">누적 거래액</p>
-              </div>
+            <div className="mt-8 p-6 bg-gray-50 rounded-2xl">
+              <p className="text-lg text-gray-700 font-medium">
+                "쉽고 공정한 거래가 가능한 OnTheDeal"
+              </p>
             </div>
           </div>
         </div>
@@ -115,7 +111,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">상생</h3>
               <p className="text-lg text-gray-600">
-                구매자와 공급자 모두 win-win 합니다
+                구매자와 판매자 모두 win-win 합니다
               </p>
             </div>
 
@@ -134,37 +130,26 @@ export default function AboutPage() {
         {/* Team Section */}
         <div className="bg-white rounded-3xl p-10 shadow-xl border-2 border-gray-100 mb-16">
           <h2 className="text-4xl font-bold text-gray-900 text-center mb-10">Our Team</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             <div className="text-center">
               <div className="w-32 h-32 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <span className="text-5xl text-white font-bold">김</span>
+                <span className="text-5xl text-white font-bold">대</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">김대표</h3>
+              <h3 className="text-2xl font-bold text-gray-900">대표</h3>
               <p className="text-lg text-primary-600 font-medium">CEO & Founder</p>
               <p className="text-base text-gray-600 mt-3">
-                식자재 유통 20년 경력의 전문가
+                OnTheDeal 서비스 기획 및 운영
               </p>
             </div>
 
             <div className="text-center">
               <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <span className="text-5xl text-white font-bold">이</span>
+                <Code className="w-16 h-16 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">이개발</h3>
-              <p className="text-lg text-blue-600 font-medium">CTO</p>
+              <h3 className="text-2xl font-bold text-gray-900">NQ Solution</h3>
+              <p className="text-lg text-blue-600 font-medium">Development Partner</p>
               <p className="text-base text-gray-600 mt-3">
-                IT 스타트업 연쇄 창업자
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <span className="text-5xl text-white font-bold">박</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">박운영</h3>
-              <p className="text-lg text-green-600 font-medium">COO</p>
-              <p className="text-base text-gray-600 mt-3">
-                대기업 SCM 전문가 출신
+                초기 개발 및 기술 파트너
               </p>
             </div>
           </div>
@@ -174,7 +159,7 @@ export default function AboutPage() {
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-12 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">함께 성장할 파트너를 찾습니다</h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            OnTheDeal과 함께 B2B 식자재 거래의 미래를 만들어 가세요
+            OnTheDeal과 함께 더 나은 식자재 거래 환경을 만들어 가세요
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link href="/register">
@@ -200,12 +185,12 @@ export default function AboutPage() {
             <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
           </Link>
           <div className="flex gap-6">
-            <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600">회사소개</Link>
+            <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600">소개</Link>
             <Link href="/contact" className="text-lg text-gray-600 hover:text-primary-600">문의하기</Link>
             <Link href="/terms" className="text-lg text-gray-600 hover:text-primary-600">이용약관</Link>
             <Link href="/privacy" className="text-lg text-gray-600 hover:text-primary-600">개인정보처리방침</Link>
           </div>
-          <p className="text-lg text-gray-500">© 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
+          <p className="text-lg text-gray-500">© 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
         </div>
       </footer>
     </div>

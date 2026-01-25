@@ -442,3 +442,26 @@ model SupplierAccount {
 
   @@map("supplier_accounts")
 }
+
+// ============================================
+// CMS 페이지 (Pages)
+// ============================================
+
+model Page {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String?
+  content     String     @db.Text
+  status      PageStatus @default(draft)
+
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("pages")
+}
+
+enum PageStatus {
+  published
+  draft
+}

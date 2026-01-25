@@ -286,7 +286,7 @@ export default function ContactPage() {
             <Link href="/terms" className="text-lg text-gray-600 hover:text-primary-600">이용약관</Link>
             <Link href="/privacy" className="text-lg text-gray-600 hover:text-primary-600">개인정보처리방침</Link>
           </div>
-          <p className="text-lg text-gray-500">© 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
+          <p className="text-lg text-gray-500">© 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
         </div>
       </footer>
     </div>

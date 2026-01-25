@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui'
-import { FileText, MessageSquare, Shield, TrendingUp, Users, ArrowRight, CheckCircle } from 'lucide-react'
+import { FileText, MessageSquare, Shield, ArrowRight, CheckCircle } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -34,67 +34,31 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <main className="container mx-auto px-6 py-12">
-        {/* Main Hero - Bento Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-16">
-          {/* Hero Main Card */}
-          <div className="lg:col-span-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 text-white shadow-2xl">
-            <div className="max-w-xl">
-              <div className="inline-block bg-white/20 rounded-full px-4 py-2 mb-6">
-                <span className="text-lg font-medium">B2B 식자재 거래 플랫폼</span>
-              </div>
-              <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                식자재 거래,<br />더 쉽게
+        {/* Main Hero */}
+        <div className="mb-16">
+          <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 lg:p-16 text-white shadow-2xl">
+            <div className="max-w-2xl">
+              <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                사장님, 더 좋은<br />발주 조건이 필요하세요?
               </h1>
-              <p className="text-xl lg:text-2xl text-white/90 mb-8 leading-relaxed">
-                필요한 식자재를 올리면 공급자가 먼저 견적을 보내드립니다.<br />
-                비교하고, 선택하고, 안전하게 거래하세요.
+              <p className="text-xl lg:text-2xl text-white/90 mb-4 leading-relaxed">
+                판매자님, 더이상 상품판매 기다리지만 마세요.
+              </p>
+              <p className="text-2xl lg:text-3xl font-bold text-white mb-8">
+                이제 온더딜과 함께해요!
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/register?role=buyer">
                   <Button size="xl" variant="secondary" className="bg-white text-primary-600 hover:bg-gray-100">
-                    구매자로 시작
+                    발주서 작성하기
                     <ArrowRight className="w-6 h-6 ml-2" />
                   </Button>
                 </Link>
                 <Link href="/register?role=supplier">
                   <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/20">
-                    공급자로 시작
+                    판매자로 시작
                   </Button>
                 </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Card */}
-          <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">실시간 현황</h3>
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-primary-50 rounded-2xl">
-                <div>
-                  <p className="text-lg text-gray-600">등록된 발주</p>
-                  <p className="text-4xl font-bold text-primary-600">1,234</p>
-                </div>
-                <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
-                  <FileText className="w-8 h-8 text-primary-600" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-2xl">
-                <div>
-                  <p className="text-lg text-gray-600">활성 공급자</p>
-                  <p className="text-4xl font-bold text-green-600">567</p>
-                </div>
-                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <Users className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl">
-                <div>
-                  <p className="text-lg text-gray-600">거래 완료</p>
-                  <p className="text-4xl font-bold text-blue-600">8,901</p>
-                </div>
-                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
-                  <TrendingUp className="w-8 h-8 text-blue-600" />
-                </div>
               </div>
             </div>
           </div>
@@ -110,16 +74,21 @@ export default function HomePage() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">구매자</h3>
-                <p className="text-lg text-gray-500">필요한 식자재를 쉽게 구매</p>
+                <p className="text-lg text-gray-500">간편한 발주서 작성</p>
               </div>
             </div>
+            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+              사장님, 기존처럼 발주서 작성하세요.<br />
+              대신 <span className="font-bold text-primary-600">간편하게 등록</span>하고<br />
+              <span className="font-bold text-primary-600">다양한 조건을 한번에 비교</span>해보세요!
+            </p>
             <ul className="space-y-4 mb-8">
               <li className="flex items-start gap-4">
                 <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-white font-bold text-sm">1</span>
                 </div>
                 <div>
-                  <p className="text-lg font-medium text-gray-900">필요한 품목을 등록하세요</p>
+                  <p className="text-lg font-medium text-gray-900">발주서를 작성하세요</p>
                   <p className="text-base text-gray-500">품목, 수량, 희망가격을 입력하면 끝</p>
                 </div>
               </li>
@@ -129,7 +98,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <p className="text-lg font-medium text-gray-900">견적을 비교하세요</p>
-                  <p className="text-base text-gray-500">여러 공급자의 가격과 조건을 한눈에</p>
+                  <p className="text-base text-gray-500">여러 판매자의 가격과 조건을 한눈에</p>
                 </div>
               </li>
               <li className="flex items-start gap-4">
@@ -144,7 +113,7 @@ export default function HomePage() {
             </ul>
             <Link href="/register?role=buyer">
               <Button size="lg" className="w-full">
-                구매자로 시작하기
+                발주서 작성하기
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -157,10 +126,15 @@ export default function HomePage() {
                 <span className="text-3xl">🏭</span>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">공급자</h3>
-                <p className="text-lg text-gray-500">새로운 거래처를 만나세요</p>
+                <h3 className="text-2xl font-bold text-gray-900">판매자</h3>
+                <p className="text-lg text-gray-500">빠른 판매 결정</p>
               </div>
             </div>
+            <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+              판매자님, 기다리지 마세요.<br />
+              <span className="font-bold text-green-600">납품 가능한 조건을 확인</span>하고<br />
+              <span className="font-bold text-green-600">바로 견적을 제출</span>하세요!
+            </p>
             <ul className="space-y-4 mb-8">
               <li className="flex items-start gap-4">
                 <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -192,7 +166,7 @@ export default function HomePage() {
             </ul>
             <Link href="/register?role=supplier">
               <Button size="lg" className="w-full bg-green-600 hover:bg-green-700">
-                공급자로 시작하기
+                판매자로 시작하기
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -210,7 +184,7 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
                 <FileText className="w-8 h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">간편한 견적 시스템</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">간편한 발주 시스템</h3>
               <p className="text-base text-gray-600">
                 복잡한 과정 없이 필요한 것만 입력하면<br />
                 다양한 견적을 받아볼 수 있어요
@@ -242,7 +216,7 @@ export default function HomePage() {
         {/* Trust Section */}
         <div className="bg-gray-50 rounded-3xl p-10 mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">구매자와 공급자 모두를 보호합니다</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">구매자와 판매자 모두를 보호합니다</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
@@ -254,7 +228,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-3 text-base text-gray-600">
                   <CheckCircle className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-                  검증된 공급자만 참여
+                  검증된 판매자만 참여
                 </li>
                 <li className="flex items-start gap-3 text-base text-gray-600">
                   <CheckCircle className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
@@ -263,7 +237,7 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h4 className="text-lg font-bold text-gray-900 mb-4">공급자 보호</h4>
+              <h4 className="text-lg font-bold text-gray-900 mb-4">판매자 보호</h4>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-base text-gray-600">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -284,7 +258,7 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-3xl p-12 text-center shadow-2xl">
-          <h2 className="text-3xl font-bold text-white mb-4">지금 바로 시작하세요</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">쉽고 공정한 거래가 가능한 OnTheDeal</h2>
           <p className="text-xl text-white/90 mb-8 max-w-xl mx-auto">
             회원가입은 무료입니다. 거래가 성사될 때만 수수료가 발생해요.
           </p>
@@ -317,7 +291,7 @@ export default function HomePage() {
             <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600">소개</Link>
             <Link href="/contact" className="text-lg text-gray-600 hover:text-primary-600">문의하기</Link>
           </div>
-          <p className="text-lg text-gray-500">© 2026 OnTheDeal | <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
+          <p className="text-lg text-gray-500">© 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
         </div>
       </footer>
     </div>
