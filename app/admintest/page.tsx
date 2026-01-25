@@ -1,20 +1,43 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { signIn } from 'next-auth/react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui'
-import { User, Building2, Shield, Code, ArrowRight } from 'lucide-react'
+import { User, Building2, Shield, Code, ArrowRight, Loader2 } from 'lucide-react'
+
+const TEST_ACCOUNTS = {
+  buyer: { email: 'buyer@test.com', password: 'test1234', redirect: '/buyer/rfqs' },
+  supplier: { email: 'supplier@test.com', password: 'test1234', redirect: '/supplier/rfqs' },
+  admin: { email: 'admin@test.com', password: 'test1234', redirect: '/admin' },
+}
 
 export default function AdminTestPage() {
-  const router = useRouter()
+  const [loading, setLoading] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleDevLogin = (role: 'buyer' | 'supplier' | 'admin') => {
-    if (role === 'admin') {
-      router.push('/admin')
-    } else if (role === 'supplier') {
-      router.push('/supplier/rfqs')
-    } else {
-      router.push('/buyer/rfqs')
+  const handleDevLogin = async (role: 'buyer' | 'supplier' | 'admin') => {
+    setLoading(role)
+    setError(null)
+
+    const account = TEST_ACCOUNTS[role]
+
+    try {
+      const result = await signIn('credentials', {
+        email: account.email,
+        password: account.password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError(`로그인 실패: ${result.error}`)
+        setLoading(null)
+      } else {
+        window.location.href = account.redirect
+      }
+    } catch (err) {
+      setError('로그인 중 오류가 발생했습니다')
+      setLoading(null)
     }
   }
 
@@ -36,16 +59,27 @@ export default function AdminTestPage() {
               </p>
             </div>
 
+            {error && (
+              <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+
             <div className="space-y-4">
               <Button
                 size="xl"
                 variant="outline"
                 onClick={() => handleDevLogin('buyer')}
+                disabled={loading !== null}
                 className="w-full justify-between h-20 text-lg border-2 hover:border-primary-500 hover:bg-primary-50"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                    <User className="w-6 h-6 text-primary-600" />
+                    {loading === 'buyer' ? (
+                      <Loader2 className="w-6 h-6 text-primary-600 animate-spin" />
+                    ) : (
+                      <User className="w-6 h-6 text-primary-600" />
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="font-bold text-gray-900">구매자 (Buyer)</p>
@@ -59,11 +93,16 @@ export default function AdminTestPage() {
                 size="xl"
                 variant="outline"
                 onClick={() => handleDevLogin('supplier')}
+                disabled={loading !== null}
                 className="w-full justify-between h-20 text-lg border-2 hover:border-green-500 hover:bg-green-50"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-green-600" />
+                    {loading === 'supplier' ? (
+                      <Loader2 className="w-6 h-6 text-green-600 animate-spin" />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-green-600" />
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="font-bold text-gray-900">공급자 (Supplier)</p>
@@ -77,11 +116,16 @@ export default function AdminTestPage() {
                 size="xl"
                 variant="outline"
                 onClick={() => handleDevLogin('admin')}
+                disabled={loading !== null}
                 className="w-full justify-between h-20 text-lg border-2 border-red-200 hover:border-red-500 hover:bg-red-50"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-red-600" />
+                    {loading === 'admin' ? (
+                      <Loader2 className="w-6 h-6 text-red-600 animate-spin" />
+                    ) : (
+                      <Shield className="w-6 h-6 text-red-600" />
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="font-bold text-gray-900">관리자 (Admin)</p>
