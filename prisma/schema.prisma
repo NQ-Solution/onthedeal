@@ -1,0 +1,444 @@
+// Prisma Schema for OnTheDeal
+// PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 사용자 (Users/Profiles)
+// ============================================
+
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  role                  UserRole  @default(buyer)
+
+  // 사업자 정보
+  companyName           String    @map("company_name")
+  businessNumber        String?   @map("business_number")
+  representativeName    String?   @map("representative_name")
+  businessType          String?   @map("business_type")
+  businessCategory      String?   @map("business_category")
+
+  // 담당자 정보
+  contactName           String    @map("contact_name")
+  phone                 String
+  fax                   String?
+
+  // 주소 정보
+  postalCode            String?   @map("postal_code")
+  storeAddress          String?   @map("store_address")
+  storeDetailAddress    String?   @map("store_detail_address")
+  address               String?
+
+  // 추가 정보
+  website               String?
+  introduction          String?
+
+  // 이미지
+  profileImage          String?   @map("profile_image")
+  businessLicenseImage  String?   @map("business_license_image")
+  storeImages           String[]  @map("store_images")
+
+  // 승인 상태
+  approvalStatus        ApprovalStatus @default(pending) @map("approval_status")
+  approvedAt            DateTime?      @map("approved_at")
+  approvedById          String?        @map("approved_by")
+  approvedBy            User?          @relation("ApprovedUsers", fields: [approvedById], references: [id])
+  approvedUsers         User[]         @relation("ApprovedUsers")
+  rejectionReason       String?        @map("rejection_reason")
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  rfqs                  RFQ[]              @relation("BuyerRFQs")
+  quotes                Quote[]            @relation("SupplierQuotes")
+  buyerChatRooms        ChatRoom[]         @relation("BuyerChatRooms")
+  supplierChatRooms     ChatRoom[]         @relation("SupplierChatRooms")
+  chatMessages          ChatMessage[]
+  buyerOrders           Order[]            @relation("BuyerOrders")
+  supplierOrders        Order[]            @relation("SupplierOrders")
+  notifications         Notification[]
+  credit                Credit?
+  creditLogs            CreditLog[]
+  supplierAccount       SupplierAccount?
+
+  @@map("users")
+}
+
+enum UserRole {
+  buyer
+  supplier
+  admin
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+// ============================================
+// 발주 (RFQs)
+// ============================================
+
+model RFQ {
+  id              String    @id @default(cuid())
+  buyerId         String    @map("buyer_id")
+  buyer           User      @relation("BuyerRFQs", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  title           String
+  category        String
+  description     String
+  quantity        Int
+  unit            String
+  desiredPrice    Int?      @map("desired_price")
+  budgetMin       Int?      @map("budget_min")
+  budgetMax       Int?      @map("budget_max")
+  items           Json?
+
+  deliveryDate    DateTime  @map("delivery_date")
+  deliveryAddress String    @map("delivery_address")
+
+  status          RFQStatus @default(open)
+  viewCount       Int       @default(0) @map("view_count")
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  quotes          Quote[]
+  chatRooms       ChatRoom[]
+  orders          Order[]
+
+  @@map("rfqs")
+}
+
+enum RFQStatus {
+  open
+  in_progress
+  closed
+  cancelled
+}
+
+// ============================================
+// 견적 (Quotes)
+// ============================================
+
+model Quote {
+  id              String      @id @default(cuid())
+  rfqId           String      @map("rfq_id")
+  rfq             RFQ         @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  supplierId      String      @map("supplier_id")
+  supplier        User        @relation("SupplierQuotes", fields: [supplierId], references: [id], onDelete: Cascade)
+
+  unitPrice       Int         @map("unit_price")
+  totalPrice      Int         @map("total_price")
+  deliveryDate    DateTime    @map("delivery_date")
+  note            String?
+
+  status          QuoteStatus @default(pending)
+  acceptedAt      DateTime?   @map("accepted_at")
+
+  // 견적 옵션
+  optionType      QuoteOptionType @default(basic) @map("option_type")
+  commissionRate  Float?          @map("commission_rate")
+  isPremium       Boolean         @default(false) @map("is_premium")
+
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  chatRooms       ChatRoom[]
+  orders          Order[]
+
+  @@unique([rfqId, supplierId])
+  @@map("quotes")
+}
+
+enum QuoteStatus {
+  pending
+  accepted
+  rejected
+  expired
+}
+
+enum QuoteOptionType {
+  basic
+  premium
+}
+
+// ============================================
+// 채팅방 (Chat Rooms)
+// ============================================
+
+model ChatRoom {
+  id              String        @id @default(cuid())
+  rfqId           String        @map("rfq_id")
+  rfq             RFQ           @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  quoteId         String        @map("quote_id")
+  quote           Quote         @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  buyerId         String        @map("buyer_id")
+  buyer           User          @relation("BuyerChatRooms", fields: [buyerId], references: [id], onDelete: Cascade)
+  supplierId      String        @map("supplier_id")
+  supplier        User          @relation("SupplierChatRooms", fields: [supplierId], references: [id], onDelete: Cascade)
+
+  status          ChatRoomStatus @default(active)
+  dealConfirmedAt DateTime?      @map("deal_confirmed_at")
+  expiresAt       DateTime       @map("expires_at")
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  messages        ChatMessage[]
+  orders          Order[]
+
+  @@unique([rfqId, supplierId])
+  @@map("chat_rooms")
+}
+
+enum ChatRoomStatus {
+  active
+  deal_confirmed
+  expired
+  closed
+}
+
+// ============================================
+// 채팅 메시지 (Chat Messages)
+// ============================================
+
+model ChatMessage {
+  id          String    @id @default(cuid())
+  chatRoomId  String    @map("chat_room_id")
+  chatRoom    ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  senderId    String    @map("sender_id")
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  content     String
+  isRead      Boolean   @default(false) @map("is_read")
+  readAt      DateTime? @map("read_at")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("chat_messages")
+}
+
+// ============================================
+// 주문 (Orders)
+// ============================================
+
+model Order {
+  id              String        @id @default(cuid())
+  chatRoomId      String        @map("chat_room_id")
+  chatRoom        ChatRoom      @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  rfqId           String        @map("rfq_id")
+  rfq             RFQ           @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  quoteId         String        @map("quote_id")
+  quote           Quote         @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  buyerId         String        @map("buyer_id")
+  buyer           User          @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  supplierId      String        @map("supplier_id")
+  supplier        User          @relation("SupplierOrders", fields: [supplierId], references: [id], onDelete: Cascade)
+
+  productAmount   Int           @map("product_amount")
+  totalAmount     Int           @map("total_amount")
+  commissionAmount Int          @map("commission_amount")
+  buyerFee        Int?          @map("buyer_fee")
+  supplierFee     Int?          @map("supplier_fee")
+
+  status          OrderStatus   @default(pending)
+  paymentMethod   PaymentMethod @map("payment_method")
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  logs            OrderLog[]
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  pending
+  paid
+  preparing
+  shipping
+  delivered
+  confirmed
+  completed
+  cancelled
+}
+
+enum PaymentMethod {
+  escrow
+  direct
+}
+
+// ============================================
+// 주문 로그 (Order Logs)
+// ============================================
+
+model OrderLog {
+  id        String   @id @default(cuid())
+  orderId   String   @map("order_id")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("order_logs")
+}
+
+// ============================================
+// 알림 (Notifications)
+// ============================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  new_quote
+  new_message
+  deal_confirmed
+  order_update
+  chat_expiring
+  chat_expired
+  system
+}
+
+// ============================================
+// 문의 (Inquiries)
+// ============================================
+
+model Inquiry {
+  id          String        @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+
+  status      InquiryStatus @default(pending)
+  response    String?
+  respondedAt DateTime?     @map("responded_at")
+  respondedBy String?       @map("responded_by")
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  @@map("inquiries")
+}
+
+enum InquiryStatus {
+  pending
+  in_progress
+  resolved
+  closed
+}
+
+// ============================================
+// 크레딧 (Credits)
+// ============================================
+
+model Credit {
+  id          String   @id @default(cuid())
+  supplierId  String   @unique @map("supplier_id")
+  supplier    User     @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  balance     Int      @default(0)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("credits")
+}
+
+// ============================================
+// 크레딧 로그 (Credit Logs)
+// ============================================
+
+model CreditLog {
+  id           String        @id @default(cuid())
+  supplierId   String        @map("supplier_id")
+  supplier     User          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  amount       Int
+  type         CreditLogType
+  description  String?
+  referenceId  String?       @map("reference_id")
+  balanceAfter Int           @map("balance_after")
+
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  @@map("credit_logs")
+}
+
+enum CreditLogType {
+  charge
+  use
+  refund
+}
+
+// ============================================
+// 크레딧 충전 요청 (Credit Charges)
+// ============================================
+
+model CreditCharge {
+  id            String             @id @default(cuid())
+  supplierId    String             @map("supplier_id")
+  amount        Int
+  status        CreditChargeStatus @default(pending)
+  paymentMethod String?            @map("payment_method")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  completedAt   DateTime?          @map("completed_at")
+
+  @@map("credit_charges")
+}
+
+enum CreditChargeStatus {
+  pending
+  completed
+  cancelled
+}
+
+// ============================================
+// 공급자 계좌 정보 (Supplier Accounts)
+// ============================================
+
+model SupplierAccount {
+  id            String   @id @default(cuid())
+  supplierId    String   @unique @map("supplier_id")
+  supplier      User     @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  bankName      String   @map("bank_name")
+  accountNumber String   @map("account_number")
+  accountHolder String   @map("account_holder")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("supplier_accounts")
+}
