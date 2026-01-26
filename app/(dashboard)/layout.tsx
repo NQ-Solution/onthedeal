@@ -60,7 +60,7 @@ export default function DashboardLayout({
   }, [pathname])
 
   const handleLogout = () => {
-    // 실제로는 Supabase Auth signOut
+    // NextAuth signOut 호출
     alert('로그아웃 되었습니다.')
     router.push('/login')
   }

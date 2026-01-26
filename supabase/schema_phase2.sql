@@ -82,7 +82,7 @@ CREATE POLICY "Users can view logs for their orders" ON order_logs FOR SELECT US
   EXISTS (SELECT 1 FROM orders WHERE orders.id = order_logs.order_id AND (orders.buyer_id = auth.uid() OR orders.supplier_id = auth.uid()))
 );
 
--- 크레딧 사용 함수 (견적 수락 시)
+-- 크레딧 사용 함수 (제안 수락 시)
 CREATE OR REPLACE FUNCTION use_credit(p_supplier_id UUID, p_amount INTEGER, p_description TEXT, p_reference_id UUID)
 RETURNS BOOLEAN AS $$
 DECLARE

@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { Button, Input } from '@/components/ui'
-import { LogIn, FileText, MessageSquare, ShieldCheck } from 'lucide-react'
+import { LogIn } from 'lucide-react'
+import { DEMO_MODE, DEMO_ACCOUNTS } from '@/lib/demo-mode'
 
 function LoginForm() {
   const router = useRouter()
@@ -20,10 +21,35 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // 데모 모드: 바로 대시보드로 이동
+  const handleDemoLogin = (role: 'buyer' | 'supplier' | 'admin') => {
+    if (role === 'buyer') {
+      router.push('/buyer/rfqs')
+    } else if (role === 'supplier') {
+      router.push('/supplier/rfqs')
+    } else {
+      router.push('/admin')
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    // 데모 모드에서는 계정에 따라 바로 이동
+    if (DEMO_MODE) {
+      if (formData.email.includes('buyer') || formData.email === DEMO_ACCOUNTS.buyer.email) {
+        router.push('/buyer/rfqs')
+      } else if (formData.email.includes('supplier') || formData.email === DEMO_ACCOUNTS.supplier.email) {
+        router.push('/supplier/rfqs')
+      } else {
+        // 기본 구매자로 이동
+        router.push('/buyer/rfqs')
+      }
+      setLoading(false)
+      return
+    }
 
     try {
       const result = await signIn('credentials', {
@@ -64,6 +90,31 @@ function LoginForm() {
         <h1 className="text-4xl font-bold text-gray-900 mb-3">로그인</h1>
         <p className="text-xl text-gray-500">OnTheDeal에 오신 것을 환영합니다</p>
       </div>
+
+      {/* 데모 모드 배너 & 빠른 접속 */}
+      {DEMO_MODE && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+          <p className="text-blue-700 font-bold text-xl text-center mb-4">
+            데모 버전 - 아래 버튼으로 바로 접속하세요
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={() => handleDemoLogin('buyer')}
+              className="p-4 bg-white border-2 border-primary-200 rounded-xl hover:border-primary-400 hover:bg-primary-50 transition-colors"
+            >
+              <p className="text-xl font-bold text-primary-600">구매자</p>
+              <p className="text-gray-500">발주서 작성, 제안 비교</p>
+            </button>
+            <button
+              onClick={() => handleDemoLogin('supplier')}
+              className="p-4 bg-white border-2 border-green-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition-colors"
+            >
+              <p className="text-xl font-bold text-green-600">공급자</p>
+              <p className="text-gray-500">발주 확인, 제안 제출</p>
+            </button>
+          </div>
+        </div>
+      )}
 
       <Card className="shadow-xl border-2">
         <form onSubmit={handleSubmit}>
@@ -116,26 +167,10 @@ function LoginForm() {
         </form>
       </Card>
 
-      {/* 간단한 서비스 소개 */}
-      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-        <div className="flex items-center gap-6 justify-center text-base text-gray-600">
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary-500" />
-            <span>간편한 견적</span>
-          </div>
-          <div className="w-px h-4 bg-gray-300" />
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-blue-500" />
-            <span>실시간 채팅</span>
-          </div>
-          <div className="w-px h-4 bg-gray-300" />
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-green-500" />
-            <span>안전한 거래</span>
-          </div>
-        </div>
-        <p className="text-center text-base text-gray-500 mt-3">
-          처음이신가요? <Link href="/" className="text-primary-600 hover:underline">서비스 소개 보기</Link>
+      {/* 서비스 소개 링크 */}
+      <div className="text-center">
+        <p className="text-lg text-gray-500">
+          처음이신가요? <Link href="/" className="text-primary-600 hover:underline font-medium">서비스 소개 보기</Link>
         </p>
       </div>
     </div>

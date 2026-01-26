@@ -48,7 +48,7 @@ export default function SupplierRFQDetailPage() {
     setIsSubmitting(true)
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    alert(`견적이 제출되었습니다.\n\n선차감 크레딧: ${depositAmount.toLocaleString()}원\n\n※ 3일 내 거래 미확정 시 크레딧이 환불됩니다.`)
+    alert(`제안이 제출되었습니다.\n\n선차감 크레딧: ${depositAmount.toLocaleString()}원\n\n※ 3일 내 거래 미확정 시 크레딧이 환불됩니다.`)
     router.push('/supplier/quotes')
   }
 
@@ -103,10 +103,10 @@ export default function SupplierRFQDetailPage() {
           </CardContent>
         </Card>
 
-        {/* 견적 제출 폼 */}
+        {/* 제안 제출 폼 */}
         <Card>
           <CardHeader>
-            <CardTitle>견적 제출</CardTitle>
+            <CardTitle>제안 제출</CardTitle>
             <p className="text-sm text-gray-500 mt-1">
               현재 보유 크레딧: <strong className="text-primary-600">{currentCredit.toLocaleString()}원</strong>
             </p>
@@ -114,7 +114,7 @@ export default function SupplierRFQDetailPage() {
           <CardContent>
             <form onSubmit={handleSubmitQuote} className="space-y-6">
               <Input
-                label="견적가 (원)"
+                label="제안가 (원)"
                 type="number"
                 placeholder="650000"
                 value={quoteForm.price}
@@ -123,7 +123,7 @@ export default function SupplierRFQDetailPage() {
               />
 
               <Textarea
-                label="견적 설명"
+                label="제안 설명"
                 placeholder="상품의 특징, 품질, 배송 조건 등을 설명해주세요."
                 value={quoteForm.description}
                 onChange={(e) => setQuoteForm(prev => ({ ...prev, description: e.target.value }))}
@@ -155,7 +155,7 @@ export default function SupplierRFQDetailPage() {
                         <span>3%</span>
                       </div>
                       <div className="flex justify-between font-bold pt-2 border-t border-blue-200">
-                        <span>견적 제출 시 차감</span>
+                        <span>제안 제출 시 차감</span>
                         <span className="text-blue-800">{depositAmount.toLocaleString()}원</span>
                       </div>
                     </div>
@@ -208,7 +208,7 @@ export default function SupplierRFQDetailPage() {
                 disabled={depositAmount > currentCredit}
               >
                 <Send className="w-4 h-4 mr-2" />
-                견적 제출하기 ({depositAmount.toLocaleString()}원 선차감)
+                제안 제출하기 ({depositAmount.toLocaleString()}원 선차감)
               </Button>
             </form>
           </CardContent>

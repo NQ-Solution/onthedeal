@@ -48,7 +48,7 @@ export default function BuyerRFQsPage() {
 
       {/* 벤토 그리드 - 요약 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* 새 견적요청 버튼 카드 */}
+        {/* 새 제안요청 버튼 카드 */}
         <Link href="/buyer/rfqs/new" className="block">
           <Card className="h-full bg-gradient-to-br from-primary-500 to-primary-600 border-0 hover:shadow-xl transition-all cursor-pointer group">
             <CardContent className="flex flex-col items-center justify-center py-10">
@@ -91,12 +91,12 @@ export default function BuyerRFQsPage() {
           </CardContent>
         </Card>
 
-        {/* 받은 견적 */}
+        {/* 받은 제안 */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">받은 견적</p>
+                <p className="text-lg text-gray-500">받은 제안</p>
                 <p className="text-4xl font-bold text-primary-600 mt-2">{totalQuotes}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -141,7 +141,7 @@ export default function BuyerRFQsPage() {
                           <Badge variant="info" className="text-base px-4 py-2">{rfq.category}</Badge>
                         </div>
                         <span className="text-lg font-bold text-primary-600">
-                          견적 {rfq.quote_count || 0}개
+                          제안 {rfq.quote_count || 0}개
                         </span>
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-3">{rfq.title}</h3>

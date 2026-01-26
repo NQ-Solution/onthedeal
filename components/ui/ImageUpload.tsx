@@ -36,7 +36,7 @@ export function ImageUpload({
     const newFiles = Array.from(files)
     const remainingSlots = multiple ? maxFiles - images.length : 1
 
-    // 파일을 Data URL로 변환 (실제 프로덕션에서는 Supabase Storage 사용)
+    // 파일을 Data URL로 변환 (실제 프로덕션에서는 클라우드 스토리지 사용)
     const filesToProcess = newFiles.slice(0, remainingSlots)
 
     filesToProcess.forEach((file) => {

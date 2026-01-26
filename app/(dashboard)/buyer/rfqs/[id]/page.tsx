@@ -70,12 +70,12 @@ export default function BuyerRFQDetailPage() {
   const [selectedQuote, setSelectedQuote] = useState<string | null>(null)
 
   const handleAcceptQuote = (quoteId: string) => {
-    alert(`견적 ${quoteId}를 수락합니다. 채팅방으로 이동합니다.`)
+    alert(`제안 ${quoteId}를 수락합니다. 채팅방으로 이동합니다.`)
     router.push(`/chat/room-${quoteId}`)
   }
 
   const handleRejectQuote = (quoteId: string) => {
-    alert(`견적 ${quoteId}를 거절했습니다.`)
+    alert(`제안 ${quoteId}를 거절했습니다.`)
   }
 
   return (
@@ -123,7 +123,7 @@ export default function BuyerRFQDetailPage() {
               <p className="font-medium">{mockRFQ.delivery_address}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">받은 견적</p>
+              <p className="text-sm text-gray-500">받은 제안</p>
               <p className="font-medium text-primary-600">{mockRFQ.quotes.length}개</p>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function BuyerRFQDetailPage() {
       </Card>
 
       <div>
-        <h2 className="text-lg font-semibold mb-4">받은 견적 ({mockRFQ.quotes.length})</h2>
+        <h2 className="text-lg font-semibold mb-4">받은 제안 ({mockRFQ.quotes.length})</h2>
         <div className="space-y-4">
           {mockRFQ.quotes.map((quote) => (
             <Card key={quote.id} className={selectedQuote === quote.id ? 'ring-2 ring-primary-500' : ''}>
@@ -147,7 +147,7 @@ export default function BuyerRFQDetailPage() {
                     <p className="text-gray-600">{quote.description}</p>
                     <div className="flex gap-6 text-sm">
                       <div>
-                        <span className="text-gray-500">견적가: </span>
+                        <span className="text-gray-500">제안가: </span>
                         <span className="font-semibold text-primary-600">
                           {quote.price.toLocaleString()}원
                         </span>

@@ -23,10 +23,10 @@ ALTER TABLE rfqs ADD COLUMN IF NOT EXISTS budget_max INTEGER;
 -- RFQs에 품목 리스트 지원을 위한 JSON 필드 추가
 ALTER TABLE rfqs ADD COLUMN IF NOT EXISTS items JSONB;
 
--- RFQs에 조회수 및 견적 수 카운트 필드 추가
+-- RFQs에 조회수 및 제안 수 카운트 필드 추가
 ALTER TABLE rfqs ADD COLUMN IF NOT EXISTS view_count INTEGER DEFAULT 0;
 
--- Quotes에 견적 수락 관련 필드 추가
+-- Quotes에 제안 수락 관련 필드 추가
 ALTER TABLE quotes ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMPTZ;
 
 -- Orders에 수수료 구분 필드 추가 (구매자 3.5%, 공급자 3%)

@@ -125,8 +125,8 @@ export default function AdminRFQsPage() {
 
   const formatPrice = (min: number | null, max: number | null) => {
     if (!min && !max) return '-'
-    const minStr = min ? `${(min / 10000).toFixed(0)}만` : ''
-    const maxStr = max ? `${(max / 10000).toFixed(0)}만원` : ''
+    const minStr = min ? `${min.toLocaleString()}원` : ''
+    const maxStr = max ? `${max.toLocaleString()}원` : ''
     if (min && max) return `${minStr} ~ ${maxStr}`
     return minStr || maxStr
   }
@@ -186,7 +186,7 @@ export default function AdminRFQsPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">총 견적</p>
+                <p className="text-sm text-gray-500">총 제안</p>
                 <p className="text-3xl font-bold text-primary-600 mt-1">{stats?.totalQuotes || 0}</p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -245,7 +245,7 @@ export default function AdminRFQsPage() {
                   <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">카테고리</th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">예산</th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">견적</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">제안</th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">관리</th>
                 </tr>
               </thead>

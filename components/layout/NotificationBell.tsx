@@ -19,8 +19,8 @@ const mockNotifications = [
   {
     id: '2',
     type: 'new_quote',
-    title: '새 견적이 도착했습니다',
-    message: '한우 등심 대량 구매에 대한 견적이 도착했습니다.',
+    title: '새 제안이 도착했습니다',
+    message: '한우 등심 대량 구매에 대한 제안이 도착했습니다.',
     link: '/buyer/quotes',
     is_read: false,
     created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30분 전

@@ -41,11 +41,29 @@ export async function GET(request: NextRequest) {
         id: true,
         email: true,
         role: true,
+        // 사업자 정보
         companyName: true,
         businessNumber: true,
+        representativeName: true,
+        businessType: true,
+        businessCategory: true,
+        // 담당자 정보
         contactName: true,
         phone: true,
+        fax: true,
+        // 주소 정보
+        postalCode: true,
+        storeAddress: true,
+        storeDetailAddress: true,
         address: true,
+        // 추가 정보
+        website: true,
+        introduction: true,
+        // 이미지
+        profileImage: true,
+        businessLicenseImage: true,
+        storeImages: true,
+        // 승인 상태
         approvalStatus: true,
         approvedAt: true,
         rejectionReason: true,

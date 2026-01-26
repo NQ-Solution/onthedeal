@@ -278,11 +278,11 @@ export default function AdminSettingsPage() {
                 </div>
                 <div className="p-4 bg-gray-50 rounded-xl">
                   <p className="text-sm text-gray-500">마지막 백업</p>
-                  <p className="text-lg font-mono">2024-02-10</p>
+                  <p className="text-lg font-mono">{new Date().toLocaleDateString('ko-KR')}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-xl">
-                  <p className="text-sm text-gray-500">저장소</p>
-                  <p className="text-lg font-mono">2.5/10 GB</p>
+                  <p className="text-sm text-gray-500">환경</p>
+                  <p className="text-lg font-mono text-blue-600">Production</p>
                 </div>
               </div>
             </CardContent>
@@ -322,7 +322,7 @@ export default function AdminSettingsPage() {
                 <div className="flex items-center gap-3">
                   <Star className="w-8 h-8 opacity-80" />
                   <div>
-                    <p className="text-primary-100">기본 견적 수수료</p>
+                    <p className="text-primary-100">기본 제안 수수료</p>
                     <p className="text-3xl font-bold">{feeSettings.supplier.basic}%</p>
                   </div>
                 </div>
@@ -414,7 +414,7 @@ export default function AdminSettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Percent className="w-5 h-5 text-primary-600" />
-                  공급자 수수료 (견적 옵션)
+                  공급자 수수료 (제안 옵션)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -424,7 +424,7 @@ export default function AdminSettingsPage() {
                       <Star className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">기본 견적</p>
+                      <p className="font-bold text-gray-900">기본 제안</p>
                       <p className="text-sm text-gray-500">일반 노출</p>
                     </div>
                   </div>

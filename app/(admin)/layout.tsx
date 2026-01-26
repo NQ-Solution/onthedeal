@@ -17,13 +17,21 @@ import {
   Bell,
   ChevronDown
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+interface Notification {
+  id: string
+  type: 'user' | 'inquiry' | 'order' | 'rfq'
+  message: string
+  createdAt: string
+  link: string
+}
 
 const adminMenus = [
   { href: '/admin', label: '대시보드', icon: LayoutDashboard },
   { href: '/admin/users', label: '회원 관리', icon: Users },
-  { href: '/admin/rfqs', label: 'RFQ 관리', icon: FileText },
-  { href: '/admin/quotes', label: '견적 관리', icon: Receipt },
+  { href: '/admin/rfqs', label: '발주 관리', icon: FileText },
+  { href: '/admin/quotes', label: '제안 관리', icon: Receipt },
   { href: '/admin/orders', label: '주문 관리', icon: Package },
   { href: '/admin/chats', label: '채팅 관리', icon: MessageSquare },
   { href: '/admin/inquiries', label: '문의 관리', icon: Mail },
@@ -38,6 +46,42 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notificationCount, setNotificationCount] = useState(0)
+
+  useEffect(() => {
+    fetchNotifications()
+    // 30초마다 알림 갱신
+    const interval = setInterval(fetchNotifications, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch('/api/admin/notifications')
+      if (res.ok) {
+        const data = await res.json()
+        setNotifications(data.notifications)
+        setNotificationCount(data.totalCount)
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error)
+    }
+  }
+
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (minutes < 1) return '방금 전'
+    if (minutes < 60) return `${minutes}분 전`
+    if (hours < 24) return `${hours}시간 전`
+    return `${days}일 전`
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -109,9 +153,11 @@ export default function AdminLayout({
                 className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <Bell className="w-6 h-6" />
-                <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  5
-                </span>
+                {notificationCount > 0 && (
+                  <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </span>
+                )}
               </button>
 
               {showNotifications && (
@@ -120,24 +166,35 @@ export default function AdminLayout({
                     <h3 className="font-bold text-gray-900">알림</h3>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    <div className="p-4 hover:bg-gray-50 border-b border-gray-100">
-                      <p className="text-sm text-gray-900">새로운 회원가입 승인 요청</p>
-                      <p className="text-xs text-gray-500 mt-1">5분 전</p>
-                    </div>
-                    <div className="p-4 hover:bg-gray-50 border-b border-gray-100">
-                      <p className="text-sm text-gray-900">새로운 문의가 접수되었습니다</p>
-                      <p className="text-xs text-gray-500 mt-1">10분 전</p>
-                    </div>
-                    <div className="p-4 hover:bg-gray-50">
-                      <p className="text-sm text-gray-900">주문 #1234 결제 완료</p>
-                      <p className="text-xs text-gray-500 mt-1">30분 전</p>
-                    </div>
+                    {notifications.length > 0 ? (
+                      notifications.map((notification) => (
+                        <Link
+                          key={notification.id}
+                          href={notification.link}
+                          className="block p-4 hover:bg-gray-50 border-b border-gray-100"
+                          onClick={() => setShowNotifications(false)}
+                        >
+                          <p className="text-sm text-gray-900">{notification.message}</p>
+                          <p className="text-xs text-gray-500 mt-1">{formatTimeAgo(notification.createdAt)}</p>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        새로운 알림이 없습니다
+                      </div>
+                    )}
                   </div>
-                  <div className="p-3 border-t border-gray-200">
-                    <Link href="/admin" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                      모든 알림 보기
-                    </Link>
-                  </div>
+                  {notificationCount > 0 && (
+                    <div className="p-3 border-t border-gray-200">
+                      <Link
+                        href="/admin/users?status=pending"
+                        className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                        onClick={() => setShowNotifications(false)}
+                      >
+                        처리 대기 항목 보기
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

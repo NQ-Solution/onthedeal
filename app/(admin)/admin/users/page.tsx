@@ -8,11 +8,29 @@ interface User {
   id: string
   email: string
   role: string
+  // 사업자 정보
   companyName: string
   businessNumber?: string
+  representativeName?: string
+  businessType?: string
+  businessCategory?: string
+  // 담당자 정보
   contactName: string
   phone: string
+  fax?: string
+  // 주소 정보
+  postalCode?: string
+  storeAddress?: string
+  storeDetailAddress?: string
   address?: string
+  // 추가 정보
+  website?: string
+  introduction?: string
+  // 이미지
+  profileImage?: string
+  businessLicenseImage?: string
+  storeImages?: string[]
+  // 승인 상태
   approvalStatus: string
   approvedAt?: string
   rejectionReason?: string
@@ -365,38 +383,133 @@ export default function AdminUsersPage() {
             </CardHeader>
             <CardContent className="py-6 space-y-6">
               {/* 기본 정보 */}
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500 mb-1">회사명</p>
-                  <p className="font-bold text-lg">{selectedUser.companyName}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500 mb-1">사업자등록번호</p>
-                  <p className="font-bold text-lg font-mono">{selectedUser.businessNumber || '-'}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500 mb-1">담당자</p>
-                  <p className="font-bold text-lg">{selectedUser.contactName}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500 mb-1">연락처</p>
-                  <p className="font-bold text-lg">{selectedUser.phone}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500 mb-1">이메일</p>
-                  <p className="font-bold text-lg">{selectedUser.email}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500 mb-1">역할</p>
-                  <Badge variant={roleLabels[selectedUser.role as keyof typeof roleLabels]?.variant || 'default'} className="text-base">
-                    {roleLabels[selectedUser.role as keyof typeof roleLabels]?.label || selectedUser.role}
-                  </Badge>
-                </div>
-                <div className="col-span-2 bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500 mb-1">주소</p>
-                  <p className="font-bold text-lg">{selectedUser.address || '-'}</p>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">기본 정보</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">이메일</p>
+                    <p className="font-bold">{selectedUser.email}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">역할</p>
+                    <Badge variant={roleLabels[selectedUser.role as keyof typeof roleLabels]?.variant || 'default'} className="text-base">
+                      {roleLabels[selectedUser.role as keyof typeof roleLabels]?.label || selectedUser.role}
+                    </Badge>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">가입일</p>
+                    <p className="font-bold">{formatDate(selectedUser.createdAt)}</p>
+                  </div>
                 </div>
               </div>
+
+              {/* 사업자 정보 */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">사업자 정보</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">회사명</p>
+                    <p className="font-bold">{selectedUser.companyName}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">사업자등록번호</p>
+                    <p className="font-bold font-mono">{selectedUser.businessNumber || '-'}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">대표자명</p>
+                    <p className="font-bold">{selectedUser.representativeName || '-'}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">업종 / 업태</p>
+                    <p className="font-bold">{selectedUser.businessType || '-'} / {selectedUser.businessCategory || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 담당자 정보 */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">담당자 정보</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">담당자명</p>
+                    <p className="font-bold">{selectedUser.contactName}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">연락처</p>
+                    <p className="font-bold">{selectedUser.phone}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">팩스</p>
+                    <p className="font-bold">{selectedUser.fax || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 주소 정보 */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">사업장 주소</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">우편번호</p>
+                    <p className="font-bold">{selectedUser.postalCode || '-'}</p>
+                  </div>
+                  <div className="col-span-2 bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">주소</p>
+                    <p className="font-bold">
+                      {selectedUser.storeAddress || selectedUser.address || '-'}
+                      {selectedUser.storeDetailAddress && ` ${selectedUser.storeDetailAddress}`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 추가 정보 */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">추가 정보</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">웹사이트</p>
+                    <p className="font-bold">
+                      {selectedUser.website ? (
+                        <a href={selectedUser.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                          {selectedUser.website}
+                        </a>
+                      ) : '-'}
+                    </p>
+                  </div>
+                  <div className="col-span-2 bg-gray-50 rounded-xl p-4">
+                    <p className="text-sm text-gray-500 mb-1">회사 소개</p>
+                    <p className="font-bold whitespace-pre-wrap">{selectedUser.introduction || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 이미지 */}
+              {(selectedUser.profileImage || selectedUser.businessLicenseImage || (selectedUser.storeImages && selectedUser.storeImages.length > 0)) && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">첨부 이미지</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    {selectedUser.profileImage && (
+                      <div>
+                        <p className="text-sm text-gray-500 mb-2">프로필 사진</p>
+                        <img src={selectedUser.profileImage} alt="프로필" className="w-full h-32 object-cover rounded-xl border" />
+                      </div>
+                    )}
+                    {selectedUser.businessLicenseImage && (
+                      <div>
+                        <p className="text-sm text-gray-500 mb-2">사업자등록증</p>
+                        <img src={selectedUser.businessLicenseImage} alt="사업자등록증" className="w-full h-32 object-cover rounded-xl border" />
+                      </div>
+                    )}
+                    {selectedUser.storeImages && selectedUser.storeImages.map((img, i) => (
+                      <div key={i}>
+                        <p className="text-sm text-gray-500 mb-2">매장 사진 {i + 1}</p>
+                        <img src={img} alt={`매장 ${i + 1}`} className="w-full h-32 object-cover rounded-xl border" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 승인 상태 */}
               <div className="border-t pt-6">

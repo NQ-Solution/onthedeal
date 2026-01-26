@@ -34,7 +34,7 @@ CREATE TABLE profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. RFQs 테이블 (견적요청서)
+-- 2. RFQs 테이블 (제안요청서)
 CREATE TABLE rfqs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   buyer_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -55,7 +55,7 @@ CREATE TABLE rfqs (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Quotes 테이블 (견적서)
+-- 3. Quotes 테이블 (제안서)
 CREATE TABLE quotes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   rfq_id UUID NOT NULL REFERENCES rfqs(id) ON DELETE CASCADE,

@@ -72,13 +72,13 @@ export default function SupplierRFQsPage() {
           </CardContent>
         </Card>
 
-        {/* 내 보낸 견적 */}
+        {/* 내 보낸 제안 */}
         <Link href="/supplier/quotes">
           <Card className="hover:shadow-xl transition-all cursor-pointer h-full bg-gradient-to-br from-primary-500 to-primary-600 border-0">
             <CardContent className="py-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-lg text-white/80">보낸 견적</p>
+                  <p className="text-lg text-white/80">보낸 제안</p>
                   <p className="text-4xl font-bold text-white mt-2">{myQuotesCount}</p>
                 </div>
                 <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
@@ -166,10 +166,10 @@ export default function SupplierRFQsPage() {
                         <Badge variant="info" className="text-base px-4 py-2">{rfq.category}</Badge>
                       </div>
                       <div className="flex items-center gap-3">
-                        {/* 견적 수 */}
+                        {/* 제안 수 */}
                         <span className="flex items-center gap-1 text-base text-primary-600 font-medium">
                           <MessageSquare className="w-4 h-4" />
-                          견적 {rfq.quote_count || 0}개
+                          제안 {rfq.quote_count || 0}개
                         </span>
                         {/* 조회수 */}
                         <span className="flex items-center gap-1 text-base text-gray-500">
@@ -205,7 +205,7 @@ export default function SupplierRFQsPage() {
                     {/* 하단 */}
                     <div className="mt-4 pt-4 border-t-2 border-gray-100 flex justify-between items-center">
                       <span className="text-base text-gray-500">납품희망일: {rfq.delivery_date}</span>
-                      <Button size="md">견적 제출하기</Button>
+                      <Button size="md">제안 제출하기</Button>
                     </div>
                   </CardContent>
                 </Card>

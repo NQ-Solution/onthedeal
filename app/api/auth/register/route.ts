@@ -32,6 +32,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 역할 검증 - admin 역할 등록 방지
+    if (role && role !== 'buyer' && role !== 'supplier') {
+      return NextResponse.json(
+        { error: '올바른 역할을 선택해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    // 비밀번호 강도 검증
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: '비밀번호는 8자 이상이어야 합니다.' },
+        { status: 400 }
+      )
+    }
+
     // 이메일 중복 확인
     const existingUser = await prisma.user.findUnique({
       where: { email },

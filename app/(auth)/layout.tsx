@@ -34,7 +34,7 @@ export default function AuthLayout({
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
               <FileText className="w-10 h-10 text-white mb-3" />
               <h3 className="text-lg font-bold text-white">RFQ 등록</h3>
-              <p className="text-white/70 text-sm mt-1">간편하게 견적 요청</p>
+              <p className="text-white/70 text-sm mt-1">간편하게 제안 요청</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
               <MessageSquare className="w-10 h-10 text-white mb-3" />

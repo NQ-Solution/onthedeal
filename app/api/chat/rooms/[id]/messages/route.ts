@@ -12,7 +12,7 @@ export async function GET(
         room_id: roomId,
         sender_id: 's1',
         sender_type: 'supplier',
-        content: '안녕하세요! 견적 수락 감사합니다.',
+        content: '안녕하세요! 제안 수락 감사합니다.',
         created_at: '2024-02-05T10:30:00Z',
       },
       {

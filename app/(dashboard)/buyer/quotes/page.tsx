@@ -17,7 +17,7 @@ export default function BuyerQuotesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  // 구매자가 받은 견적들 (구매자의 RFQ에 대한 견적들)
+  // 구매자가 받은 제안들 (구매자의 RFQ에 대한 제안들)
   const buyerRFQIds = mockRFQs.filter(rfq => rfq.buyer_id === 'buyer-001').map(rfq => rfq.id)
   const receivedQuotes = mockQuotes.filter(quote => buyerRFQIds.includes(quote.rfq_id)).map(quote => {
     const rfq = mockRFQs.find(r => r.id === quote.rfq_id)
@@ -44,8 +44,8 @@ export default function BuyerQuotesPage() {
     <div className="space-y-8">
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">받은 견적</h1>
-        <p className="text-lg text-gray-500 mt-1">공급자들의 견적을 비교하고 최적의 거래처를 선택하세요</p>
+        <h1 className="text-3xl font-bold text-gray-900">받은 제안</h1>
+        <p className="text-lg text-gray-500 mt-1">공급자들의 제안을 비교하고 최적의 거래처를 선택하세요</p>
       </div>
 
       {/* 벤토 그리드 - 통계 카드 */}
@@ -80,12 +80,12 @@ export default function BuyerQuotesPage() {
           </CardContent>
         </Card>
 
-        {/* 총 견적 금액 */}
+        {/* 총 제안 금액 */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">총 견적 금액</p>
+                <p className="text-lg text-gray-500">총 제안 금액</p>
                 <p className="text-4xl font-bold text-primary-600 mt-2">{(totalValue / 10000).toFixed(0)}만</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -95,12 +95,12 @@ export default function BuyerQuotesPage() {
           </CardContent>
         </Card>
 
-        {/* 총 견적 수 */}
+        {/* 총 제안 수 */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">총 견적</p>
+                <p className="text-lg text-gray-500">총 제안</p>
                 <p className="text-4xl font-bold text-blue-600 mt-2">{receivedQuotes.length}개</p>
               </div>
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -119,7 +119,7 @@ export default function BuyerQuotesPage() {
               <div className="relative">
                 <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
                 <Input
-                  placeholder="견적 검색..."
+                  placeholder="제안 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-14"
@@ -141,15 +141,15 @@ export default function BuyerQuotesPage() {
         </CardContent>
       </Card>
 
-      {/* 견적 목록 - 벤토 그리드 */}
+      {/* 제안 목록 - 벤토 그리드 */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">견적 목록</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">제안 목록</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredQuotes.length === 0 ? (
             <Card className="col-span-full">
               <CardContent className="py-16 text-center">
                 <Receipt className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <p className="text-xl text-gray-500">받은 견적이 없습니다</p>
+                <p className="text-xl text-gray-500">받은 제안이 없습니다</p>
               </CardContent>
             </Card>
           ) : (

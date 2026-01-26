@@ -156,7 +156,7 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">수수료 수익</p>
-                <p className="text-3xl font-bold text-primary-600 mt-1">{(totalRevenue / 10000).toLocaleString()}만</p>
+                <p className="text-3xl font-bold text-primary-600 mt-1">{totalRevenue.toLocaleString()}원</p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <DollarSign className="w-7 h-7 text-primary-600" />

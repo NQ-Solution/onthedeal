@@ -131,7 +131,7 @@ export interface Quote {
   accepted_at?: string
   created_at: string
   updated_at: string
-  // 견적 옵션 (기본/프리미엄)
+  // 제안 옵션 (기본/프리미엄)
   option_type?: QuoteOptionType
   commission_rate?: number       // 적용된 수수료율
   is_premium?: boolean           // 상위 노출 여부
@@ -224,10 +224,10 @@ export interface SupplierAccount {
 // 수수료 설정 (관리자가 설정 가능)
 // ============================================
 
-// 견적 제출 옵션 타입
+// 제안 제출 옵션 타입
 export type QuoteOptionType = 'basic' | 'premium'
 
-// 견적 옵션 설정
+// 제안 옵션 설정
 export interface QuoteOption {
   id: QuoteOptionType
   name: string
@@ -244,10 +244,10 @@ export interface FeeSettings {
     cardPaymentRate: number      // 카드 결제 수수료 (기본 3%)
     bankTransferRate: number     // 계좌이체 수수료 (기본 0%)
   }
-  // 공급자 수수료 (견적 옵션별)
+  // 공급자 수수료 (제안 옵션별)
   supplier: {
-    basic: number                // 기본 견적 수수료 (기본 3%)
-    premium: number              // 프리미엄 견적 수수료 (기본 5%)
+    basic: number                // 기본 제안 수수료 (기본 3%)
+    premium: number              // 프리미엄 제안 수수료 (기본 5%)
   }
   // 채팅 관련 설정
   chat: {
@@ -275,14 +275,14 @@ export const DEFAULT_FEE_SETTINGS: FeeSettings = {
   updatedAt: new Date().toISOString(),
 }
 
-// 기본 견적 옵션
+// 기본 제안 옵션
 export const DEFAULT_QUOTE_OPTIONS: QuoteOption[] = [
   {
     id: 'basic',
     name: '기본',
     description: '일반 노출',
     commissionRate: 3,
-    benefits: ['견적 제출', '채팅 기능'],
+    benefits: ['제안 제출', '채팅 기능'],
     isActive: true,
   },
   {
@@ -290,7 +290,7 @@ export const DEFAULT_QUOTE_OPTIONS: QuoteOption[] = [
     name: '상위 노출',
     description: '구매자 채팅창에서 우선 표시',
     commissionRate: 5,
-    benefits: ['견적 제출', '채팅 기능', '채팅창 상위 노출', '알림 우선 발송'],
+    benefits: ['제안 제출', '채팅 기능', '채팅창 상위 노출', '알림 우선 발송'],
     isActive: true,
   },
 ]

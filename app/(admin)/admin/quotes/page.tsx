@@ -99,7 +99,7 @@ export default function AdminQuotesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">전체 견적</p>
+                <p className="text-sm text-gray-500">전체 제안</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -139,7 +139,7 @@ export default function AdminQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">총 금액</p>
-                <p className="text-3xl font-bold text-primary-600 mt-1">{(totalAmount / 10000).toLocaleString()}만</p>
+                <p className="text-3xl font-bold text-primary-600 mt-1">{totalAmount.toLocaleString()}원</p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <Receipt className="w-7 h-7 text-primary-600" />
@@ -247,7 +247,7 @@ export default function AdminQuotesPage() {
             {filteredQuotes.length === 0 && (
               <div className="text-center py-16 text-gray-500">
                 <Receipt className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                <p className="text-lg">견적이 없습니다</p>
+                <p className="text-lg">제안이 없습니다</p>
               </div>
             )}
           </div>

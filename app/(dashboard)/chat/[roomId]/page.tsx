@@ -59,7 +59,7 @@ const mockMessages = [
     id: 'm1',
     sender_id: 's1',
     sender_type: 'supplier',
-    content: '안녕하세요! 견적 수락 감사합니다. 상품 관련해서 궁금한 점 있으시면 말씀해주세요.',
+    content: '안녕하세요! 제안 수락 감사합니다. 상품 관련해서 궁금한 점 있으시면 말씀해주세요.',
     created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
   },
   {
@@ -181,7 +181,7 @@ export default function ChatRoomPage() {
 
       {/* Quote Info */}
       <div className="py-3 px-4 bg-gray-50 border-b text-sm">
-        <span className="text-gray-500">견적가: </span>
+        <span className="text-gray-500">제안가: </span>
         <span className="font-semibold text-primary-600">
           {mockChatRoom.quote.price.toLocaleString()}원
         </span>

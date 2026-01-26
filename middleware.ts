@@ -50,12 +50,13 @@ export default withAuth(
           pathname.startsWith('/login') ||
           pathname.startsWith('/register') ||
           pathname.startsWith('/forgot-password') ||
-          pathname.startsWith('/admintest') ||
           pathname.startsWith('/about') ||
           pathname.startsWith('/contact') ||
           pathname.startsWith('/terms') ||
           pathname.startsWith('/privacy') ||
+          pathname.startsWith('/health') ||
           pathname.startsWith('/api/auth') ||
+          pathname.startsWith('/api/health') ||
           pathname.startsWith('/_next') ||
           pathname.startsWith('/favicon')
         ) {

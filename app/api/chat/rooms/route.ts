@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // GET /api/chat/rooms - Get all chat rooms for current user
 export async function GET(request: NextRequest) {
   try {
-    // In real app, this would fetch from Supabase with user filter
+    // In real app, this would fetch from Prisma with user filter
     const mockRooms = [
       {
         id: 'room-1',

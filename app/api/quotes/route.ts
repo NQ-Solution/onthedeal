@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-// 견적 목록 조회
+// 제안 목록 조회
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
@@ -18,17 +18,17 @@ export async function GET(request: NextRequest) {
   try {
     let whereClause: any = {}
 
-    // 특정 RFQ의 견적만
+    // 특정 RFQ의 제안만
     if (rfqId) {
       whereClause.rfqId = rfqId
     }
 
-    // 공급자: 자신이 보낸 견적
+    // 공급자: 자신이 보낸 제안
     if (role === 'supplier') {
       whereClause.supplierId = session.user.id
     }
 
-    // 구매자: 자신의 RFQ에 대한 견적만
+    // 구매자: 자신의 RFQ에 대한 제안만
     if (role === 'buyer') {
       whereClause.rfq = {
         buyerId: session.user.id,
@@ -61,12 +61,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(quotes)
   } catch (error) {
-    console.error('견적 조회 오류:', error)
-    return NextResponse.json({ error: '견적 조회에 실패했습니다' }, { status: 500 })
+    console.error('제안 조회 오류:', error)
+    return NextResponse.json({ error: '제안 조회에 실패했습니다' }, { status: 500 })
   }
 }
 
-// 견적 생성
+// 제안 생성
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(quote)
   } catch (error) {
-    console.error('견적 생성 오류:', error)
-    return NextResponse.json({ error: '견적 생성에 실패했습니다' }, { status: 500 })
+    console.error('제안 생성 오류:', error)
+    return NextResponse.json({ error: '제안 생성에 실패했습니다' }, { status: 500 })
   }
 }

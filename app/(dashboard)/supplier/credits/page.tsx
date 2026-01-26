@@ -1,55 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { Coins, Plus, History, Wallet, Info, CreditCard, RefreshCw, CheckCircle, XCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { Coins, Plus, History, Wallet, Info, CreditCard, RefreshCw, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Input } from '@/components/ui'
 
-// Mock data - 1:1 크레딧 시스템 (1크레딧 = 1원)
-const creditBalance = 150000  // 15만원
-const creditHistory = [
-  {
-    id: '1',
-    type: 'charge',
-    amount: 200000,
-    description: '크레딧 충전',
-    created_at: '2024-02-01',
-  },
-  {
-    id: '2',
-    type: 'use',
-    amount: -15000,
-    description: '견적 제출 선차감: 한우 등심 대량 구매',
-    created_at: '2024-02-02',
-  },
-  {
-    id: '3',
-    type: 'refund',
-    amount: 15000,
-    description: '거래 미확정 환불: 한우 등심 대량 구매',
-    created_at: '2024-02-05',
-  },
-  {
-    id: '4',
-    type: 'use',
-    amount: -18000,
-    description: '견적 제출 선차감: 유기농 채소 세트',
-    created_at: '2024-02-06',
-  },
-  {
-    id: '5',
-    type: 'confirm',
-    amount: 0,
-    description: '거래 확정: 유기농 채소 세트 (환불 불가)',
-    created_at: '2024-02-08',
-  },
-  {
-    id: '6',
-    type: 'use',
-    amount: -12000,
-    description: '견적 제출 선차감: 수입 과일 모음',
-    created_at: '2024-02-09',
-  },
-]
+interface CreditLog {
+  id: string
+  amount: number
+  type: string
+  description: string | null
+  balanceAfter: number
+  createdAt: string
+}
 
 // 빠른 충전 금액 (최소 10만원)
 const quickAmounts = [
@@ -62,8 +25,34 @@ const quickAmounts = [
 const MIN_CHARGE_AMOUNT = 100000 // 최소 충전 금액 10만원
 
 export default function SupplierCreditsPage() {
+  const { data: session } = useSession()
+  const [loading, setLoading] = useState(true)
+  const [creditBalance, setCreditBalance] = useState(0)
+  const [creditHistory, setCreditHistory] = useState<CreditLog[]>([])
   const [chargeAmount, setChargeAmount] = useState<string>('')
   const [selectedQuick, setSelectedQuick] = useState<number | null>(null)
+  const [charging, setCharging] = useState(false)
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchCreditData()
+    }
+  }, [session])
+
+  const fetchCreditData = async () => {
+    try {
+      const res = await fetch('/api/supplier/credits')
+      if (res.ok) {
+        const data = await res.json()
+        setCreditBalance(data.balance || 0)
+        setCreditHistory(data.logs || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch credit data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleQuickSelect = (index: number, amount: number) => {
     setSelectedQuick(index)
@@ -71,22 +60,69 @@ export default function SupplierCreditsPage() {
   }
 
   const handleCustomAmount = (value: string) => {
-    // 숫자만 입력 가능
     const numericValue = value.replace(/[^0-9]/g, '')
     setChargeAmount(numericValue)
     setSelectedQuick(null)
   }
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     const amount = parseInt(chargeAmount)
-    if (amount && amount >= MIN_CHARGE_AMOUNT) {
-      alert(`${amount.toLocaleString()}원 충전을 진행합니다.\n(${amount.toLocaleString()} 크레딧이 충전됩니다)`)
-    } else {
+    if (!amount || amount < MIN_CHARGE_AMOUNT) {
       alert(`최소 충전 금액은 ${MIN_CHARGE_AMOUNT.toLocaleString()}원입니다.`)
+      return
+    }
+
+    setCharging(true)
+    try {
+      const res = await fetch('/api/supplier/credits/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        alert(`${amount.toLocaleString()}원이 충전되었습니다.`)
+        setChargeAmount('')
+        setSelectedQuick(null)
+        fetchCreditData() // 데이터 새로고침
+      } else {
+        // PG 연동 전이면 테스트 모드로 처리
+        if (data.testMode) {
+          alert(`[테스트 모드] ${amount.toLocaleString()}원이 충전되었습니다.\n\n실제 결제는 PG 연동 후 가능합니다.`)
+          fetchCreditData()
+        } else {
+          alert(data.error || '충전에 실패했습니다.')
+        }
+      }
+    } catch (error) {
+      alert('충전 처리 중 오류가 발생했습니다.')
+    } finally {
+      setCharging(false)
     }
   }
 
   const displayAmount = chargeAmount ? parseInt(chargeAmount) : 0
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Seoul',
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -123,6 +159,13 @@ export default function SupplierCreditsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* PG 연동 전 안내 */}
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+              <p className="text-yellow-800 font-medium">
+                현재 테스트 모드입니다. PG 연동 후 실제 결제가 가능합니다.
+              </p>
+            </div>
+
             {/* 빠른 선택 */}
             <div>
               <label className="block text-lg font-medium text-gray-700 mb-3">빠른 선택</label>
@@ -190,10 +233,14 @@ export default function SupplierCreditsPage() {
             <Button
               size="xl"
               className="w-full"
-              disabled={displayAmount < MIN_CHARGE_AMOUNT}
+              disabled={displayAmount < MIN_CHARGE_AMOUNT || charging}
               onClick={handlePurchase}
             >
-              <CreditCard className="w-6 h-6 mr-2" />
+              {charging ? (
+                <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+              ) : (
+                <CreditCard className="w-6 h-6 mr-2" />
+              )}
               {displayAmount >= MIN_CHARGE_AMOUNT
                 ? `${displayAmount.toLocaleString()}원 충전하기`
                 : `최소 ${MIN_CHARGE_AMOUNT.toLocaleString()}원 이상 입력하세요`
@@ -213,89 +260,51 @@ export default function SupplierCreditsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {creditHistory.map((item) => (
-                <div
-                  key={item.id}
-                  className={`flex items-center justify-between py-4 px-4 rounded-xl ${
-                    item.type === 'refund' ? 'bg-green-50' :
-                    item.type === 'confirm' ? 'bg-yellow-50' :
-                    item.type === 'charge' ? 'bg-blue-50' : 'bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {item.type === 'refund' && <RefreshCw className="w-5 h-5 text-green-600" />}
-                    {item.type === 'confirm' && <CheckCircle className="w-5 h-5 text-yellow-600" />}
-                    {item.type === 'charge' && <Plus className="w-5 h-5 text-blue-600" />}
-                    {item.type === 'use' && <XCircle className="w-5 h-5 text-red-500" />}
-                    <div>
-                      <p className="text-lg font-medium text-gray-900">{item.description}</p>
-                      <p className="text-base text-gray-500">{item.created_at}</p>
+            {creditHistory.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <History className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg">아직 사용 내역이 없습니다.</p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {creditHistory.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`flex items-center justify-between py-4 px-4 rounded-xl ${
+                      item.type === 'refund' ? 'bg-green-50' :
+                      item.type === 'charge' ? 'bg-blue-50' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.type === 'refund' && <RefreshCw className="w-5 h-5 text-green-600" />}
+                      {item.type === 'charge' && <Plus className="w-5 h-5 text-blue-600" />}
+                      {item.type === 'use' && <XCircle className="w-5 h-5 text-red-500" />}
+                      <div>
+                        <p className="text-lg font-medium text-gray-900">{item.description || '크레딧 변동'}</p>
+                        <p className="text-base text-gray-500">{formatDate(item.createdAt)}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span
+                        className={`text-xl font-bold ${
+                          item.amount > 0 ? 'text-green-600' : 'text-red-500'
+                        }`}
+                      >
+                        {item.amount > 0 ? '+' : ''}{item.amount.toLocaleString()}원
+                      </span>
+                      <p className="text-sm text-gray-500">
+                        잔액: {item.balanceAfter.toLocaleString()}원
+                      </p>
                     </div>
                   </div>
-                  {item.amount !== 0 && (
-                    <span
-                      className={`text-xl font-bold ${
-                        item.amount > 0 ? 'text-green-600' : 'text-red-500'
-                      }`}
-                    >
-                      {item.amount > 0 ? '+' : ''}{item.amount.toLocaleString()}원
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* 환불 정책 */}
-      <Card className="shadow-lg border-2 border-green-200 bg-green-50">
-        <CardContent className="pt-8 pb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <RefreshCw className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-green-900">환불 정책</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 border border-green-200">
-              <div className="flex items-center gap-2 mb-3">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-                <h4 className="text-lg font-bold text-green-800">환불 가능</h4>
-              </div>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">•</span>
-                  <span>3일 내 거래 미확정 시 <strong className="text-green-700">전액 환불</strong></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">•</span>
-                  <span>충전 후 미사용 크레딧 환불 가능</span>
-                </li>
-              </ul>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-red-200">
-              <div className="flex items-center gap-2 mb-3">
-                <XCircle className="w-6 h-6 text-red-600" />
-                <h4 className="text-lg font-bold text-red-800">환불 불가</h4>
-              </div>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 mt-1">•</span>
-                  <span>거래 확정 시 <strong className="text-red-700">환불 불가</strong></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 mt-1">•</span>
-                  <span>구매자가 거래를 확정하면 크레딧 차감 유지</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Info */}
+      {/* 수수료 안내 */}
       <Card className="shadow-lg border-2">
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">
@@ -314,7 +323,7 @@ export default function SupplierCreditsPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary-500 mt-1">•</span>
-                  <span>견적 제출 시 선차감됩니다.</span>
+                  <span>거래 성사 시 수수료가 차감됩니다.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary-500 mt-1">•</span>
@@ -327,43 +336,13 @@ export default function SupplierCreditsPage() {
               <ul className="space-y-3 text-lg text-gray-600">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500 mt-1">•</span>
-                  <span>견적 제출 시: <strong>구매 희망가(최소)의 3%</strong> 선차감</span>
+                  <span>거래 성사 시: <strong>거래금액의 3%</strong> 차감</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-yellow-500 mt-1">•</span>
-                  <span>크레딧 유효기간: 충전일로부터 1년</span>
+                  <span className="text-green-500 mt-1">•</span>
+                  <span>구매자는 수수료 없음</span>
                 </li>
               </ul>
-            </div>
-          </div>
-
-          {/* 수수료 플로우 안내 */}
-          <div className="mt-6 bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
-            <h4 className="text-lg font-bold text-blue-900 mb-4">수수료 플로우</h4>
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="text-center p-4 bg-white rounded-xl flex-1">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-600 font-bold">1</span>
-                </div>
-                <p className="font-bold text-gray-900">견적 제출</p>
-                <p className="text-sm text-gray-500 mt-1">구매 희망가의 3%<br/>선차감</p>
-              </div>
-              <div className="text-2xl text-gray-300">→</div>
-              <div className="text-center p-4 bg-white rounded-xl flex-1">
-                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="text-yellow-600 font-bold">2</span>
-                </div>
-                <p className="font-bold text-gray-900">거래 협의</p>
-                <p className="text-sm text-gray-500 mt-1">채팅으로 협의<br/>(3일 기한)</p>
-              </div>
-              <div className="text-2xl text-gray-300">→</div>
-              <div className="text-center p-4 bg-white rounded-xl flex-1">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="text-green-600 font-bold">3</span>
-                </div>
-                <p className="font-bold text-gray-900">결과</p>
-                <p className="text-sm text-gray-500 mt-1">확정 시 유지<br/>미확정 시 환불</p>
-              </div>
             </div>
           </div>
         </CardContent>

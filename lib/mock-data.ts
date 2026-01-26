@@ -223,7 +223,7 @@ export const mockRFQs: RFQ[] = [
 ]
 
 // ============================================
-// 견적 (Quotes)
+// 제안 (Quotes)
 // ============================================
 
 export const mockQuotes: Quote[] = [
@@ -464,7 +464,7 @@ export const mockChatMessages: ChatMessage[] = [
     id: 'msg-001',
     chat_room_id: 'chat-001',
     sender_id: 'buyer-001',
-    content: '안녕하세요, 견적 잘 받았습니다. 품질 보장해주실 수 있나요?',
+    content: '안녕하세요, 제안 잘 받았습니다. 품질 보장해주실 수 있나요?',
     created_at: '2025-01-22T10:05:00',
     sender: mockBuyers[0],
   },
@@ -538,7 +538,7 @@ export const mockCreditLogs: CreditLog[] = [
     supplier_id: 'supplier-001',
     amount: -15000,
     type: 'use',
-    description: '견적 제출 - 한우 등심 1++ 등급 대량 구매',
+    description: '제안 제출 - 한우 등심 1++ 등급 대량 구매',
     reference_id: 'quote-001',
     balance_after: 285000,
     created_at: '2025-01-21',
@@ -548,7 +548,7 @@ export const mockCreditLogs: CreditLog[] = [
     supplier_id: 'supplier-001',
     amount: -9000,
     type: 'use',
-    description: '견적 제출 - 제주흑돼지 오겹살 구매',
+    description: '제안 제출 - 제주흑돼지 오겹살 구매',
     reference_id: 'quote-003',
     balance_after: 276000,
     created_at: '2025-01-22',
@@ -568,7 +568,7 @@ export const mockCreditLogs: CreditLog[] = [
     supplier_id: 'supplier-001',
     amount: 15000,
     type: 'refund',
-    description: '견적 만료 환불 - 한우 등심 1++ 등급 대량 구매',
+    description: '제안 만료 환불 - 한우 등심 1++ 등급 대량 구매',
     reference_id: 'quote-001',
     balance_after: 279300,
     created_at: '2025-01-24',

@@ -71,6 +71,10 @@ model User {
   creditLogs            CreditLog[]
   supplierAccount       SupplierAccount?
 
+  @@index([role])
+  @@index([approvalStatus])
+  @@index([createdAt])
+  @@index([companyName])
   @@map("users")
 }
 
@@ -119,6 +123,10 @@ model RFQ {
   chatRooms       ChatRoom[]
   orders          Order[]
 
+  @@index([buyerId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
   @@map("rfqs")
 }
 
@@ -130,7 +138,7 @@ enum RFQStatus {
 }
 
 // ============================================
-// 견적 (Quotes)
+// 제안 (Quotes)
 // ============================================
 
 model Quote {
@@ -148,7 +156,7 @@ model Quote {
   status          QuoteStatus @default(pending)
   acceptedAt      DateTime?   @map("accepted_at")
 
-  // 견적 옵션
+  // 제안 옵션
   optionType      QuoteOptionType @default(basic) @map("option_type")
   commissionRate  Float?          @map("commission_rate")
   isPremium       Boolean         @default(false) @map("is_premium")
@@ -161,6 +169,9 @@ model Quote {
   orders          Order[]
 
   @@unique([rfqId, supplierId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
   @@map("quotes")
 }
 
@@ -202,6 +213,10 @@ model ChatRoom {
   orders          Order[]
 
   @@unique([rfqId, supplierId])
+  @@index([buyerId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
   @@map("chat_rooms")
 }
 
@@ -229,6 +244,9 @@ model ChatMessage {
 
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  @@index([chatRoomId])
+  @@index([senderId])
+  @@index([createdAt])
   @@map("chat_messages")
 }
 
@@ -264,6 +282,10 @@ model Order {
   // Relations
   logs            OrderLog[]
 
+  @@index([buyerId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
   @@map("orders")
 }
 
@@ -317,6 +339,9 @@ model Notification {
 
   createdAt DateTime         @default(now()) @map("created_at")
 
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
   @@map("notifications")
 }
 
@@ -349,6 +374,8 @@ model Inquiry {
 
   createdAt   DateTime      @default(now()) @map("created_at")
 
+  @@index([status])
+  @@index([createdAt])
   @@map("inquiries")
 }
 
@@ -393,6 +420,9 @@ model CreditLog {
 
   createdAt    DateTime      @default(now()) @map("created_at")
 
+  @@index([supplierId])
+  @@index([type])
+  @@index([createdAt])
   @@map("credit_logs")
 }
 

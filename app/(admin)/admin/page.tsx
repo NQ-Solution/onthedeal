@@ -159,11 +159,11 @@ export default function AdminDashboardPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">활성 RFQ</p>
+                <p className="text-sm text-gray-500 font-medium">활성 발주</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.openRFQs || 0}</p>
                 <p className="text-sm text-primary-600 flex items-center gap-1 mt-2">
                   <FileText className="w-4 h-4" />
-                  견적 {stats?.totalQuotes || 0}건
+                  제안 {stats?.totalQuotes || 0}건
                 </p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -359,7 +359,7 @@ export default function AdminDashboardPage() {
           <Card className="hover:shadow-lg transition-all hover:border-primary-200 cursor-pointer">
             <CardContent className="py-6 text-center">
               <FileText className="w-8 h-8 text-primary-600 mx-auto mb-3" />
-              <p className="font-bold text-gray-900">RFQ 관리</p>
+              <p className="font-bold text-gray-900">발주 관리</p>
             </CardContent>
           </Card>
         </Link>

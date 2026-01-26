@@ -23,7 +23,7 @@ interface SidebarProps {
 const buyerMenus = [
   { href: '/buyer/rfqs', label: '내 발주', icon: FileText },
   { href: '/buyer/rfqs/new', label: '새 발주 등록', icon: PlusCircle },
-  { href: '/buyer/quotes', label: '받은 견적', icon: Receipt },
+  { href: '/buyer/quotes', label: '받은 제안', icon: Receipt },
   { href: '/buyer/orders', label: '주문 내역', icon: ShoppingBag },
   { href: '/chat', label: '채팅', icon: MessageSquare },
   { href: '/profile', label: '내 정보', icon: User },
@@ -31,7 +31,7 @@ const buyerMenus = [
 
 const supplierMenus = [
   { href: '/supplier/rfqs', label: '발주 찾기', icon: Search },
-  { href: '/supplier/quotes', label: '보낸 견적', icon: Receipt },
+  { href: '/supplier/quotes', label: '보낸 제안', icon: Receipt },
   { href: '/supplier/orders', label: '주문 관리', icon: Package },
   { href: '/supplier/credits', label: '크레딧', icon: Coins },
   { href: '/chat', label: '채팅', icon: MessageSquare },

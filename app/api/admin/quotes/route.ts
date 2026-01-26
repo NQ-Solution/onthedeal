@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       where.OR = [
         { rfq: { title: { contains: search, mode: 'insensitive' } } },
+        { rfq: { buyer: { companyName: { contains: search, mode: 'insensitive' } } } },
         { supplier: { companyName: { contains: search, mode: 'insensitive' } } },
       ]
     }
