@@ -1,11 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button, Input, Card, CardContent } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
 import { Send, Phone, Mail, MapPin, Clock, MessageSquare, HelpCircle, CheckCircle } from 'lucide-react'
+
+interface SiteSettings {
+  siteName: string
+  contactEmail: string
+  contactPhone: string
+  address?: string
+  businessAddress?: string
+  businessHoursStart?: string
+  businessHoursEnd?: string
+  businessDays?: string
+}
 
 const faqItems = [
   {
@@ -34,9 +45,26 @@ export default function ContactPage() {
     subject: '',
     message: '',
   })
+  const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings')
+        if (res.ok) {
+          const data = await res.json()
+          setSettings(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,8 +145,12 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">전화 문의</h3>
-                    <p className="text-lg text-primary-600 font-bold mt-1">02-1234-5678</p>
-                    <p className="text-base text-gray-500 mt-1">평일 09:00 - 18:00</p>
+                    <p className="text-lg text-primary-600 font-bold mt-1">
+                      {settings?.contactPhone || '02-1234-5678'}
+                    </p>
+                    <p className="text-base text-gray-500 mt-1">
+                      {settings?.businessDays || '평일'} {settings?.businessHoursStart || '09:00'} - {settings?.businessHoursEnd || '18:00'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -132,7 +164,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">이메일 문의</h3>
-                    <p className="text-lg text-blue-600 font-bold mt-1">support@onthedeal.com</p>
+                    <p className="text-lg text-blue-600 font-bold mt-1">
+                      {settings?.contactEmail || 'support@onthedeal.com'}
+                    </p>
                     <p className="text-base text-gray-500 mt-1">24시간 접수 가능</p>
                   </div>
                 </div>
@@ -147,8 +181,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">찾아오시는 길</h3>
-                    <p className="text-lg text-gray-700 mt-1">서울특별시 강남구 테헤란로 123</p>
-                    <p className="text-base text-gray-500 mt-1">온더딜 빌딩 10층</p>
+                    <p className="text-lg text-gray-700 mt-1">
+                      {settings?.businessAddress || settings?.address || '서울특별시 강남구 테헤란로 123'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -162,7 +197,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">운영 시간</h3>
-                    <p className="text-lg text-gray-700 mt-1">평일: 09:00 - 18:00</p>
+                    <p className="text-lg text-gray-700 mt-1">
+                      {settings?.businessDays || '평일'}: {settings?.businessHoursStart || '09:00'} - {settings?.businessHoursEnd || '18:00'}
+                    </p>
                     <p className="text-base text-gray-500 mt-1">주말/공휴일 휴무</p>
                   </div>
                 </div>
@@ -229,7 +266,39 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <Button type="submit" size="xl" className="w-full" isLoading={loading}>
+                  {/* 개인정보 수집 동의 */}
+                  <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                    <div className="mb-4">
+                      <h4 className="text-lg font-bold text-gray-900 mb-2">개인정보 수집 및 이용 동의</h4>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p><strong>수집 항목:</strong> 이름, 이메일, 연락처, 문의 내용</p>
+                        <p><strong>수집 목적:</strong> 문의 접수 및 답변, 서비스 개선</p>
+                        <p><strong>보유 기간:</strong> 문의 처리 완료 후 3년간 보관</p>
+                        <p className="text-gray-500 mt-2">
+                          * 개인정보 수집에 동의하지 않을 권리가 있으며, 동의 거부 시 문의 접수가 제한됩니다.
+                        </p>
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={privacyAgreed}
+                        onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-base text-gray-700">
+                        개인정보 수집 및 이용에 동의합니다. <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    size="xl"
+                    className="w-full"
+                    isLoading={loading}
+                    disabled={!privacyAgreed}
+                  >
                     <Send className="w-6 h-6 mr-2" />
                     문의 접수하기
                   </Button>

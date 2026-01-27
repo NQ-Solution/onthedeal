@@ -15,9 +15,13 @@ export async function GET() {
         siteDescription: true,
         contactEmail: true,
         contactPhone: true,
+        address: true,
         ceoName: true,
         businessNumber: true,
         businessAddress: true,
+        businessHoursStart: true,
+        businessHoursEnd: true,
+        businessDays: true,
         // 아래 필드는 민감 정보로 제외
         // adminAlertEmail: false,
         // bankName: false,
@@ -33,9 +37,13 @@ export async function GET() {
         siteDescription: 'B2B 식자재 거래 플랫폼',
         contactEmail: null,
         contactPhone: null,
+        address: null,
         ceoName: null,
         businessNumber: null,
         businessAddress: null,
+        businessHoursStart: null,
+        businessHoursEnd: null,
+        businessDays: null,
       })
     }
 

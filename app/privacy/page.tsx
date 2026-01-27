@@ -120,7 +120,7 @@ function DefaultPrivacyContent() {
         <ul className="text-lg text-gray-700 leading-relaxed space-y-3">
           <li className="flex gap-3">
             <span className="font-bold text-primary-600">1.</span>
-            <span><strong>서비스 제공:</strong> 회원 가입, RFQ 등록, 제안 제출, 거래 체결 등</span>
+            <span><strong>서비스 제공:</strong> 회원 가입, 발주 등록, 제안 제출, 거래 체결 등</span>
           </li>
           <li className="flex gap-3">
             <span className="font-bold text-primary-600">2.</span>

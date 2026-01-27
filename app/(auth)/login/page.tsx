@@ -109,7 +109,7 @@ function LoginForm() {
                 <ShoppingCart className="w-7 h-7 text-primary-600" />
               </div>
               <p className="text-xl font-bold text-primary-600">구매자</p>
-              <p className="text-gray-500 mt-1">발주서 작성, 제안 비교</p>
+              <p className="text-gray-500 mt-1">발주 등록 및 제안 요청</p>
             </button>
             <button
               onClick={() => handleDemoLogin('supplier')}
@@ -119,7 +119,7 @@ function LoginForm() {
                 <Factory className="w-7 h-7 text-green-600" />
               </div>
               <p className="text-xl font-bold text-green-600">공급자</p>
-              <p className="text-gray-500 mt-1">발주 확인, 제안 제출</p>
+              <p className="text-gray-500 mt-1">발주 확인 및 제안 제출</p>
             </button>
           </div>
         </div>

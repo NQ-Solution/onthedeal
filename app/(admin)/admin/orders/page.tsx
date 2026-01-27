@@ -174,7 +174,7 @@ export default function AdminOrdersPage() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  placeholder="RFQ, 구매자, 공급자 검색..."
+                  placeholder="발주, 구매자, 공급자 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -286,7 +286,7 @@ export default function AdminOrdersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500">RFQ</p>
+                  <p className="text-sm text-gray-500">발주</p>
                   <p className="font-bold">{selectedOrder.rfq.title}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">

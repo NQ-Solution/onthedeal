@@ -39,8 +39,8 @@ export default function AuthLayout({
               <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
                 <FileText className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-white">RFQ 등록</h3>
-              <p className="text-white/70 text-sm mt-1">간편하게 제안 요청</p>
+              <h3 className="text-lg font-bold text-white">발주 등록</h3>
+              <p className="text-white/70 text-sm mt-1">간편하게 발주 및 제안 요청</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
               <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">

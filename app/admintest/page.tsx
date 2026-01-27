@@ -74,7 +74,7 @@ export default function AdminTestPage() {
                 </div>
                 <div className="text-left">
                   <p className="font-bold text-gray-900">구매자 (Buyer)</p>
-                  <p className="text-sm text-gray-500">RFQ 등록, 제안 확인</p>
+                  <p className="text-sm text-gray-500">발주 등록, 제안 확인</p>
                 </div>
               </div>
               <ArrowRight className="w-6 h-6 text-gray-400" />
