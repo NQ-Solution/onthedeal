@@ -1,49 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { Bell, MessageSquare, FileText, CheckCircle, AlertTriangle, X } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { Bell, MessageSquare, FileText, CheckCircle, AlertTriangle, ShoppingCart, Loader2 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils/format'
-
-// Mock notifications
-const mockNotifications = [
-  {
-    id: '1',
-    type: 'new_message',
-    title: '새 메시지가 도착했습니다',
-    message: '네, 납품 가능합니다. 내일 오전에...',
-    link: '/chat/chat-1',
-    is_read: false,
-    created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5분 전
-  },
-  {
-    id: '2',
-    type: 'new_quote',
-    title: '새 제안이 도착했습니다',
-    message: '한우 등심 대량 구매에 대한 제안이 도착했습니다.',
-    link: '/buyer/quotes',
-    is_read: false,
-    created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30분 전
-  },
-  {
-    id: '3',
-    type: 'chat_expiring',
-    title: '채팅방이 곧 만료됩니다',
-    message: '24시간 내에 거래를 확정하지 않으면 채팅 내용이 삭제됩니다.',
-    link: '/chat/chat-3',
-    is_read: false,
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2시간 전
-  },
-  {
-    id: '4',
-    type: 'deal_confirmed',
-    title: '딜이 확정되었습니다',
-    message: '유기농 채소 세트 거래가 확정되었습니다.',
-    link: '/buyer/orders',
-    is_read: true,
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1일 전
-  },
-]
 
 interface Notification {
   id: string
@@ -63,6 +24,8 @@ const getNotificationIcon = (type: string) => {
       return <FileText className="w-5 h-5 text-primary-500" />
     case 'deal_confirmed':
       return <CheckCircle className="w-5 h-5 text-green-500" />
+    case 'order_update':
+      return <ShoppingCart className="w-5 h-5 text-purple-500" />
     case 'chat_expiring':
     case 'chat_expired':
       return <AlertTriangle className="w-5 h-5 text-yellow-500" />
@@ -72,15 +35,44 @@ const getNotificationIcon = (type: string) => {
 }
 
 export function NotificationBell() {
+  const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    // 목업 데이터 로드
-    setNotifications(mockNotifications)
-  }, [])
+  // 알림 목록 조회
+  const fetchNotifications = useCallback(async () => {
+    if (!session?.user) return
 
+    try {
+      setLoading(true)
+      const res = await fetch('/api/notifications?limit=10')
+      if (res.ok) {
+        const data = await res.json()
+        setNotifications(data.notifications || [])
+        setUnreadCount(data.unreadCount || 0)
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [session?.user])
+
+  // 초기 로드 및 주기적 갱신
+  useEffect(() => {
+    if (session?.user) {
+      fetchNotifications()
+
+      // 30초마다 알림 갱신
+      const interval = setInterval(fetchNotifications, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [session?.user, fetchNotifications])
+
+  // 드롭다운 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -92,16 +84,47 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const unreadCount = notifications.filter(n => !n.is_read).length
+  // 개별 알림 읽음 처리
+  const markAsRead = async (id: string) => {
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId: id }),
+      })
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, is_read: true } : n)
-    )
+      if (res.ok) {
+        setNotifications(prev =>
+          prev.map(n => n.id === id ? { ...n, is_read: true } : n)
+        )
+        setUnreadCount(prev => Math.max(0, prev - 1))
+      }
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error)
+    }
   }
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+  // 모든 알림 읽음 처리
+  const markAllAsRead = async () => {
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true }),
+      })
+
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+        setUnreadCount(0)
+      }
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error)
+    }
+  }
+
+  // 로그인하지 않은 경우 숨김
+  if (!session?.user) {
+    return null
   }
 
   return (
@@ -135,7 +158,11 @@ export function NotificationBell() {
 
           {/* 알림 목록 */}
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {loading && notifications.length === 0 ? (
+              <div className="py-12 text-center">
+                <Loader2 className="w-8 h-8 mx-auto text-gray-400 animate-spin" />
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="py-12 text-center">
                 <Bell className="w-12 h-12 mx-auto text-gray-300 mb-3" />
                 <p className="text-lg text-gray-500">새로운 알림이 없습니다</p>
@@ -146,7 +173,9 @@ export function NotificationBell() {
                   key={notification.id}
                   href={notification.link || '#'}
                   onClick={() => {
-                    markAsRead(notification.id)
+                    if (!notification.is_read) {
+                      markAsRead(notification.id)
+                    }
                     setIsOpen(false)
                   }}
                 >

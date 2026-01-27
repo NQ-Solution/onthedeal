@@ -24,32 +24,49 @@ async function main() {
   await prisma.page.deleteMany()
 
   // 비밀번호 해싱
-  const hashedPassword = await bcrypt.hash('test1234', 12)
+  const testPassword = await bcrypt.hash('test1234', 12)
+  const adminPassword = await bcrypt.hash('admin03532', 12)
 
-  // 1. 관리자 계정 생성
+  // 1. 관리자 계정 생성 (2명)
   console.log('👤 관리자 계정 생성...')
-  const admin = await prisma.user.create({
+  const admin1 = await prisma.user.create({
     data: {
-      email: 'admin@test.com',
-      password: hashedPassword,
+      email: 'odadmin@onthedeal.com',
+      password: adminPassword,
       role: 'admin',
-      companyName: 'OnTheDeal 관리자',
+      companyName: 'OnTheDeal',
       businessNumber: '000-00-00000',
       representativeName: '관리자',
-      contactName: '관리자',
+      contactName: 'OD 관리자',
       phone: '010-0000-0000',
       approvalStatus: 'approved',
       approvedAt: new Date(),
     },
   })
-  console.log(`  ✅ 관리자: ${admin.email}`)
+  console.log(`  ✅ 관리자1: ${admin1.email}`)
+
+  const admin2 = await prisma.user.create({
+    data: {
+      email: 'nqadmin@onthedeal.com',
+      password: adminPassword,
+      role: 'admin',
+      companyName: 'NQ Solution',
+      businessNumber: '000-00-00000',
+      representativeName: '관리자',
+      contactName: 'NQ 관리자',
+      phone: '010-0000-0000',
+      approvalStatus: 'approved',
+      approvedAt: new Date(),
+    },
+  })
+  console.log(`  ✅ 관리자2: ${admin2.email}`)
 
   // 2. 구매자 계정 생성
   console.log('👤 구매자 계정 생성...')
   const buyer = await prisma.user.create({
     data: {
       email: 'buyer@test.com',
-      password: hashedPassword,
+      password: testPassword,
       role: 'buyer',
       companyName: '맛있는 식당',
       businessNumber: '123-45-67890',
@@ -64,7 +81,7 @@ async function main() {
       introduction: '신선한 식자재로 맛있는 음식을 만드는 식당입니다.',
       approvalStatus: 'approved',
       approvedAt: new Date(),
-      approvedById: admin.id,
+      approvedById: admin1.id,
     },
   })
   console.log(`  ✅ 구매자: ${buyer.email}`)
@@ -74,7 +91,7 @@ async function main() {
   const supplier = await prisma.user.create({
     data: {
       email: 'supplier@test.com',
-      password: hashedPassword,
+      password: testPassword,
       role: 'supplier',
       companyName: '신선농산',
       businessNumber: '234-56-78901',
@@ -90,7 +107,7 @@ async function main() {
       introduction: '전국 각지의 신선한 농산물을 공급합니다. 당일 수확, 당일 배송!',
       approvalStatus: 'approved',
       approvedAt: new Date(),
-      approvedById: admin.id,
+      approvedById: admin1.id,
     },
   })
   console.log(`  ✅ 공급자: ${supplier.email}`)
@@ -259,8 +276,11 @@ async function main() {
   console.log('')
   console.log('✨ 시딩 완료!')
   console.log('')
-  console.log('📌 테스트 계정 정보:')
-  console.log('  - 관리자: admin@test.com / test1234')
+  console.log('📌 계정 정보:')
+  console.log('  [관리자]')
+  console.log('  - odadmin@onthedeal.com / admin03532')
+  console.log('  - nqadmin@onthedeal.com / admin03532')
+  console.log('  [테스트]')
   console.log('  - 구매자: buyer@test.com / test1234')
   console.log('  - 공급자: supplier@test.com / test1234')
   console.log('')

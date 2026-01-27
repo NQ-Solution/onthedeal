@@ -179,6 +179,28 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      // 5. 알림 생성 - 구매자에게 (새 제안)
+      await tx.notification.create({
+        data: {
+          userId: rfq.buyerId,
+          type: 'new_quote',
+          title: '새 제안이 도착했습니다',
+          message: `"${rfq.title}"에 새로운 제안이 도착했습니다. 단가: ${body.unit_price.toLocaleString()}원`,
+          link: '/buyer/quotes',
+        },
+      })
+
+      // 6. 알림 생성 - 공급자에게 (크레딧 차감)
+      await tx.notification.create({
+        data: {
+          userId: session.user.id,
+          type: 'system',
+          title: '제안 제출 완료',
+          message: `"${rfq.title}" 제안이 제출되었습니다. 수수료 ${creditDeduction.toLocaleString()}원 차감.`,
+          link: '/supplier/quotes',
+        },
+      })
+
       return { quote, creditDeduction, newBalance }
     })
 

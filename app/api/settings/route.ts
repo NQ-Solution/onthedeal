@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 
+// 동적 렌더링 강제 (DB에서 실시간 데이터 로드)
+export const dynamic = 'force-dynamic'
+
 // GET - 사이트 설정 조회 (공개 - 푸터용 정보만 반환)
 export async function GET() {
   try {

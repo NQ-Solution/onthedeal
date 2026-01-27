@@ -3,6 +3,60 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/db'
 
+// DELETE - 회원 삭제
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || session.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    // 자기 자신은 삭제 불가
+    if (id === session.user.id) {
+      return NextResponse.json({ error: '자기 자신은 삭제할 수 없습니다.' }, { status: 400 })
+    }
+
+    // 관련 데이터 삭제 (cascade로 처리되지 않는 것들)
+    await prisma.$transaction(async (tx) => {
+      // 크레딧 로그 삭제
+      await tx.creditLog.deleteMany({ where: { supplierId: id } })
+      // 크레딧 삭제
+      await tx.credit.deleteMany({ where: { supplierId: id } })
+      // 크레딧 충전 요청 삭제
+      await tx.creditCharge.deleteMany({ where: { supplierId: id } })
+      // 공급자 계좌 삭제
+      await tx.supplierAccount.deleteMany({ where: { supplierId: id } })
+      // 알림 삭제
+      await tx.notification.deleteMany({ where: { userId: id } })
+      // 주문 로그 삭제
+      await tx.orderLog.deleteMany({ where: { order: { OR: [{ buyerId: id }, { supplierId: id }] } } })
+      // 주문 삭제
+      await tx.order.deleteMany({ where: { OR: [{ buyerId: id }, { supplierId: id }] } })
+      // 채팅 메시지 삭제
+      await tx.chatMessage.deleteMany({ where: { senderId: id } })
+      // 채팅방 삭제
+      await tx.chatRoom.deleteMany({ where: { OR: [{ buyerId: id }, { supplierId: id }] } })
+      // 제안 삭제
+      await tx.quote.deleteMany({ where: { supplierId: id } })
+      // RFQ 삭제
+      await tx.rFQ.deleteMany({ where: { buyerId: id } })
+      // 사용자 삭제
+      await tx.user.delete({ where: { id } })
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Admin user delete error:', error)
+    return NextResponse.json({ error: '회원 삭제 중 오류가 발생했습니다.' }, { status: 500 })
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

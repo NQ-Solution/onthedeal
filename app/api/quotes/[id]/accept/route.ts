@@ -148,14 +148,36 @@ export async function POST(
         },
       })
 
-      // 8. 알림 생성 - 공급자에게
+      // 8. 알림 생성 - 공급자에게 (견적 수락)
       await tx.notification.create({
         data: {
           userId: quote.supplierId,
           type: 'deal_confirmed',
           title: '견적이 수락되었습니다',
           message: `"${quote.rfq.title}" 견적이 수락되었습니다. 채팅방에서 상세 협의를 진행해주세요.`,
-          link: `/supplier/chats/${chatRoom.id}`,
+          link: `/chat/${chatRoom.id}`,
+        },
+      })
+
+      // 9. 알림 생성 - 공급자에게 (수수료 차감)
+      await tx.notification.create({
+        data: {
+          userId: quote.supplierId,
+          type: 'system',
+          title: '거래 수수료 차감',
+          message: `"${quote.rfq.title}" 거래 수수료 ${commissionAmount.toLocaleString()}원이 차감되었습니다.`,
+          link: '/supplier/credits',
+        },
+      })
+
+      // 10. 알림 생성 - 구매자에게 (견적 수락 확인)
+      await tx.notification.create({
+        data: {
+          userId: session.user.id,
+          type: 'deal_confirmed',
+          title: '제안 수락 완료',
+          message: `${quote.supplier.companyName}의 제안을 수락했습니다. 채팅방에서 상세 협의를 진행하세요.`,
+          link: `/chat/${chatRoom.id}`,
         },
       })
 

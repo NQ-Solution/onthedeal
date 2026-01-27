@@ -22,7 +22,8 @@ import {
   ShoppingCart,
   Package,
   Ban,
-  RotateCcw
+  RotateCcw,
+  Trash2
 } from 'lucide-react'
 import { Button, Input, Card, CardHeader, CardTitle, CardContent, Badge, Textarea } from '@/components/ui'
 
@@ -82,6 +83,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [suspendReason, setSuspendReason] = useState('')
   const [showRejectForm, setShowRejectForm] = useState(false)
   const [showSuspendForm, setShowSuspendForm] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     fetchUser()
@@ -186,6 +188,30 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       console.error('Failed to reactivate user:', error)
     } finally {
       setActionLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('정말 이 회원을 삭제하시겠습니까?\n\n⚠️ 주의: 이 작업은 되돌릴 수 없습니다.\n회원의 모든 데이터(주문, 제안, 채팅 등)가 함께 삭제됩니다.')) return
+    if (!confirm('마지막 확인: 정말로 삭제하시겠습니까?')) return
+
+    setDeleteLoading(true)
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        alert('회원이 삭제되었습니다.')
+        router.push('/admin/users')
+      } else {
+        const data = await res.json()
+        alert(data.error || '삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error)
+      alert('삭제 중 오류가 발생했습니다.')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -616,6 +642,25 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   {actionLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <RotateCcw className="w-5 h-5 mr-2" />}
                   다시 승인하기
                 </Button>
+              )}
+
+              {/* 회원 삭제 (관리자 본인 제외) */}
+              {user.role !== 'admin' && (
+                <div className="pt-4 mt-4 border-t border-gray-200">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Trash2 className="w-5 h-5 mr-2" />}
+                    회원 삭제
+                  </Button>
+                  <p className="text-sm text-gray-500 mt-2 text-center">
+                    ⚠️ 삭제 시 모든 데이터가 함께 삭제됩니다
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>

@@ -87,6 +87,17 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // 알림 생성 - 구매자에게 (발주 등록 확인)
+    await prisma.notification.create({
+      data: {
+        userId: session.user.id,
+        type: 'system',
+        title: '발주 등록 완료',
+        message: `"${body.title}" 발주가 등록되었습니다. 공급자의 제안을 기다려주세요.`,
+        link: '/buyer/rfqs',
+      },
+    })
+
     return NextResponse.json(rfq)
   } catch (error) {
     console.error('RFQ 생성 오류:', error)

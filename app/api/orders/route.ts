@@ -151,6 +151,28 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // 알림 생성 - 구매자에게
+    await prisma.notification.create({
+      data: {
+        userId: quote.rfq.buyerId,
+        type: 'order_update',
+        title: '주문이 생성되었습니다',
+        message: `"${quote.rfq.title}" 주문이 생성되었습니다. 결제를 진행해주세요.`,
+        link: `/checkout/${order.id}`,
+      },
+    })
+
+    // 알림 생성 - 공급자에게
+    await prisma.notification.create({
+      data: {
+        userId: quote.supplierId,
+        type: 'order_update',
+        title: '새 주문이 확정되었습니다',
+        message: `"${quote.rfq.title}" 주문이 확정되었습니다. 결제 완료 후 배송을 준비해주세요.`,
+        link: '/supplier/orders',
+      },
+    })
+
     return NextResponse.json(order)
   } catch (error) {
     console.error('주문 생성 오류:', error)

@@ -72,10 +72,57 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // 주문 정보 조회
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        rfq: { select: { title: true } },
+      },
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
     await prisma.order.update({
       where: { id: orderId },
       data: { status }
     })
+
+    // 상태 변경 메시지 생성
+    const statusMessages: Record<string, string> = {
+      paid: '결제가 완료되었습니다',
+      preparing: '상품 준비 중입니다',
+      shipping: '배송이 시작되었습니다',
+      delivered: '배송이 완료되었습니다',
+      completed: '거래가 완료되었습니다',
+      cancelled: '주문이 취소되었습니다',
+    }
+
+    const message = statusMessages[status]
+    if (message) {
+      // 구매자에게 알림
+      await prisma.notification.create({
+        data: {
+          userId: order.buyerId,
+          type: 'order_update',
+          title: '주문 상태 변경',
+          message: `"${order.rfq?.title}" 주문: ${message}`,
+          link: '/buyer/orders',
+        },
+      })
+
+      // 공급자에게 알림
+      await prisma.notification.create({
+        data: {
+          userId: order.supplierId,
+          type: 'order_update',
+          title: '주문 상태 변경',
+          message: `"${order.rfq?.title}" 주문: ${message}`,
+          link: '/supplier/orders',
+        },
+      })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

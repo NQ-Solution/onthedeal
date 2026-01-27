@@ -84,6 +84,17 @@ export async function POST(request: NextRequest) {
           },
         })
 
+        // 알림 생성
+        await tx.notification.create({
+          data: {
+            userId: session.user.id,
+            type: 'system',
+            title: '크레딧 충전 완료',
+            message: `${amount.toLocaleString()}원이 충전되었습니다. 현재 잔액: ${newBalance.toLocaleString()}원`,
+            link: '/supplier/credits',
+          },
+        })
+
         return { credit: updatedCredit, log }
       })
 
