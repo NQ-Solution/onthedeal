@@ -1,10 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus, FileText, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, FileText, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { Button, Card, CardContent, Badge } from '@/components/ui'
-import { mockRFQs } from '@/lib/mock-data'
+
+interface RFQ {
+  id: string
+  title: string
+  category: string
+  description: string
+  quantity: number
+  unit: string
+  budgetMin: number | null
+  budgetMax: number | null
+  desiredPrice: number | null
+  deliveryDate: string
+  deliveryAddress: string
+  status: string
+  createdAt: string
+  _count?: {
+    quotes: number
+  }
+}
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error'; icon: any }> = {
   open: { label: '모집중', variant: 'success', icon: Clock },
@@ -13,21 +31,49 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'succes
   cancelled: { label: '취소', variant: 'error', icon: XCircle },
 }
 
+const formatPrice = (price: number) => {
+  if (price >= 10000) {
+    return `${Math.floor(price / 10000)}만원`
+  }
+  return `${price.toLocaleString()}원`
+}
+
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('ko-KR')
+}
+
 export default function BuyerRFQsPage() {
-  // 구매자 ID로 필터링 (실제로는 로그인 사용자 기준)
-  const buyerRFQs = mockRFQs.filter(rfq => rfq.buyer_id === 'buyer-001')
-  const [rfqs] = useState(buyerRFQs)
+  const [loading, setLoading] = useState(true)
+  const [rfqs, setRfqs] = useState<RFQ[]>([])
+
+  useEffect(() => {
+    fetchRFQs()
+  }, [])
+
+  const fetchRFQs = async () => {
+    try {
+      const res = await fetch('/api/rfqs?role=buyer')
+      if (res.ok) {
+        const data = await res.json()
+        setRfqs(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch RFQs:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const openCount = rfqs.filter(r => r.status === 'open').length
   const inProgressCount = rfqs.filter(r => r.status === 'in_progress').length
-  const totalQuotes = rfqs.reduce((sum, r) => sum + (r.quote_count || 0), 0)
+  const totalQuotes = rfqs.reduce((sum, r) => sum + (r._count?.quotes || 0), 0)
 
-  // 금액 포맷 함수 (만원 단위)
-  const formatPrice = (price: number) => {
-    if (price >= 10000) {
-      return `${Math.floor(price / 10000)}만원`
-    }
-    return `${price.toLocaleString()}원`
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -126,7 +172,7 @@ export default function BuyerRFQsPage() {
             </Card>
           ) : (
             rfqs.map((rfq) => {
-              const status = statusConfig[rfq.status]
+              const status = statusConfig[rfq.status] || statusConfig.open
               const StatusIcon = status.icon
               return (
                 <Link key={rfq.id} href={`/buyer/rfqs/${rfq.id}`}>
@@ -141,17 +187,25 @@ export default function BuyerRFQsPage() {
                           <Badge variant="info" className="text-base px-4 py-2">{rfq.category}</Badge>
                         </div>
                         <span className="text-lg font-bold text-primary-600">
-                          제안 {rfq.quote_count || 0}개
+                          제안 {rfq._count?.quotes || 0}개
                         </span>
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-3">{rfq.title}</h3>
                       <div className="flex items-center justify-between text-lg text-gray-600">
                         <span>{rfq.quantity} {rfq.unit}</span>
-                        <span>구매희망가: {formatPrice(rfq.budget_min || 0)} ~ {formatPrice(rfq.budget_max || 0)}</span>
+                        <span>
+                          {rfq.budgetMin && rfq.budgetMax ? (
+                            `구매희망가: ${formatPrice(rfq.budgetMin)} ~ ${formatPrice(rfq.budgetMax)}`
+                          ) : rfq.desiredPrice ? (
+                            `구매희망가: ${formatPrice(rfq.desiredPrice)}`
+                          ) : (
+                            '가격 협의'
+                          )}
+                        </span>
                       </div>
                       <div className="mt-4 pt-4 border-t-2 border-gray-100 flex justify-between text-base text-gray-500">
-                        <span>납품희망일: {rfq.delivery_date}</span>
-                        <span>등록일: {rfq.created_at}</span>
+                        <span>납품희망일: {formatDate(rfq.deliveryDate)}</span>
+                        <span>등록일: {formatDate(rfq.createdAt)}</span>
                       </div>
                     </CardContent>
                   </Card>

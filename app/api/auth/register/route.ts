@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
+import { checkRateLimit, RATE_LIMITS, getClientIp, rateLimitHeaders } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting 체크
+    const clientIp = getClientIp(request)
+    const rateLimitResult = checkRateLimit(`register:${clientIp}`, RATE_LIMITS.register)
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: '너무 많은 요청입니다. 잠시 후 다시 시도해주세요.' },
+        { status: 429, headers: rateLimitHeaders(rateLimitResult) }
+      )
+    }
+
     const body = await request.json()
     const {
       email,
@@ -41,9 +53,27 @@ export async function POST(request: NextRequest) {
     }
 
     // 비밀번호 강도 검증
+    const passwordErrors: string[] = []
+
     if (password.length < 8) {
+      passwordErrors.push('8자 이상')
+    }
+    if (!/[A-Z]/.test(password)) {
+      passwordErrors.push('대문자 포함')
+    }
+    if (!/[a-z]/.test(password)) {
+      passwordErrors.push('소문자 포함')
+    }
+    if (!/[0-9]/.test(password)) {
+      passwordErrors.push('숫자 포함')
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      passwordErrors.push('특수문자 포함')
+    }
+
+    if (passwordErrors.length > 0) {
       return NextResponse.json(
-        { error: '비밀번호는 8자 이상이어야 합니다.' },
+        { error: `비밀번호 요구사항: ${passwordErrors.join(', ')}` },
         { status: 400 }
       )
     }

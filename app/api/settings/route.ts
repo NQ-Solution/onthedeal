@@ -1,21 +1,38 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 
-// GET - 사이트 설정 조회 (공개)
+// GET - 사이트 설정 조회 (공개 - 푸터용 정보만 반환)
 export async function GET() {
   try {
-    let settings = await prisma.siteSettings.findUnique({
-      where: { id: 'default' }
+    const settings = await prisma.siteSettings.findUnique({
+      where: { id: 'default' },
+      // 공개적으로 필요한 필드만 선택 (민감 정보 제외)
+      select: {
+        siteName: true,
+        siteDescription: true,
+        contactEmail: true,
+        contactPhone: true,
+        ceoName: true,
+        businessNumber: true,
+        businessAddress: true,
+        // 아래 필드는 민감 정보로 제외
+        // adminAlertEmail: false,
+        // bankName: false,
+        // bankAccount: false,
+        // bankHolder: false,
+      }
     })
 
-    // 설정이 없으면 기본값으로 생성
+    // 설정이 없으면 기본값 반환
     if (!settings) {
-      settings = await prisma.siteSettings.create({
-        data: {
-          id: 'default',
-          siteName: 'OnTheDeal',
-          siteDescription: 'B2B 식자재 거래 플랫폼',
-        }
+      return NextResponse.json({
+        siteName: 'OnTheDeal',
+        siteDescription: 'B2B 식자재 거래 플랫폼',
+        contactEmail: null,
+        contactPhone: null,
+        ceoName: null,
+        businessNumber: null,
+        businessAddress: null,
       })
     }
 

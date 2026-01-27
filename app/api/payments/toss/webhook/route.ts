@@ -1,18 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import crypto from 'crypto'
 
 // 토스페이먼츠 웹훅 처리
 // 웹훅 URL: https://your-domain.com/api/payments/toss/webhook
 // 토스 상점관리자 > 개발정보 > 웹훅에서 등록 필요
 
+// 웹훅 서명 검증 함수
+function verifyWebhookSignature(
+  payload: string,
+  signature: string | null,
+  secretKey: string
+): boolean {
+  if (!signature) {
+    return false
+  }
+
+  const expectedSignature = crypto
+    .createHmac('sha256', secretKey)
+    .update(payload)
+    .digest('base64')
+
+  // 타이밍 공격 방지를 위한 상수 시간 비교
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature)
+    )
+  } catch {
+    return false
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // 원본 payload를 먼저 가져옴 (서명 검증용)
+    const rawBody = await request.text()
+
+    // 웹훅 서명 검증
+    const signature = request.headers.get('toss-signature')
+    const webhookSecretKey = process.env.TOSS_WEBHOOK_SECRET_KEY
+
+    if (!webhookSecretKey) {
+      console.error('TOSS_WEBHOOK_SECRET_KEY 환경변수가 설정되지 않았습니다')
+      return NextResponse.json(
+        { success: false, error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    if (!verifyWebhookSignature(rawBody, signature, webhookSecretKey)) {
+      console.error('웹훅 서명 검증 실패')
+      return NextResponse.json(
+        { success: false, error: 'Invalid signature' },
+        { status: 401 }
+      )
+    }
+
+    const body = JSON.parse(rawBody)
 
     // 웹훅 이벤트 타입 확인
     const { eventType, data } = body
 
-    console.log('토스페이먼츠 웹훅:', eventType, data)
+    console.log('토스페이먼츠 웹훅 (검증됨):', eventType)
 
     switch (eventType) {
       case 'PAYMENT_COMPLETED':

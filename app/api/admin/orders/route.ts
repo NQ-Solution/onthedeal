@@ -63,6 +63,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // 유효한 주문 상태값 검증
+    const validStatuses = ['pending', 'paid', 'preparing', 'shipping', 'delivered', 'confirmed', 'completed', 'cancelled']
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
     await prisma.order.update({
       where: { id: orderId },
       data: { status }

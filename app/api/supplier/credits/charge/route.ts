@@ -2,10 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { checkIdempotency, setIdempotencyResult } from '@/lib/idempotency'
 
 // 크레딧 충전 (PG 연동 전 테스트 모드)
 export async function POST(request: NextRequest) {
   try {
+    // 멱등성 키 확인 (중복 충전 방지)
+    const idempotency = checkIdempotency(request)
+    if (idempotency?.cachedResult) {
+      return NextResponse.json(idempotency.cachedResult.data, {
+        status: idempotency.cachedResult.status,
+        headers: { 'X-Idempotency-Key': idempotency.key },
+      })
+    }
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {

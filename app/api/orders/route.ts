@@ -3,6 +3,70 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const role = searchParams.get('role')
+
+  try {
+    const whereClause = role === 'supplier'
+      ? { supplierId: session.user.id }
+      : { buyerId: session.user.id }
+
+    const orders = await prisma.order.findMany({
+      where: whereClause,
+      include: {
+        rfq: {
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            quantity: true,
+            unit: true,
+            deliveryDate: true,
+            deliveryAddress: true,
+          },
+        },
+        quote: {
+          select: {
+            id: true,
+            unitPrice: true,
+            totalPrice: true,
+            deliveryDate: true,
+          },
+        },
+        buyer: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            phone: true,
+          },
+        },
+        supplier: {
+          select: {
+            id: true,
+            companyName: true,
+            contactName: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return NextResponse.json(orders)
+  } catch (error) {
+    console.error('주문 목록 조회 오류:', error)
+    return NextResponse.json({ error: '주문 목록 조회에 실패했습니다' }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
 

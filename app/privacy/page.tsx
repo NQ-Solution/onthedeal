@@ -4,6 +4,7 @@ import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
 import { Shield, ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/db'
+import { sanitizeContent } from '@/lib/sanitize'
 
 async function getPage() {
   try {
@@ -61,7 +62,7 @@ export default async function PrivacyPage() {
           ) : (
             <div
               className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-2xl prose-h2:mb-4 prose-h3:text-xl prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-ul:space-y-2"
-              dangerouslySetInnerHTML={{ __html: page.content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeContent(page.content) }}
             />
           )}
         </div>

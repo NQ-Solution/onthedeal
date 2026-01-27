@@ -1,21 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Clock, CheckCircle, XCircle, Building2, Calendar, TrendingUp, Receipt } from 'lucide-react'
+import { Search, Clock, CheckCircle, XCircle, Building2, Calendar, TrendingUp, Receipt, Loader2 } from 'lucide-react'
 import { Input, Select, Card, CardContent, Badge } from '@/components/ui'
-import { mockQuotes, mockRFQs, mockBuyers } from '@/lib/mock-data'
 
-// 공급자가 보낸 제안들
-const supplierQuotes = mockQuotes.filter(q => q.supplier_id === 'supplier-001').map(quote => {
-  const rfq = mockRFQs.find(r => r.id === quote.rfq_id)
-  const buyer = mockBuyers.find(b => b.id === rfq?.buyer_id)
-  return {
-    ...quote,
-    rfq_title: rfq?.title || '알 수 없는 발주',
-    buyer_name: buyer?.company_name || '알 수 없는 구매자',
+interface Quote {
+  id: string
+  rfqId: string
+  supplierId: string
+  unitPrice: number
+  totalPrice: number
+  deliveryDate: string
+  note: string | null
+  status: string
+  createdAt: string
+  rfq: {
+    id: string
+    title: string
+    quantity: number
+    unit: string
+    buyer: {
+      id: string
+      companyName: string
+    }
   }
-})
+  chatRooms?: {
+    id: string
+  }[]
+}
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error'; icon: any }> = {
   pending: { label: '대기중', variant: 'warning', icon: Clock },
@@ -24,20 +37,59 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'succes
   expired: { label: '만료됨', variant: 'default', icon: Clock },
 }
 
+const formatPrice = (price: number) => {
+  if (price >= 10000) {
+    return `${Math.floor(price / 10000)}만원`
+  }
+  return `${price.toLocaleString()}원`
+}
+
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('ko-KR')
+}
+
 export default function SupplierQuotesPage() {
+  const [loading, setLoading] = useState(true)
+  const [quotes, setQuotes] = useState<Quote[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  const filteredQuotes = supplierQuotes.filter(quote => {
-    const matchesSearch = quote.rfq_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         quote.buyer_name.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    fetchQuotes()
+  }, [])
+
+  const fetchQuotes = async () => {
+    try {
+      const res = await fetch('/api/quotes?role=supplier')
+      if (res.ok) {
+        const data = await res.json()
+        setQuotes(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch quotes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredQuotes = quotes.filter(quote => {
+    const matchesSearch = quote.rfq?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         quote.rfq?.buyer?.companyName.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = !statusFilter || quote.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const pendingCount = supplierQuotes.filter(q => q.status === 'pending').length
-  const acceptedCount = supplierQuotes.filter(q => q.status === 'accepted').length
-  const totalValue = supplierQuotes.reduce((sum, q) => sum + q.total_price, 0)
+  const pendingCount = quotes.filter(q => q.status === 'pending').length
+  const acceptedCount = quotes.filter(q => q.status === 'accepted').length
+  const totalValue = quotes.reduce((sum, q) => sum + q.totalPrice, 0)
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -82,7 +134,7 @@ export default function SupplierQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg text-gray-500">총 제안 금액</p>
-                <p className="text-4xl font-bold text-primary-600 mt-2">{(totalValue / 10000).toFixed(0)}만</p>
+                <p className="text-4xl font-bold text-primary-600 mt-2">{formatPrice(totalValue)}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <TrendingUp className="w-8 h-8 text-primary-600" />
@@ -96,7 +148,7 @@ export default function SupplierQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg text-gray-500">총 제안</p>
-                <p className="text-4xl font-bold text-blue-600 mt-2">{supplierQuotes.length}개</p>
+                <p className="text-4xl font-bold text-blue-600 mt-2">{quotes.length}개</p>
               </div>
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Receipt className="w-8 h-8 text-blue-600" />
@@ -149,8 +201,9 @@ export default function SupplierQuotesPage() {
             </Card>
           ) : (
             filteredQuotes.map((quote) => {
-              const status = statusConfig[quote.status]
+              const status = statusConfig[quote.status] || statusConfig.pending
               const StatusIcon = status.icon
+              const chatRoomId = quote.chatRooms?.[0]?.id
               return (
                 <Card key={quote.id} className={`hover:shadow-xl transition-all cursor-pointer h-full ${quote.status === 'accepted' ? 'border-green-300 bg-green-50/50' : ''}`}>
                   <CardContent className="py-6">
@@ -161,27 +214,27 @@ export default function SupplierQuotesPage() {
                         {status.label}
                       </Badge>
                       <span className="text-3xl font-bold text-primary-600">
-                        {(quote.total_price / 10000).toFixed(0)}만원
+                        {formatPrice(quote.totalPrice)}
                       </span>
                     </div>
 
                     {/* 제목 */}
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">{quote.rfq_title}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">{quote.rfq?.title}</h3>
 
                     {/* 구매자 정보 */}
                     <div className="flex items-center gap-3 text-lg text-gray-600 mb-4">
                       <Building2 className="w-5 h-5" />
-                      <span>구매자: {quote.buyer_name}</span>
+                      <span>구매자: {quote.rfq?.buyer?.companyName}</span>
                     </div>
 
                     {/* 하단 */}
                     <div className="mt-4 pt-4 border-t-2 border-gray-100 flex justify-between items-center">
                       <span className="flex items-center gap-2 text-base text-gray-500">
                         <Calendar className="w-5 h-5" />
-                        납품일: {quote.delivery_date}
+                        납품일: {formatDate(quote.deliveryDate)}
                       </span>
-                      {quote.status === 'accepted' && (
-                        <Link href={`/chat/room-${quote.id}`}>
+                      {quote.status === 'accepted' && chatRoomId && (
+                        <Link href={`/chat/${chatRoomId}`}>
                           <span className="text-base font-medium text-primary-600 hover:underline">
                             채팅방 이동 →
                           </span>

@@ -1,31 +1,52 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, ShoppingBag, PackageCheck, HandCoins } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, ShoppingBag, PackageCheck, HandCoins, Loader2 } from 'lucide-react'
 import { Input, Select, Card, CardContent, Badge, Button } from '@/components/ui'
-import { mockBuyerOrders, mockRFQs, mockSuppliers } from '@/lib/mock-data'
 
-// 새로운 주문 상태 플로우: 배송준비→배송중→배송완료→수령확인→거래완료
-const statusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info'; icon: any; color: string; step: number }> = {
-  pending: { label: '결제대기', variant: 'default', icon: Clock, color: 'gray', step: 0 },
-  paid: { label: '결제완료', variant: 'info', icon: CreditCard, color: 'blue', step: 1 },
-  preparing: { label: '배송준비', variant: 'info', icon: Package, color: 'blue', step: 2 },
-  shipping: { label: '배송중', variant: 'warning', icon: Truck, color: 'yellow', step: 3 },
-  delivered: { label: '배송완료', variant: 'success', icon: PackageCheck, color: 'green', step: 4 },
-  confirmed: { label: '수령확인', variant: 'success', icon: CheckCircle, color: 'green', step: 5 },
-  completed: { label: '거래완료', variant: 'success', icon: HandCoins, color: 'green', step: 6 },
-  cancelled: { label: '취소', variant: 'error', icon: Clock, color: 'red', step: -1 },
-}
-
-// 금액 포맷 함수 (만원 단위)
-const formatPrice = (price: number) => {
-  if (price >= 10000) {
-    return `${Math.floor(price / 10000)}만${price % 10000 > 0 ? Math.floor((price % 10000) / 1000) + '천' : ''}원`
+interface Order {
+  id: string
+  rfqId: string
+  quoteId: string
+  buyerId: string
+  supplierId: string
+  productAmount: number
+  totalAmount: number
+  commissionAmount: number
+  supplierFee: number | null
+  buyerFee: number | null
+  status: string
+  paymentMethod: string
+  createdAt: string
+  rfq: {
+    id: string
+    title: string
+    category: string
+    quantity: number
+    unit: string
+    deliveryDate: string
+    deliveryAddress: string
   }
-  return `${price.toLocaleString()}원`
+  supplier: {
+    id: string
+    companyName: string
+    contactName: string
+    phone: string
+  }
 }
 
-const formatPriceSimple = (price: number) => {
+const statusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info'; icon: any; step: number }> = {
+  pending: { label: '결제대기', variant: 'default', icon: Clock, step: 0 },
+  paid: { label: '결제완료', variant: 'info', icon: CreditCard, step: 1 },
+  preparing: { label: '배송준비', variant: 'info', icon: Package, step: 2 },
+  shipping: { label: '배송중', variant: 'warning', icon: Truck, step: 3 },
+  delivered: { label: '배송완료', variant: 'success', icon: PackageCheck, step: 4 },
+  confirmed: { label: '수령확인', variant: 'success', icon: CheckCircle, step: 5 },
+  completed: { label: '거래완료', variant: 'success', icon: HandCoins, step: 6 },
+  cancelled: { label: '취소', variant: 'error', icon: Clock, step: -1 },
+}
+
+const formatPrice = (price: number) => {
   if (price >= 10000) {
     const man = Math.floor(price / 10000)
     return `${man}만원`
@@ -33,35 +54,67 @@ const formatPriceSimple = (price: number) => {
   return `${price.toLocaleString()}원`
 }
 
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('ko-KR')
+}
+
 export default function BuyerOrdersPage() {
+  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState<Order[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  // 주문 데이터에 관련 정보 결합
-  const ordersWithDetails = mockBuyerOrders.map(order => {
-    const rfq = mockRFQs.find(r => r.id === order.rfq_id)
-    const supplier = mockSuppliers.find(s => s.id === order.supplier_id)
-    return {
-      ...order,
-      rfq_title: rfq?.title || '알 수 없는 발주',
-      supplier_name: supplier?.company_name || '알 수 없는 공급자',
-      delivery_date: rfq?.delivery_date || '미정',
-    }
-  })
+  useEffect(() => {
+    fetchOrders()
+  }, [])
 
-  const filteredOrders = ordersWithDetails.filter(order => {
-    const matchesSearch = order.rfq_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.supplier_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders?role=buyer')
+      if (res.ok) {
+        const data = await res.json()
+        setOrders(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.rfq?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.supplier?.companyName.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = !statusFilter || order.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const shippingCount = ordersWithDetails.filter(o => o.status === 'shipping').length
-  const completedCount = ordersWithDetails.filter(o => o.status === 'completed' || o.status === 'confirmed').length
-  const totalSpent = ordersWithDetails.reduce((sum, o) => sum + o.total_amount, 0)
+  const shippingCount = orders.filter(o => o.status === 'shipping').length
+  const completedCount = orders.filter(o => o.status === 'completed' || o.status === 'confirmed').length
+  const totalSpent = orders.reduce((sum, o) => sum + o.totalAmount, 0)
 
-  const handleConfirmReceipt = (orderId: string) => {
-    alert(`주문 ${orderId}의 수령을 확인했습니다. 거래가 완료됩니다.`)
+  const handleConfirmReceipt = async (orderId: string) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'confirmed' }),
+      })
+      if (res.ok) {
+        alert('수령이 확인되었습니다. 거래가 완료됩니다.')
+        fetchOrders()
+      }
+    } catch (error) {
+      alert('수령 확인에 실패했습니다.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -110,7 +163,7 @@ export default function BuyerOrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg text-gray-500">총 주문 금액</p>
-                <p className="text-4xl font-bold text-primary-600 mt-2">{formatPriceSimple(totalSpent)}</p>
+                <p className="text-4xl font-bold text-primary-600 mt-2">{formatPrice(totalSpent)}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <CreditCard className="w-8 h-8 text-primary-600" />
@@ -125,7 +178,7 @@ export default function BuyerOrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg text-gray-500">총 주문</p>
-                <p className="text-4xl font-bold text-blue-600 mt-2">{ordersWithDetails.length}건</p>
+                <p className="text-4xl font-bold text-blue-600 mt-2">{orders.length}건</p>
               </div>
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <ShoppingBag className="w-8 h-8 text-blue-600" />
@@ -180,7 +233,7 @@ export default function BuyerOrdersPage() {
             </Card>
           ) : (
             filteredOrders.map((order) => {
-              const status = statusConfig[order.status]
+              const status = statusConfig[order.status] || statusConfig.pending
               const StatusIcon = status.icon
               return (
                 <Card key={order.id} className="hover:shadow-xl transition-all h-full">
@@ -192,34 +245,35 @@ export default function BuyerOrdersPage() {
                           <StatusIcon className="w-4 h-4 mr-2" />
                           {status.label}
                         </Badge>
-                        <span className="text-lg text-gray-500">#{order.id}</span>
+                        <span className="text-lg text-gray-500">#{order.id.slice(0, 8)}</span>
                       </div>
                     </div>
 
                     {/* 제목 */}
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">{order.rfq_title}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">{order.rfq?.title}</h3>
 
                     {/* 공급자 정보 */}
                     <div className="flex items-center gap-3 text-lg text-gray-600 mb-4">
                       <Building2 className="w-5 h-5" />
-                      <span>{order.supplier_name}</span>
+                      <span>{order.supplier?.companyName}</span>
                     </div>
 
                     {/* 결제 금액 정보 */}
                     <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                       <div className="flex justify-between text-base text-gray-600">
                         <span>상품 금액</span>
-                        <span>{formatPriceSimple(order.product_amount)}</span>
+                        <span>{formatPrice(order.productAmount)}</span>
                       </div>
-                      <div className="flex justify-between text-base text-gray-500">
-                        <span>안전거래 수수료 (3.5%)</span>
-                        <span>+{(order.buyer_fee || order.commission_amount).toLocaleString()}원</span>
-                      </div>
+                      {order.buyerFee && order.buyerFee > 0 && (
+                        <div className="flex justify-between text-base text-gray-500">
+                          <span>안전거래 수수료</span>
+                          <span>+{order.buyerFee.toLocaleString()}원</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-xl font-bold text-primary-600 pt-2 border-t border-gray-200">
                         <span>총 결제금액</span>
-                        <span>{formatPriceSimple(order.total_amount)}</span>
+                        <span>{formatPrice(order.totalAmount)}</span>
                       </div>
-                      <p className="text-sm text-gray-400 text-right">안전거래 및 에스크로 이용료 포함</p>
                     </div>
 
                     {/* 하단 */}
@@ -227,11 +281,11 @@ export default function BuyerOrdersPage() {
                       <div className="space-y-1">
                         <span className="flex items-center gap-2 text-base text-gray-500">
                           <Truck className="w-5 h-5" />
-                          납품예정: {order.delivery_date}
+                          납품예정: {formatDate(order.rfq?.deliveryDate)}
                         </span>
                         <span className="flex items-center gap-2 text-base text-gray-400">
                           <Calendar className="w-5 h-5" />
-                          주문일: {order.created_at}
+                          주문일: {formatDate(order.createdAt)}
                         </span>
                       </div>
                       {order.status === 'delivered' && (

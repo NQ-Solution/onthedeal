@@ -1,52 +1,70 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, ReactNode } from 'react'
+import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
-import { mockBuyers, mockSuppliers } from '@/lib/mock-data'
-import { Profile } from '@/types'
 
-interface UserContextType {
-  user: Profile
-  currentRole: 'buyer' | 'supplier'
-  setCurrentRole: (role: 'buyer' | 'supplier') => void
+interface UserProfile {
+  id: string
+  email: string
+  role: 'buyer' | 'supplier' | 'admin'
+  companyName: string
+  businessNumber?: string
+  contactName: string
+  phone: string
+  storeAddress?: string
+  address?: string
+  createdAt: string
 }
 
-// 개발 모드 목업 유저 (mock-data에서 가져옴)
-const mockUsers: Record<'buyer' | 'supplier', Profile> = {
-  buyer: mockBuyers[0],
-  supplier: mockSuppliers[0],
+interface UserContextType {
+  user: UserProfile | null
+  currentRole: 'buyer' | 'supplier' | 'admin'
+  isLoading: boolean
+}
+
+const defaultUser: UserProfile = {
+  id: '',
+  email: '',
+  role: 'buyer',
+  companyName: '',
+  contactName: '',
+  phone: '',
+  createdAt: '',
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
+  const { data: session, status } = useSession()
   const pathname = usePathname()
 
   // 현재 경로에서 역할 감지
-  const getInitialRole = (): 'buyer' | 'supplier' => {
+  const getCurrentRole = (): 'buyer' | 'supplier' | 'admin' => {
+    if (pathname?.startsWith('/admin')) return 'admin'
     if (pathname?.startsWith('/supplier')) return 'supplier'
     return 'buyer'
   }
 
-  const [currentRole, setCurrentRole] = useState<'buyer' | 'supplier'>(getInitialRole)
-  const [user, setUser] = useState<Profile>(mockUsers[getInitialRole()])
+  const currentRole = getCurrentRole()
+  const isLoading = status === 'loading'
 
-  // 경로 변경 시 역할 동기화
-  useEffect(() => {
-    const newRole = getInitialRole()
-    if (newRole !== currentRole) {
-      setCurrentRole(newRole)
-      setUser(mockUsers[newRole])
-    }
-  }, [pathname])
-
-  // 역할 변경 시 사용자 정보도 업데이트
-  useEffect(() => {
-    setUser(mockUsers[currentRole])
-  }, [currentRole])
+  // session에서 사용자 정보 추출 (세션에 포함된 기본 필드만 사용)
+  const user: UserProfile | null = session?.user ? {
+    id: session.user.id || '',
+    email: session.user.email || '',
+    role: (session.user.role as 'buyer' | 'supplier' | 'admin') || 'buyer',
+    companyName: session.user.companyName || '',
+    businessNumber: undefined,
+    contactName: session.user.name || '',
+    phone: '',
+    storeAddress: undefined,
+    address: undefined,
+    createdAt: '',
+  } : null
 
   return (
-    <UserContext.Provider value={{ user, currentRole, setCurrentRole }}>
+    <UserContext.Provider value={{ user, currentRole, isLoading }}>
       {children}
     </UserContext.Provider>
   )

@@ -126,60 +126,7 @@ async function main() {
     },
   })
 
-  // 6. 샘플 RFQ 생성
-  console.log('📋 샘플 RFQ 생성...')
-  const rfq1 = await prisma.rFQ.create({
-    data: {
-      buyerId: buyer.id,
-      title: '유기농 양파 50kg 제안 요청',
-      category: '채소류',
-      description: '식당에서 사용할 유기농 양파 50kg이 필요합니다. 신선하고 크기가 균일한 것으로 부탁드립니다.',
-      quantity: 50,
-      unit: 'kg',
-      desiredPrice: 100000,
-      budgetMin: 80000,
-      budgetMax: 120000,
-      deliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
-      deliveryAddress: '서울시 강남구 테헤란로 123 맛있는 식당',
-      status: 'open',
-    },
-  })
-
-  const rfq2 = await prisma.rFQ.create({
-    data: {
-      buyerId: buyer.id,
-      title: '국내산 한우 등심 10kg',
-      category: '육류',
-      description: '1++ 등급 한우 등심이 필요합니다. 냉장 상태로 배송 부탁드립니다.',
-      quantity: 10,
-      unit: 'kg',
-      desiredPrice: 800000,
-      budgetMin: 700000,
-      budgetMax: 900000,
-      deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3일 후
-      deliveryAddress: '서울시 강남구 테헤란로 123 맛있는 식당',
-      status: 'open',
-    },
-  })
-
-  console.log(`  ✅ RFQ 2개 생성 완료`)
-
-  // 7. 샘플 제안 생성
-  console.log('📝 샘플 제안 생성...')
-  const quote1 = await prisma.quote.create({
-    data: {
-      rfqId: rfq1.id,
-      supplierId: supplier.id,
-      unitPrice: 1800,
-      totalPrice: 90000,
-      deliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-      note: '유기농 인증 양파입니다. 산지 직송으로 신선하게 배송해 드립니다.',
-      status: 'pending',
-    },
-  })
-  console.log(`  ✅ 제안 1개 생성 완료`)
-
-  // 8. CMS 페이지 생성
+  // 6. CMS 페이지 생성
   console.log('📄 CMS 페이지 생성...')
 
   await prisma.page.createMany({
@@ -316,6 +263,8 @@ async function main() {
   console.log('  - 관리자: admin@test.com / test1234')
   console.log('  - 구매자: buyer@test.com / test1234')
   console.log('  - 공급자: supplier@test.com / test1234')
+  console.log('')
+  console.log('💡 발주, 제안, 주문 등은 실제로 생성해주세요.')
   console.log('')
 }
 

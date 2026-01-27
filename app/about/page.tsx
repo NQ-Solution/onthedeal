@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
-import { Users, Shield, Zap, Heart, ArrowRight, CheckCircle, Code } from 'lucide-react'
+import { Users, Shield, Zap, Heart, ArrowRight, CheckCircle } from 'lucide-react'
 
 export default function AboutPage() {
   return (
@@ -123,34 +123,6 @@ export default function AboutPage() {
               <h3 className="text-2xl font-bold text-gray-900 mb-3">고객중심</h3>
               <p className="text-lg text-gray-600">
                 고객의 성공이 우리의 성공입니다
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Team Section */}
-        <div className="bg-white rounded-3xl p-10 shadow-xl border-2 border-gray-100 mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 text-center mb-10">Our Team</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <span className="text-5xl text-white font-bold">대</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">대표</h3>
-              <p className="text-lg text-primary-600 font-medium">CEO & Founder</p>
-              <p className="text-base text-gray-600 mt-3">
-                OnTheDeal 서비스 기획 및 운영
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <Code className="w-16 h-16 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">NQ Solution</h3>
-              <p className="text-lg text-blue-600 font-medium">Development Partner</p>
-              <p className="text-base text-gray-600 mt-3">
-                초기 개발 및 기술 파트너
               </p>
             </div>
           </div>

@@ -53,13 +53,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // paymentKey 조회 (실제로는 DB에 저장해야 함)
-    // TODO: Order 모델에 paymentKey 필드 추가 필요
-    const paymentKey = body.paymentKey
+    // paymentKey는 DB에서 조회 (보안: 클라이언트에서 받지 않음)
+    const paymentKey = order.paymentKey
 
     if (!paymentKey) {
       return NextResponse.json(
-        { error: '결제 정보를 찾을 수 없습니다' },
+        { error: '결제 정보를 찾을 수 없습니다. 결제가 완료되지 않은 주문입니다.' },
         { status: 400 }
       )
     }

@@ -1,10 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Receipt, Clock, CheckCircle, XCircle, Building2, Calendar, TrendingUp } from 'lucide-react'
+import { Search, Receipt, Clock, CheckCircle, XCircle, Building2, Calendar, TrendingUp, Loader2 } from 'lucide-react'
 import { Input, Select, Card, CardContent, Badge, Button } from '@/components/ui'
-import { mockQuotes, mockRFQs, mockSuppliers } from '@/lib/mock-data'
+
+interface Quote {
+  id: string
+  rfqId: string
+  supplierId: string
+  unitPrice: number
+  totalPrice: number
+  deliveryDate: string
+  note: string | null
+  status: string
+  createdAt: string
+  rfq: {
+    id: string
+    title: string
+    quantity: number
+    unit: string
+  }
+  supplier: {
+    id: string
+    companyName: string
+  }
+}
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error'; icon: any }> = {
   pending: { label: '대기중', variant: 'warning', icon: Clock },
@@ -13,32 +34,59 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'succes
   expired: { label: '만료됨', variant: 'default', icon: Clock },
 }
 
+const formatPrice = (price: number) => {
+  if (price >= 10000) {
+    return `${Math.floor(price / 10000)}만원`
+  }
+  return `${price.toLocaleString()}원`
+}
+
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('ko-KR')
+}
+
 export default function BuyerQuotesPage() {
+  const [loading, setLoading] = useState(true)
+  const [quotes, setQuotes] = useState<Quote[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  // 구매자가 받은 제안들 (구매자의 RFQ에 대한 제안들)
-  const buyerRFQIds = mockRFQs.filter(rfq => rfq.buyer_id === 'buyer-001').map(rfq => rfq.id)
-  const receivedQuotes = mockQuotes.filter(quote => buyerRFQIds.includes(quote.rfq_id)).map(quote => {
-    const rfq = mockRFQs.find(r => r.id === quote.rfq_id)
-    const supplier = mockSuppliers.find(s => s.id === quote.supplier_id)
-    return {
-      ...quote,
-      rfq_title: rfq?.title || '알 수 없는 발주',
-      supplier_name: supplier?.company_name || '알 수 없는 공급자',
-    }
-  })
+  useEffect(() => {
+    fetchQuotes()
+  }, [])
 
-  const filteredQuotes = receivedQuotes.filter(quote => {
-    const matchesSearch = quote.rfq_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         quote.supplier_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const fetchQuotes = async () => {
+    try {
+      const res = await fetch('/api/quotes?role=buyer')
+      if (res.ok) {
+        const data = await res.json()
+        setQuotes(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch quotes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredQuotes = quotes.filter(quote => {
+    const matchesSearch = quote.rfq?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         quote.supplier?.companyName.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = !statusFilter || quote.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const pendingCount = receivedQuotes.filter(q => q.status === 'pending').length
-  const acceptedCount = receivedQuotes.filter(q => q.status === 'accepted').length
-  const totalValue = receivedQuotes.reduce((sum, q) => sum + q.total_price, 0)
+  const pendingCount = quotes.filter(q => q.status === 'pending').length
+  const acceptedCount = quotes.filter(q => q.status === 'accepted').length
+  const totalValue = quotes.reduce((sum, q) => sum + q.totalPrice, 0)
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -86,7 +134,7 @@ export default function BuyerQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg text-gray-500">총 제안 금액</p>
-                <p className="text-4xl font-bold text-primary-600 mt-2">{(totalValue / 10000).toFixed(0)}만</p>
+                <p className="text-4xl font-bold text-primary-600 mt-2">{formatPrice(totalValue)}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <TrendingUp className="w-8 h-8 text-primary-600" />
@@ -101,7 +149,7 @@ export default function BuyerQuotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg text-gray-500">총 제안</p>
-                <p className="text-4xl font-bold text-blue-600 mt-2">{receivedQuotes.length}개</p>
+                <p className="text-4xl font-bold text-blue-600 mt-2">{quotes.length}개</p>
               </div>
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Receipt className="w-8 h-8 text-blue-600" />
@@ -154,10 +202,10 @@ export default function BuyerQuotesPage() {
             </Card>
           ) : (
             filteredQuotes.map((quote) => {
-              const status = statusConfig[quote.status]
+              const status = statusConfig[quote.status] || statusConfig.pending
               const StatusIcon = status.icon
               return (
-                <Link key={quote.id} href={`/buyer/rfqs/${quote.rfq_id}`}>
+                <Link key={quote.id} href={`/buyer/rfqs/${quote.rfqId}`}>
                   <Card className="hover:shadow-xl transition-all cursor-pointer h-full">
                     <CardContent className="py-6">
                       {/* 상단 */}
@@ -167,24 +215,24 @@ export default function BuyerQuotesPage() {
                           {status.label}
                         </Badge>
                         <span className="text-3xl font-bold text-primary-600">
-                          {(quote.total_price / 10000).toFixed(0)}만원
+                          {formatPrice(quote.totalPrice)}
                         </span>
                       </div>
 
                       {/* 제목 */}
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{quote.rfq_title}</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{quote.rfq?.title}</h3>
 
                       {/* 공급자 정보 */}
                       <div className="flex items-center gap-3 text-lg text-gray-600 mb-4">
                         <Building2 className="w-5 h-5" />
-                        <span>{quote.supplier_name}</span>
+                        <span>{quote.supplier?.companyName}</span>
                       </div>
 
                       {/* 하단 */}
                       <div className="mt-4 pt-4 border-t-2 border-gray-100 flex justify-between items-center">
                         <span className="flex items-center gap-2 text-base text-gray-500">
                           <Calendar className="w-5 h-5" />
-                          납품일: {quote.delivery_date}
+                          납품일: {formatDate(quote.deliveryDate)}
                         </span>
                         {quote.status === 'pending' && (
                           <div className="flex gap-2">

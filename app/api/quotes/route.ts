@@ -74,6 +74,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
   }
 
+  // 공급자만 제안 가능
+  if (session.user.role !== 'supplier') {
+    return NextResponse.json({ error: '공급자만 제안할 수 있습니다' }, { status: 403 })
+  }
+
   try {
     const body = await request.json()
 
@@ -86,23 +91,103 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'RFQ를 찾을 수 없습니다' }, { status: 404 })
     }
 
-    const totalPrice = body.unit_price * rfq.quantity
+    if (rfq.status !== 'open') {
+      return NextResponse.json({ error: '이미 마감된 발주입니다' }, { status: 400 })
+    }
 
-    const quote = await prisma.quote.create({
-      data: {
-        rfqId: body.rfq_id,
-        supplierId: session.user.id,
-        unitPrice: body.unit_price,
-        totalPrice: totalPrice,
-        deliveryDate: new Date(body.delivery_date),
-        note: body.note || null,
-        status: 'pending',
+    // 이미 제안했는지 확인
+    const existingQuote = await prisma.quote.findUnique({
+      where: {
+        rfqId_supplierId: {
+          rfqId: body.rfq_id,
+          supplierId: session.user.id,
+        },
       },
     })
 
-    // TODO: 크레딧 차감 로직 추가
+    if (existingQuote) {
+      return NextResponse.json({ error: '이미 이 발주에 제안하셨습니다' }, { status: 400 })
+    }
 
-    return NextResponse.json(quote)
+    const totalPrice = body.unit_price * rfq.quantity
+
+    // 크레딧 선차감 금액 계산 (구매 희망가 최소금액의 3% 또는 총 금액의 3%)
+    const baseAmount = rfq.budgetMin || totalPrice
+    const creditDeduction = Math.round(baseAmount * 0.03)
+
+    // 공급자 크레딧 확인
+    const credit = await prisma.credit.findUnique({
+      where: { supplierId: session.user.id },
+    })
+
+    if (!credit || credit.balance < creditDeduction) {
+      return NextResponse.json({
+        error: '크레딧이 부족합니다',
+        required: creditDeduction,
+        current: credit?.balance || 0,
+      }, { status: 400 })
+    }
+
+    // 트랜잭션으로 제안 생성 + 크레딧 차감
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. 제안 생성
+      const quote = await tx.quote.create({
+        data: {
+          rfqId: body.rfq_id,
+          supplierId: session.user.id,
+          unitPrice: body.unit_price,
+          totalPrice: totalPrice,
+          deliveryDate: new Date(body.delivery_date),
+          note: body.note || null,
+          status: 'pending',
+          optionType: body.optionType || 'basic',
+          commissionRate: 3.0, // 기본 수수료율 3%
+        },
+      })
+
+      // 2. 크레딧 차감
+      const newBalance = credit.balance - creditDeduction
+      await tx.credit.update({
+        where: { supplierId: session.user.id },
+        data: { balance: newBalance },
+      })
+
+      // 3. 크레딧 로그 생성
+      await tx.creditLog.create({
+        data: {
+          supplierId: session.user.id,
+          amount: -creditDeduction,
+          type: 'use',
+          description: `제안 제출 - ${rfq.title}`,
+          referenceId: quote.id,
+          balanceAfter: newBalance,
+        },
+      })
+
+      // 4. 채팅방 생성 (제안과 동시에)
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 3) // 3일 후 만료
+
+      await tx.chatRoom.create({
+        data: {
+          rfqId: body.rfq_id,
+          quoteId: quote.id,
+          buyerId: rfq.buyerId,
+          supplierId: session.user.id,
+          status: 'active',
+          expiresAt,
+        },
+      })
+
+      return { quote, creditDeduction, newBalance }
+    })
+
+    return NextResponse.json({
+      ...result.quote,
+      creditDeduction: result.creditDeduction,
+      newBalance: result.newBalance,
+      message: `제안이 제출되었습니다. ${result.creditDeduction.toLocaleString()}원이 선차감되었습니다.`,
+    })
   } catch (error) {
     console.error('제안 생성 오류:', error)
     return NextResponse.json({ error: '제안 생성에 실패했습니다' }, { status: 500 })

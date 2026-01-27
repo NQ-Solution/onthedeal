@@ -1,28 +1,40 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, TrendingUp, PackageCheck, HandCoins, Info } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, TrendingUp, PackageCheck, HandCoins, Info, Loader2 } from 'lucide-react'
 import { Button, Input, Select, Card, CardContent, Badge } from '@/components/ui'
-import { mockSupplierOrders, mockRFQs, mockBuyers } from '@/lib/mock-data'
 
-// 공급자의 주문 목록 (상세 정보 조인)
-const orders = mockSupplierOrders.map(order => {
-  const rfq = mockRFQs.find(r => r.id === order.rfq_id)
-  const buyer = mockBuyers.find(b => b.id === order.buyer_id)
-  // 정산 금액 = 상품 금액 - 공급자 수수료 (3%)
-  const supplierFee = order.supplier_fee || Math.round(order.product_amount * 0.03)
-  const netAmount = order.product_amount - supplierFee
-  return {
-    ...order,
-    rfq_title: rfq?.title || '알 수 없는 발주',
-    buyer_name: buyer?.company_name || '알 수 없는 구매자',
-    delivery_date: rfq?.delivery_date || '미정',
-    commission: supplierFee,
-    net_amount: netAmount,
+interface Order {
+  id: string
+  rfqId: string
+  quoteId: string
+  buyerId: string
+  supplierId: string
+  productAmount: number
+  totalAmount: number
+  commissionAmount: number
+  supplierFee: number | null
+  buyerFee: number | null
+  status: string
+  paymentMethod: string
+  createdAt: string
+  rfq: {
+    id: string
+    title: string
+    category: string
+    quantity: number
+    unit: string
+    deliveryDate: string
+    deliveryAddress: string
   }
-})
+  buyer: {
+    id: string
+    companyName: string
+    contactName: string
+    phone: string
+  }
+}
 
-// 새로운 주문 상태 플로우
 const statusLabels: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info'; icon: any }> = {
   pending: { label: '결제대기', variant: 'default', icon: Clock },
   paid: { label: '결제완료', variant: 'info', icon: CreditCard },
@@ -34,8 +46,7 @@ const statusLabels: Record<string, { label: string; variant: 'default' | 'succes
   cancelled: { label: '취소', variant: 'error', icon: Clock },
 }
 
-// 금액 포맷 함수 (만원 단위)
-const formatPriceSimple = (price: number) => {
+const formatPrice = (price: number) => {
   if (price >= 10000) {
     const man = Math.floor(price / 10000)
     return `${man}만원`
@@ -43,25 +54,78 @@ const formatPriceSimple = (price: number) => {
   return `${price.toLocaleString()}원`
 }
 
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('ko-KR')
+}
+
 export default function SupplierOrdersPage() {
+  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState<Order[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.rfq_title.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders?role=supplier')
+      if (res.ok) {
+        const data = await res.json()
+        setOrders(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const ordersWithDetails = orders.map(order => {
+    const supplierFee = order.supplierFee || Math.round(order.productAmount * 0.03)
+    const netAmount = order.productAmount - supplierFee
+    return {
+      ...order,
+      commission: supplierFee,
+      net_amount: netAmount,
+    }
+  })
+
+  const filteredOrders = ordersWithDetails.filter(order => {
+    const matchesSearch = order.rfq?.title.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = !statusFilter || order.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const handleShip = (orderId: string) => {
-    alert(`주문 ${orderId}의 배송을 시작합니다.`)
+  const handleShip = async (orderId: string) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'shipping' }),
+      })
+      if (res.ok) {
+        alert('배송이 시작되었습니다.')
+        fetchOrders()
+      }
+    } catch (error) {
+      alert('배송 시작에 실패했습니다.')
+    }
   }
 
-  // 통계 계산
-  const preparingCount = orders.filter(o => o.status === 'preparing').length
-  const shippingCount = orders.filter(o => o.status === 'shipping').length
-  const completedCount = orders.filter(o => o.status === 'completed' || o.status === 'confirmed').length
-  const totalRevenue = orders.reduce((sum, o) => sum + o.net_amount, 0)
+  const preparingCount = ordersWithDetails.filter(o => o.status === 'preparing').length
+  const shippingCount = ordersWithDetails.filter(o => o.status === 'shipping').length
+  const completedCount = ordersWithDetails.filter(o => o.status === 'completed' || o.status === 'confirmed').length
+  const totalRevenue = ordersWithDetails.reduce((sum, o) => sum + o.net_amount, 0)
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -120,7 +184,7 @@ export default function SupplierOrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg text-gray-500">총 정산액</p>
-                <p className="text-4xl font-bold text-primary-600 mt-2">{formatPriceSimple(totalRevenue)}</p>
+                <p className="text-4xl font-bold text-primary-600 mt-2">{formatPrice(totalRevenue)}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <TrendingUp className="w-8 h-8 text-primary-600" />
@@ -193,7 +257,7 @@ export default function SupplierOrdersPage() {
             </Card>
           ) : (
             filteredOrders.map((order) => {
-              const status = statusLabels[order.status]
+              const status = statusLabels[order.status] || statusLabels.pending
               const StatusIcon = status.icon
               return (
                 <Card key={order.id} className="hover:shadow-xl transition-all">
@@ -206,21 +270,21 @@ export default function SupplierOrdersPage() {
                             <StatusIcon className="w-4 h-4 mr-2" />
                             {status.label}
                           </Badge>
-                          <span className="text-lg text-gray-500">#{order.id}</span>
+                          <span className="text-lg text-gray-500">#{order.id.slice(0, 8)}</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900">{order.rfq_title}</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">{order.rfq?.title}</h3>
                         <div className="flex items-center gap-3 text-lg text-gray-600">
                           <Building2 className="w-5 h-5" />
-                          <span>구매자: {order.buyer_name}</span>
+                          <span>구매자: {order.buyer?.companyName}</span>
                         </div>
                         <div className="flex items-center gap-6 text-base text-gray-500">
                           <span className="flex items-center gap-2">
                             <Truck className="w-5 h-5" />
-                            납품예정: {order.delivery_date}
+                            납품예정: {formatDate(order.rfq?.deliveryDate)}
                           </span>
                           <span className="flex items-center gap-2">
                             <Calendar className="w-5 h-5" />
-                            주문일: {order.created_at}
+                            주문일: {formatDate(order.createdAt)}
                           </span>
                         </div>
                       </div>
@@ -230,7 +294,7 @@ export default function SupplierOrdersPage() {
                         <div className="bg-gray-50 rounded-2xl p-5 space-y-3">
                           <div className="flex justify-between text-lg text-gray-700">
                             <span>상품 금액</span>
-                            <span className="font-medium">{formatPriceSimple(order.product_amount)}</span>
+                            <span className="font-medium">{formatPrice(order.productAmount)}</span>
                           </div>
                           <div className="flex justify-between text-base text-red-500">
                             <span>플랫폼 수수료 (3%)</span>
@@ -238,7 +302,7 @@ export default function SupplierOrdersPage() {
                           </div>
                           <div className="flex justify-between text-2xl font-bold text-primary-600 pt-3 border-t-2 border-gray-200">
                             <span>정산 금액</span>
-                            <span>{formatPriceSimple(order.net_amount)}</span>
+                            <span>{formatPrice(order.net_amount)}</span>
                           </div>
                         </div>
 

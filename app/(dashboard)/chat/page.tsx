@@ -4,11 +4,41 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge, Button } from '@/components/ui'
-import { mockChatRooms as baseChatRooms, mockChatMessages, mockRFQs, mockBuyers, mockSuppliers } from '@/lib/mock-data'
-import { MessageSquare, Clock, AlertTriangle, CheckCircle, Eye } from 'lucide-react'
+import { MessageSquare, Clock, AlertTriangle, CheckCircle, Eye, Loader2 } from 'lucide-react'
 
-// 한국 시간 상대 표시 함수
-const formatRelativeTimeKST = (dateStr: string) => {
+interface ChatRoom {
+  id: string
+  status: string
+  createdAt: string
+  expiresAt: string
+  dealConfirmedAt: string | null
+  rfq: {
+    id: string
+    title: string
+    category: string
+  } | null
+  quote: {
+    id: string
+    totalPrice: number
+  } | null
+  buyer: {
+    id: string
+    companyName: string
+  } | null
+  supplier: {
+    id: string
+    companyName: string
+  } | null
+  lastMessage: {
+    content: string
+    createdAt: string
+    isRead: boolean
+    senderId: string
+  } | null
+  unreadCount: number
+}
+
+const formatRelativeTime = (dateStr: string) => {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -21,46 +51,7 @@ const formatRelativeTimeKST = (dateStr: string) => {
   if (diffHours < 24) return `${diffHours}시간 전`
   if (diffDays < 7) return `${diffDays}일 전`
 
-  return date.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })
-}
-
-// 채팅방 데이터 가공 (만료일, 마지막 메시지, 읽지 않은 수 등 추가)
-const chatRoomsWithDetails = baseChatRooms.map(room => {
-  const rfq = mockRFQs.find(r => r.id === room.rfq_id)
-  const buyer = mockBuyers.find(b => b.id === room.buyer_id)
-  const supplier = mockSuppliers.find(s => s.id === room.supplier_id)
-  const roomMessages = mockChatMessages.filter(m => m.chat_room_id === room.id)
-  const lastMessage = roomMessages.length > 0 ? roomMessages[roomMessages.length - 1] : null
-
-  // 활성 채팅방의 만료일 계산 (생성 후 3일)
-  const createdDate = new Date(room.created_at)
-  const expiresAt = room.status === 'active'
-    ? new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString()
-    : null
-
-  return {
-    id: room.id,
-    status: room.status,
-    created_at: room.created_at,
-    expires_at: expiresAt,
-    rfq: { title: rfq?.title || '알 수 없는 발주' },
-    buyer: { company_name: buyer?.company_name || '알 수 없는 구매자' },
-    supplier: { company_name: supplier?.company_name || '알 수 없는 공급자' },
-    lastMessage: lastMessage?.content || '',
-    unreadCount: room.status === 'active' ? 1 : 0,  // 임시로 활성 채팅만 1개로
-  }
-})
-
-interface ChatRoomWithDetails {
-  id: string
-  status: string
-  created_at: string
-  expires_at: string | null
-  rfq: { title: string } | null
-  buyer: { company_name: string } | null
-  supplier: { company_name: string } | null
-  lastMessage?: string
-  unreadCount: number
+  return date.toLocaleDateString('ko-KR')
 }
 
 function getTimeRemaining(expiresAt: string | null): { text: string; isUrgent: boolean } {
@@ -82,15 +73,27 @@ function getTimeRemaining(expiresAt: string | null): { text: string; isUrgent: b
 }
 
 export default function ChatListPage() {
-  const [rooms, setRooms] = useState<ChatRoomWithDetails[]>([])
+  const [rooms, setRooms] = useState<ChatRoom[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'active' | 'confirmed'>('all')
 
   useEffect(() => {
-    // 개발 모드: 목업 데이터 사용
-    setRooms(chatRoomsWithDetails)
-    setLoading(false)
+    fetchChatRooms()
   }, [])
+
+  const fetchChatRooms = async () => {
+    try {
+      const res = await fetch('/api/chat/rooms')
+      if (res.ok) {
+        const data = await res.json()
+        setRooms(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch chat rooms:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredRooms = rooms.filter(room => {
     if (filter === 'all') return true
@@ -105,8 +108,8 @@ export default function ChatListPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
       </div>
     )
   }
@@ -120,7 +123,7 @@ export default function ChatListPage() {
       </div>
 
       {/* 만료 경고 배너 */}
-      {rooms.some(r => r.status === 'active' && r.expires_at && getTimeRemaining(r.expires_at).isUrgent) && (
+      {rooms.some(r => r.status === 'active' && r.expiresAt && getTimeRemaining(r.expiresAt).isUrgent) && (
         <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6">
           <div className="flex items-start gap-4">
             <AlertTriangle className="w-8 h-8 text-yellow-600 flex-shrink-0 mt-1" />
@@ -206,7 +209,7 @@ export default function ChatListPage() {
         ) : (
           <div className="space-y-4">
             {filteredRooms.map((room) => {
-              const timeRemaining = room.status === 'active' ? getTimeRemaining(room.expires_at) : null
+              const timeRemaining = room.status === 'active' ? getTimeRemaining(room.expiresAt) : null
 
               return (
                 <Link key={room.id} href={room.status !== 'expired' ? `/chat/${room.id}` : '#'}>
@@ -248,20 +251,20 @@ export default function ChatListPage() {
 
                           {/* 참여자 */}
                           <p className="text-lg text-gray-600 mb-2">
-                            {room.buyer?.company_name} ↔ {room.supplier?.company_name}
+                            {room.buyer?.companyName} ↔ {room.supplier?.companyName}
                           </p>
 
                           {/* 마지막 메시지 */}
                           {room.lastMessage && (
                             <p className="text-base text-gray-500 truncate">
-                              {room.lastMessage}
+                              {room.lastMessage.content}
                             </p>
                           )}
                         </div>
 
                         <div className="text-right ml-4">
                           <p className="text-base text-gray-400">
-                            {formatRelativeTimeKST(room.created_at)}
+                            {formatRelativeTime(room.createdAt)}
                           </p>
                         </div>
                       </div>

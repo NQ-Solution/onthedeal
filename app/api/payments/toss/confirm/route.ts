@@ -3,10 +3,20 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { confirmPayment } from '@/lib/toss-payments'
+import { checkIdempotency, setIdempotencyResult } from '@/lib/idempotency'
 
 // 결제 승인 API
 export async function POST(request: NextRequest) {
   try {
+    // 멱등성 키 확인 (중복 결제 방지)
+    const idempotency = checkIdempotency(request)
+    if (idempotency?.cachedResult) {
+      return NextResponse.json(idempotency.cachedResult.data, {
+        status: idempotency.cachedResult.status,
+        headers: { 'X-Idempotency-Key': idempotency.key },
+      })
+    }
+
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
@@ -54,11 +64,12 @@ export async function POST(request: NextRequest) {
     const paymentResult = await confirmPayment(paymentKey, orderId, amount)
 
     if (paymentResult.status === 'DONE') {
-      // 결제 성공 - 주문 상태 업데이트
+      // 결제 성공 - 주문 상태 업데이트 및 paymentKey 저장
       await prisma.order.update({
         where: { id: orderId },
         data: {
           status: 'paid',
+          paymentKey: paymentKey, // 환불/취소 시 필요
           updatedAt: new Date(),
         },
       })
@@ -83,7 +94,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      return NextResponse.json({
+      const responseData = {
         success: true,
         message: '결제가 완료되었습니다',
         data: {
@@ -93,7 +104,14 @@ export async function POST(request: NextRequest) {
           approvedAt: paymentResult.approvedAt,
           receipt: paymentResult.receipt?.url,
         },
-      })
+      }
+
+      // 멱등성 키가 있으면 결과 캐시
+      if (idempotency?.key) {
+        setIdempotencyResult(idempotency.key, { data: responseData, status: 200 })
+      }
+
+      return NextResponse.json(responseData)
     } else {
       return NextResponse.json(
         { error: '결제 승인 상태가 올바르지 않습니다', status: paymentResult.status },
