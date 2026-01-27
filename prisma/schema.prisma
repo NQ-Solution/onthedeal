@@ -495,3 +495,43 @@ enum PageStatus {
   published
   draft
 }
+
+// ============================================
+// 사이트 설정 (Site Settings)
+// ============================================
+
+model SiteSettings {
+  id                String   @id @default("default")
+
+  // 기본 정보
+  siteName          String   @default("OnTheDeal") @map("site_name")
+  siteDescription   String?  @map("site_description")
+  contactEmail      String?  @map("contact_email")
+  contactPhone      String?  @map("contact_phone")
+  address           String?
+
+  // 사업자 정보
+  ceoName           String?  @map("ceo_name")
+  businessNumber    String?  @map("business_number")
+  businessAddress   String?  @map("business_address")
+
+  // 입금 계좌 정보
+  bankName          String?  @map("bank_name")
+  bankAccount       String?  @map("bank_account")
+  bankHolder        String?  @map("bank_holder")
+
+  // 알림 설정
+  emailNotifications Boolean @default(true) @map("email_notifications")
+  smsNotifications   Boolean @default(true) @map("sms_notifications")
+  adminAlertEmail    String? @map("admin_alert_email")
+
+  // 운영 시간
+  businessHoursStart String? @map("business_hours_start")
+  businessHoursEnd   String? @map("business_hours_end")
+  businessDays       String? @map("business_days")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}

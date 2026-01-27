@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui'
+import { Footer } from '@/components/layout/Footer'
 import { FileText, ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/db'
 
@@ -77,21 +78,7 @@ export default async function TermsPage() {
       </main>
 
       {/* Footer */}
-      <footer className="container mx-auto px-6 py-10 mt-12 border-t-2 border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
-            <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
-          </Link>
-          <div className="flex gap-6">
-            <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600">회사소개</Link>
-            <Link href="/contact" className="text-lg text-gray-600 hover:text-primary-600">문의하기</Link>
-            <Link href="/terms" className="text-lg text-primary-600 font-bold">이용약관</Link>
-            <Link href="/privacy" className="text-lg text-gray-600 hover:text-primary-600">개인정보처리방침</Link>
-          </div>
-          <p className="text-lg text-gray-500">© 2026 OnTheDeal. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

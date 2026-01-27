@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui'
+import { Footer } from '@/components/layout/Footer'
 
 export default function HomePage() {
   return (
@@ -38,23 +39,20 @@ export default function HomePage() {
           <div className="bg-primary-500 rounded-2xl p-10 lg:p-16 text-white">
             <div className="max-w-2xl">
               <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-                사장님, 더 좋은<br />발주 조건이 필요하세요?
+                사장님, 거래처 찾는 일은<br />여기서 끝내세요
               </h1>
-              <p className="text-xl lg:text-2xl text-white/90 mb-4 leading-relaxed">
-                판매자님, 더이상 상품판매 기다리지만 마세요.
-              </p>
-              <p className="text-2xl lg:text-3xl font-bold text-white mb-8">
-                이제 온더딜과 함께해요!
+              <p className="text-xl lg:text-2xl text-white/90 mb-8 leading-relaxed">
+                간단한 발주서 하나면 제안이 모이고 거래가 끝납니다.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/register?role=buyer">
                   <Button size="xl" variant="secondary" className="bg-white text-primary-600 hover:bg-gray-100">
-                    발주서 작성하기
+                    구매자로 시작하기
                   </Button>
                 </Link>
                 <Link href="/register?role=supplier">
                   <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/20">
-                    판매자로 시작
+                    판매자로 시작하기
                   </Button>
                 </Link>
               </div>
@@ -66,76 +64,72 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           {/* For Buyers - 심플한 카드 */}
           <div className="bg-white rounded-2xl p-10 border-2 border-gray-200">
-            <div className="mb-8">
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">구매자</h3>
-              <p className="text-xl text-gray-500">간편한 발주서 작성</p>
+            <div className="mb-6">
+              <h3 className="text-3xl font-bold text-gray-900 mb-3">구매자</h3>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                필요한 발주 내용을 간편히 등록하면<br />
+                다양한 제안을 받을 수 있어요
+              </p>
             </div>
-            <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-              사장님, 기존처럼 발주서 작성하세요.<br />
-              대신 <span className="font-bold text-primary-600">간편하게 등록</span>하고<br />
-              <span className="font-bold text-primary-600">다양한 조건을 한번에 비교</span>해보세요!
-            </p>
             <ol className="space-y-5 mb-8 text-lg">
               <li className="flex items-start gap-4">
                 <span className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">1</span>
                 <div>
-                  <p className="font-bold text-gray-900 text-xl">발주서를 작성하세요</p>
-                  <p className="text-gray-600">품목, 수량, 희망가격을 입력하면 끝</p>
+                  <p className="font-bold text-gray-900 text-xl">발주서 작성</p>
+                  <p className="text-gray-600">필요한 품목을 자유롭게 등록</p>
                 </div>
               </li>
               <li className="flex items-start gap-4">
                 <span className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">2</span>
                 <div>
-                  <p className="font-bold text-gray-900 text-xl">제안을 비교하세요</p>
-                  <p className="text-gray-600">여러 판매자의 가격과 조건을 한눈에</p>
+                  <p className="font-bold text-gray-900 text-xl">조건 확인</p>
+                  <p className="text-gray-600">여러 판매자의 조건이 한눈에</p>
                 </div>
               </li>
               <li className="flex items-start gap-4">
                 <span className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">3</span>
                 <div>
-                  <p className="font-bold text-gray-900 text-xl">안전하게 거래하세요</p>
-                  <p className="text-gray-600">채팅으로 협의하고, 에스크로로 결제</p>
+                  <p className="font-bold text-gray-900 text-xl">거래 확정</p>
+                  <p className="text-gray-600">채팅으로 최종 협의 후 안심 결제</p>
                 </div>
               </li>
             </ol>
             <Link href="/register?role=buyer">
               <Button size="lg" className="w-full text-xl py-5">
-                발주서 작성하기
+                구매자로 시작하기
               </Button>
             </Link>
           </div>
 
           {/* For Suppliers - 심플한 카드 */}
           <div className="bg-white rounded-2xl p-10 border-2 border-gray-200">
-            <div className="mb-8">
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">판매자</h3>
-              <p className="text-xl text-gray-500">빠른 판매 결정</p>
+            <div className="mb-6">
+              <h3 className="text-3xl font-bold text-gray-900 mb-3">판매자</h3>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                구매자의 발주요청을 확인하고<br />
+                가능한 조건으로 제안하세요
+              </p>
             </div>
-            <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-              판매자님, 기다리지 마세요.<br />
-              <span className="font-bold text-green-600">납품 가능한 조건을 확인</span>하고<br />
-              <span className="font-bold text-green-600">바로 제안을 제출</span>하세요!
-            </p>
             <ol className="space-y-5 mb-8 text-lg">
               <li className="flex items-start gap-4">
                 <span className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">1</span>
                 <div>
-                  <p className="font-bold text-gray-900 text-xl">발주를 탐색하세요</p>
-                  <p className="text-gray-600">내 상품에 맞는 발주를 찾아보세요</p>
+                  <p className="font-bold text-gray-900 text-xl">발주서 검색</p>
+                  <p className="text-gray-600">납품 가능한 발주를 찾아보세요</p>
                 </div>
               </li>
               <li className="flex items-start gap-4">
                 <span className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">2</span>
                 <div>
-                  <p className="font-bold text-gray-900 text-xl">제안을 제출하세요</p>
-                  <p className="text-gray-600">경쟁력 있는 가격으로 제안하세요</p>
+                  <p className="font-bold text-gray-900 text-xl">조건 제안하기</p>
+                  <p className="text-gray-600">품질, 가격, 납품조건 등을 제안하세요</p>
                 </div>
               </li>
               <li className="flex items-start gap-4">
                 <span className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">3</span>
                 <div>
-                  <p className="font-bold text-gray-900 text-xl">거래를 성사시키세요</p>
-                  <p className="text-gray-600">협의 후 결제 확인, 배송, 정산까지</p>
+                  <p className="font-bold text-gray-900 text-xl">거래 확정</p>
+                  <p className="text-gray-600">결제 완료 후 공식 거래 이력 축적</p>
                 </div>
               </li>
             </ol>
@@ -251,22 +245,8 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer - 심플한 디자인 */}
-      <footer className="container mx-auto px-6 py-10 mt-12 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
-            <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
-          </Link>
-          <div className="flex gap-8">
-            <Link href="/terms" className="text-lg text-gray-600 hover:text-primary-600">이용약관</Link>
-            <Link href="/privacy" className="text-lg text-gray-600 hover:text-primary-600">개인정보처리방침</Link>
-            <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600">소개</Link>
-            <Link href="/contact" className="text-lg text-gray-600 hover:text-primary-600">문의하기</Link>
-          </div>
-          <p className="text-lg text-gray-500">© 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
-        </div>
-      </footer>
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

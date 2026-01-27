@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Check, X, Eye, UserCheck, UserX, Clock, Download, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Search, Check, X, Eye, UserCheck, UserX, Clock, Download, Loader2, Ban } from 'lucide-react'
 import { Button, Input, Select, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui'
 
 interface User {
@@ -54,6 +55,7 @@ const statusConfig = {
   pending: { label: '대기중', variant: 'warning' as const, icon: Clock },
   approved: { label: '승인됨', variant: 'success' as const, icon: UserCheck },
   rejected: { label: '거절됨', variant: 'error' as const, icon: UserX },
+  suspended: { label: '정지됨', variant: 'error' as const, icon: Ban },
 }
 
 const roleLabels = {
@@ -69,9 +71,6 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [showModal, setShowModal] = useState(false)
-  const [rejectReason, setRejectReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
@@ -122,44 +121,12 @@ export default function AdminUsersPage() {
       })
       if (res.ok) {
         fetchUsers()
-        setShowModal(false)
-        setSelectedUser(null)
       }
     } catch (error) {
       console.error('Failed to approve user:', error)
     } finally {
       setActionLoading(false)
     }
-  }
-
-  const handleReject = async (userId: string) => {
-    if (!rejectReason.trim()) {
-      alert('거절 사유를 입력해주세요.')
-      return
-    }
-    setActionLoading(true)
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action: 'reject', rejectionReason: rejectReason }),
-      })
-      if (res.ok) {
-        fetchUsers()
-        setShowModal(false)
-        setSelectedUser(null)
-        setRejectReason('')
-      }
-    } catch (error) {
-      console.error('Failed to reject user:', error)
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const openUserDetail = (user: User) => {
-    setSelectedUser(user)
-    setShowModal(true)
   }
 
   const formatDate = (dateStr: string) => {
@@ -326,14 +293,15 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openUserDetail(user)}
-                            className="p-2"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                          <Link href={`/admin/users/${user.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
                           {user.approvalStatus === 'pending' && (
                             <>
                               <Button
@@ -344,15 +312,28 @@ export default function AdminUsersPage() {
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
+                              <Link href={`/admin/users/${user.id}`}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            </>
+                          )}
+                          {user.approvalStatus === 'approved' && (
+                            <Link href={`/admin/users/${user.id}`}>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
-                                onClick={() => openUserDetail(user)}
+                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 p-2"
+                                title="정지하기"
                               >
-                                <X className="w-4 h-4" />
+                                <Ban className="w-4 h-4" />
                               </Button>
-                            </>
+                            </Link>
                           )}
                         </div>
                       </td>
@@ -371,211 +352,6 @@ export default function AdminUsersPage() {
         </CardContent>
       </Card>
 
-      {/* User Detail Modal */}
-      {showModal && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader className="flex flex-row items-center justify-between border-b">
-              <CardTitle>회원 상세 정보</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowModal(false)}>
-                <X className="w-5 h-5" />
-              </Button>
-            </CardHeader>
-            <CardContent className="py-6 space-y-6">
-              {/* 기본 정보 */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">기본 정보</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">이메일</p>
-                    <p className="font-bold">{selectedUser.email}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">역할</p>
-                    <Badge variant={roleLabels[selectedUser.role as keyof typeof roleLabels]?.variant || 'default'} className="text-base">
-                      {roleLabels[selectedUser.role as keyof typeof roleLabels]?.label || selectedUser.role}
-                    </Badge>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">가입일</p>
-                    <p className="font-bold">{formatDate(selectedUser.createdAt)}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 사업자 정보 */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">사업자 정보</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">회사명</p>
-                    <p className="font-bold">{selectedUser.companyName}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">사업자등록번호</p>
-                    <p className="font-bold font-mono">{selectedUser.businessNumber || '-'}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">대표자명</p>
-                    <p className="font-bold">{selectedUser.representativeName || '-'}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">업종 / 업태</p>
-                    <p className="font-bold">{selectedUser.businessType || '-'} / {selectedUser.businessCategory || '-'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 담당자 정보 */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">담당자 정보</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">담당자명</p>
-                    <p className="font-bold">{selectedUser.contactName}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">연락처</p>
-                    <p className="font-bold">{selectedUser.phone}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">팩스</p>
-                    <p className="font-bold">{selectedUser.fax || '-'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 주소 정보 */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">사업장 주소</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">우편번호</p>
-                    <p className="font-bold">{selectedUser.postalCode || '-'}</p>
-                  </div>
-                  <div className="col-span-2 bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">주소</p>
-                    <p className="font-bold">
-                      {selectedUser.storeAddress || selectedUser.address || '-'}
-                      {selectedUser.storeDetailAddress && ` ${selectedUser.storeDetailAddress}`}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 추가 정보 */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">추가 정보</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">웹사이트</p>
-                    <p className="font-bold">
-                      {selectedUser.website ? (
-                        <a href={selectedUser.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
-                          {selectedUser.website}
-                        </a>
-                      ) : '-'}
-                    </p>
-                  </div>
-                  <div className="col-span-2 bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500 mb-1">회사 소개</p>
-                    <p className="font-bold whitespace-pre-wrap">{selectedUser.introduction || '-'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 이미지 */}
-              {(selectedUser.profileImage || selectedUser.businessLicenseImage || (selectedUser.storeImages && selectedUser.storeImages.length > 0)) && (
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">첨부 이미지</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    {selectedUser.profileImage && (
-                      <div>
-                        <p className="text-sm text-gray-500 mb-2">프로필 사진</p>
-                        <img src={selectedUser.profileImage} alt="프로필" className="w-full h-32 object-cover rounded-xl border" />
-                      </div>
-                    )}
-                    {selectedUser.businessLicenseImage && (
-                      <div>
-                        <p className="text-sm text-gray-500 mb-2">사업자등록증</p>
-                        <img src={selectedUser.businessLicenseImage} alt="사업자등록증" className="w-full h-32 object-cover rounded-xl border" />
-                      </div>
-                    )}
-                    {selectedUser.storeImages && selectedUser.storeImages.map((img, i) => (
-                      <div key={i}>
-                        <p className="text-sm text-gray-500 mb-2">매장 사진 {i + 1}</p>
-                        <img src={img} alt={`매장 ${i + 1}`} className="w-full h-32 object-cover rounded-xl border" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 승인 상태 */}
-              <div className="border-t pt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <p className="text-gray-600">현재 상태:</p>
-                  <Badge variant={statusConfig[selectedUser.approvalStatus as keyof typeof statusConfig]?.variant || 'default'} className="text-base px-4 py-1">
-                    {statusConfig[selectedUser.approvalStatus as keyof typeof statusConfig]?.label || selectedUser.approvalStatus}
-                  </Badge>
-                </div>
-
-                {selectedUser.approvalStatus === 'rejected' && selectedUser.rejectionReason && (
-                  <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-4">
-                    <p className="text-red-700">
-                      <span className="font-bold">거절 사유:</span> {selectedUser.rejectionReason}
-                    </p>
-                  </div>
-                )}
-
-                {selectedUser.approvalStatus === 'approved' && selectedUser.approvedAt && (
-                  <div className="bg-green-50 border border-green-200 p-4 rounded-xl mb-4">
-                    <p className="text-green-700">
-                      <span className="font-bold">승인일:</span> {formatDate(selectedUser.approvedAt)}
-                    </p>
-                  </div>
-                )}
-
-                {selectedUser.approvalStatus === 'pending' && (
-                  <div className="space-y-4 mt-6">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">
-                        거절 사유 (거절 시 필수)
-                      </label>
-                      <Input
-                        placeholder="거절 사유를 입력하세요..."
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex gap-3">
-                      <Button
-                        size="lg"
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                        onClick={() => handleApprove(selectedUser.id)}
-                        disabled={actionLoading}
-                      >
-                        {actionLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />}
-                        승인하기
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
-                        onClick={() => handleReject(selectedUser.id)}
-                        disabled={actionLoading}
-                      >
-                        {actionLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <X className="w-5 h-5 mr-2" />}
-                        거절하기
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   )
 }

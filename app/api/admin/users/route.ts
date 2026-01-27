@@ -116,6 +116,7 @@ export async function PATCH(request: NextRequest) {
           approvalStatus: 'approved',
           approvedAt: new Date(),
           approvedById: session.user.id,
+          rejectionReason: null, // 이전 거절 사유 초기화
         }
       })
     } else if (action === 'reject') {
@@ -126,6 +127,17 @@ export async function PATCH(request: NextRequest) {
         where: { id: userId },
         data: {
           approvalStatus: 'rejected',
+          rejectionReason,
+        }
+      })
+    } else if (action === 'suspend') {
+      if (!rejectionReason) {
+        return NextResponse.json({ error: 'Suspension reason required' }, { status: 400 })
+      }
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          approvalStatus: 'suspended',
           rejectionReason,
         }
       })

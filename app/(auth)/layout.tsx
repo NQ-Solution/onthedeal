@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingBag, FileText, MessageSquare, Shield } from 'lucide-react'
+import { ShoppingBag, FileText, MessageSquare, Shield, CheckCircle } from 'lucide-react'
 
 export default function AuthLayout({
   children,
@@ -10,60 +10,88 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-orange-50 flex">
       {/* 왼쪽 - 브랜딩 영역 */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-500 to-primary-600 p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 p-12 flex-col justify-between relative overflow-hidden">
+        {/* 배경 장식 */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
         {/* 로고 */}
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-xl p-1" />
+        <Link href="/" className="flex items-center gap-3 relative z-10">
+          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-2xl p-1.5 shadow-lg" />
           <span className="font-bold text-3xl text-white">OnTheDeal</span>
         </Link>
 
         {/* 중앙 콘텐츠 */}
-        <div className="space-y-8">
+        <div className="space-y-10 relative z-10">
           <div>
             <h1 className="text-5xl font-bold text-white leading-tight mb-6">
-              B2B 식자재 거래의<br />새로운 기준
+              거래처 찾는 일은<br />가장 단순하게
             </h1>
             <p className="text-xl text-white/80 leading-relaxed">
-              신뢰할 수 있는 공급자와 구매자를 연결합니다.<br />
-              간편한 RFQ 등록부터 안전한 거래까지.
+              발주를 올리고 제안이 모이면 거래는 끝.<br />
+              회원가입은 무료입니다.
             </p>
           </div>
 
           {/* 특징 카드 */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <FileText className="w-10 h-10 text-white mb-3" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+                <FileText className="w-7 h-7 text-white" />
+              </div>
               <h3 className="text-lg font-bold text-white">RFQ 등록</h3>
               <p className="text-white/70 text-sm mt-1">간편하게 제안 요청</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <MessageSquare className="w-10 h-10 text-white mb-3" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+                <MessageSquare className="w-7 h-7 text-white" />
+              </div>
               <h3 className="text-lg font-bold text-white">실시간 채팅</h3>
               <p className="text-white/70 text-sm mt-1">직접 소통하며 협의</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <Shield className="w-10 h-10 text-white mb-3" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+                <Shield className="w-7 h-7 text-white" />
+              </div>
               <h3 className="text-lg font-bold text-white">안전 거래</h3>
               <p className="text-white/70 text-sm mt-1">에스크로 결제 시스템</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <ShoppingBag className="w-10 h-10 text-white mb-3" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+                <ShoppingBag className="w-7 h-7 text-white" />
+              </div>
               <h3 className="text-lg font-bold text-white">주문 관리</h3>
               <p className="text-white/70 text-sm mt-1">체계적인 거래 관리</p>
+            </div>
+          </div>
+
+          {/* 신뢰 지표 */}
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-white/80" />
+              <span className="text-white/80 text-sm">검증된 공급자</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-white/80" />
+              <span className="text-white/80 text-sm">안전한 결제</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-white/80" />
+              <span className="text-white/80 text-sm">빠른 정산</span>
             </div>
           </div>
         </div>
 
         {/* 하단 */}
-        <p className="text-white/60 text-lg">
-          © 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-white hover:underline">NQ Solution</a>
+        <p className="text-white/60 text-lg relative z-10">
+          © 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-white hover:underline font-medium">NQ Solution</a>
         </p>
       </div>
 
       {/* 오른쪽 - 폼 영역 */}
       <div className="w-full lg:w-1/2 flex flex-col">
         {/* 모바일 헤더 */}
-        <header className="lg:hidden p-6">
+        <header className="lg:hidden p-6 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-3">
             <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
             <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
@@ -71,15 +99,15 @@ export default function AuthLayout({
         </header>
 
         {/* 메인 컨텐츠 */}
-        <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
-          <div className="w-full max-w-lg">
+        <main className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
+          <div className="w-full max-w-lg py-8">
             {children}
           </div>
         </main>
 
         {/* 모바일 푸터 */}
-        <footer className="lg:hidden p-6 text-center text-base text-gray-500">
-          © 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">NQ Solution</a>
+        <footer className="lg:hidden p-6 text-center text-base text-gray-500 border-t border-gray-100">
+          © 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a>
         </footer>
       </div>
     </div>

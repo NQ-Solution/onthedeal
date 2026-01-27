@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { Coins, Plus, History, Wallet, Info, CreditCard, RefreshCw, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Coins, Plus, History, Wallet, Info, CreditCard, RefreshCw, CheckCircle, XCircle, Loader2, Building2, Copy, Check } from 'lucide-react'
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge, Input } from '@/components/ui'
 
 interface CreditLog {
@@ -14,15 +14,21 @@ interface CreditLog {
   createdAt: string
 }
 
-// 빠른 충전 금액 (최소 10만원)
+// 충전 금액 옵션
 const quickAmounts = [
   { amount: 100000, label: '10만원' },
-  { amount: 200000, label: '20만원' },
   { amount: 300000, label: '30만원' },
   { amount: 500000, label: '50만원' },
+  { amount: 1000000, label: '100만원' },
 ]
 
 const MIN_CHARGE_AMOUNT = 100000 // 최소 충전 금액 10만원
+
+interface BankInfo {
+  bank: string
+  account: string
+  holder: string
+}
 
 export default function SupplierCreditsPage() {
   const { data: session } = useSession()
@@ -32,12 +38,36 @@ export default function SupplierCreditsPage() {
   const [chargeAmount, setChargeAmount] = useState<string>('')
   const [selectedQuick, setSelectedQuick] = useState<number | null>(null)
   const [charging, setCharging] = useState(false)
+  const [showDepositInfo, setShowDepositInfo] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [bankInfo, setBankInfo] = useState<BankInfo>({
+    bank: '',
+    account: '',
+    holder: '',
+  })
 
   useEffect(() => {
+    fetchBankInfo()
     if (session?.user?.id) {
       fetchCreditData()
     }
   }, [session])
+
+  const fetchBankInfo = async () => {
+    try {
+      const res = await fetch('/api/settings')
+      if (res.ok) {
+        const data = await res.json()
+        setBankInfo({
+          bank: data.bankName || '계좌 정보 미등록',
+          account: data.bankAccount || '-',
+          holder: data.bankHolder || '-',
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch bank info:', error)
+    }
+  }
 
   const fetchCreditData = async () => {
     try {
@@ -65,42 +95,27 @@ export default function SupplierCreditsPage() {
     setSelectedQuick(null)
   }
 
-  const handlePurchase = async () => {
+  const handlePurchase = () => {
     const amount = parseInt(chargeAmount)
     if (!amount || amount < MIN_CHARGE_AMOUNT) {
       alert(`최소 충전 금액은 ${MIN_CHARGE_AMOUNT.toLocaleString()}원입니다.`)
       return
     }
+    // 입금 정보 표시
+    setShowDepositInfo(true)
+  }
 
-    setCharging(true)
-    try {
-      const res = await fetch('/api/supplier/credits/charge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
-      })
+  const copyAccountNumber = () => {
+    navigator.clipboard.writeText(bankInfo.account)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
-      const data = await res.json()
-
-      if (res.ok) {
-        alert(`${amount.toLocaleString()}원이 충전되었습니다.`)
-        setChargeAmount('')
-        setSelectedQuick(null)
-        fetchCreditData() // 데이터 새로고침
-      } else {
-        // PG 연동 전이면 테스트 모드로 처리
-        if (data.testMode) {
-          alert(`[테스트 모드] ${amount.toLocaleString()}원이 충전되었습니다.\n\n실제 결제는 PG 연동 후 가능합니다.`)
-          fetchCreditData()
-        } else {
-          alert(data.error || '충전에 실패했습니다.')
-        }
-      }
-    } catch (error) {
-      alert('충전 처리 중 오류가 발생했습니다.')
-    } finally {
-      setCharging(false)
-    }
+  const handleDepositComplete = () => {
+    alert('입금 확인 요청이 접수되었습니다.\n관리자 확인 후 크레딧이 충전됩니다.')
+    setShowDepositInfo(false)
+    setChargeAmount('')
+    setSelectedQuick(null)
   }
 
   const displayAmount = chargeAmount ? parseInt(chargeAmount) : 0
@@ -159,93 +174,171 @@ export default function SupplierCreditsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* PG 연동 전 안내 */}
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
-              <p className="text-yellow-800 font-medium">
-                현재 테스트 모드입니다. PG 연동 후 실제 결제가 가능합니다.
+            {/* 계좌이체 안내 */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="w-5 h-5 text-blue-600" />
+                <p className="text-blue-800 font-bold">계좌이체로 충전</p>
+              </div>
+              <p className="text-blue-700 text-sm">
+                PG 결제 연동 준비 중입니다. 아래 계좌로 입금 후 크레딧이 충전됩니다.
               </p>
             </div>
 
-            {/* 빠른 선택 */}
-            <div>
-              <label className="block text-lg font-medium text-gray-700 mb-3">빠른 선택</label>
-              <div className="grid grid-cols-2 gap-4">
-                {quickAmounts.map((item, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => handleQuickSelect(index, item.amount)}
-                    className={`p-5 border-2 rounded-2xl transition-all text-center ${
-                      selectedQuick === index
-                        ? 'border-primary-500 bg-primary-50 shadow-lg'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                  >
-                    <p className="text-2xl font-bold text-gray-900">{item.label}</p>
-                    <p className="text-base text-gray-500 mt-1">
-                      {item.amount.toLocaleString()} 크레딧
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 직접 입력 */}
-            <div>
-              <label className="block text-lg font-medium text-gray-700 mb-3">
-                직접 입력
-              </label>
-              <div className="relative">
-                <Input
-                  type="text"
-                  value={chargeAmount ? parseInt(chargeAmount).toLocaleString() : ''}
-                  onChange={(e) => handleCustomAmount(e.target.value.replace(/,/g, ''))}
-                  placeholder="충전할 금액을 입력하세요"
-                  className="text-xl pr-12"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
-                  원
-                </span>
-              </div>
-              <p className="text-base text-gray-500 mt-2">
-                최소 충전 금액: <strong className="text-primary-600">{MIN_CHARGE_AMOUNT.toLocaleString()}원</strong>
-              </p>
-            </div>
-
-            {/* 충전 금액 확인 */}
-            {displayAmount >= MIN_CHARGE_AMOUNT && (
-              <div className="bg-primary-50 rounded-2xl p-5 border-2 border-primary-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg text-gray-700">충전 금액</span>
-                  <span className="text-2xl font-bold text-primary-600">
-                    {displayAmount.toLocaleString()}원
-                  </span>
+            {!showDepositInfo ? (
+              <>
+                {/* 금액 선택 */}
+                <div>
+                  <label className="block text-lg font-medium text-gray-700 mb-3">충전 금액 선택</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {quickAmounts.map((item, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleQuickSelect(index, item.amount)}
+                        className={`p-5 border-2 rounded-2xl transition-all text-center ${
+                          selectedQuick === index
+                            ? 'border-primary-500 bg-primary-50 shadow-lg'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <p className="text-2xl font-bold text-gray-900">{item.label}</p>
+                        <p className="text-base text-gray-500 mt-1">
+                          {item.amount.toLocaleString()} 크레딧
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex justify-between items-center mt-2 pt-2 border-t border-primary-200">
-                  <span className="text-lg text-gray-700">충전 크레딧</span>
-                  <span className="text-2xl font-bold text-primary-600">
-                    +{displayAmount.toLocaleString()} 크레딧
-                  </span>
+
+                {/* 직접 입력 */}
+                <div>
+                  <label className="block text-lg font-medium text-gray-700 mb-3">
+                    직접 입력
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      value={chargeAmount ? parseInt(chargeAmount).toLocaleString() : ''}
+                      onChange={(e) => handleCustomAmount(e.target.value.replace(/,/g, ''))}
+                      placeholder="충전할 금액을 입력하세요"
+                      className="text-xl pr-12"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
+                      원
+                    </span>
+                  </div>
+                  <p className="text-base text-gray-500 mt-2">
+                    최소 충전 금액: <strong className="text-primary-600">{MIN_CHARGE_AMOUNT.toLocaleString()}원</strong>
+                  </p>
+                </div>
+
+                {/* 충전 금액 확인 */}
+                {displayAmount >= MIN_CHARGE_AMOUNT && (
+                  <div className="bg-primary-50 rounded-2xl p-5 border-2 border-primary-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg text-gray-700">충전 금액</span>
+                      <span className="text-2xl font-bold text-primary-600">
+                        {displayAmount.toLocaleString()}원
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-primary-200">
+                      <span className="text-lg text-gray-700">충전 크레딧</span>
+                      <span className="text-2xl font-bold text-primary-600">
+                        +{displayAmount.toLocaleString()} 크레딧
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  size="xl"
+                  className="w-full"
+                  disabled={displayAmount < MIN_CHARGE_AMOUNT}
+                  onClick={handlePurchase}
+                >
+                  <Building2 className="w-6 h-6 mr-2" />
+                  {displayAmount >= MIN_CHARGE_AMOUNT
+                    ? `입금 정보 확인하기`
+                    : `최소 ${MIN_CHARGE_AMOUNT.toLocaleString()}원 이상 선택하세요`
+                  }
+                </Button>
+              </>
+            ) : (
+              /* 입금 정보 표시 */
+              <div className="space-y-6">
+                <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-6">
+                  <h4 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    입금 정보
+                  </h4>
+
+                  <div className="space-y-4">
+                    {/* 입금 계좌 */}
+                    <div className="bg-white rounded-xl p-4 border border-green-200">
+                      <p className="text-sm text-gray-500 mb-1">입금 계좌</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xl font-bold text-gray-900">
+                          {bankInfo.bank} {bankInfo.account}
+                        </p>
+                        <button
+                          onClick={copyAccountNumber}
+                          className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors"
+                        >
+                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          {copied ? '복사됨' : '복사'}
+                        </button>
+                      </div>
+                      <p className="text-base text-gray-600 mt-1">예금주: {bankInfo.holder}</p>
+                    </div>
+
+                    {/* 입금자 정보 */}
+                    <div className="bg-white rounded-xl p-4 border border-green-200">
+                      <p className="text-sm text-gray-500 mb-1">입금자명 (필수)</p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {session?.user?.companyName || session?.user?.name || '-'}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2">회원 ID</p>
+                      <p className="text-base font-mono text-gray-700">{session?.user?.email}</p>
+                    </div>
+
+                    {/* 입금 금액 */}
+                    <div className="bg-white rounded-xl p-4 border border-green-200">
+                      <p className="text-sm text-gray-500 mb-1">입금 금액</p>
+                      <p className="text-2xl font-bold text-primary-600">
+                        {displayAmount.toLocaleString()}원
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                    <p className="text-sm text-yellow-800">
+                      <strong>안내:</strong> 위 정보로 입금해 주시면, 확인 후 바로 크레딧이 충전됩니다.
+                      영업시간 내 평균 30분 이내 처리됩니다.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowDepositInfo(false)}
+                  >
+                    금액 다시 선택
+                  </Button>
+                  <Button
+                    size="lg"
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    onClick={handleDepositComplete}
+                  >
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    입금 완료
+                  </Button>
                 </div>
               </div>
             )}
-
-            <Button
-              size="xl"
-              className="w-full"
-              disabled={displayAmount < MIN_CHARGE_AMOUNT || charging}
-              onClick={handlePurchase}
-            >
-              {charging ? (
-                <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-              ) : (
-                <CreditCard className="w-6 h-6 mr-2" />
-              )}
-              {displayAmount >= MIN_CHARGE_AMOUNT
-                ? `${displayAmount.toLocaleString()}원 충전하기`
-                : `최소 ${MIN_CHARGE_AMOUNT.toLocaleString()}원 이상 입력하세요`
-              }
-            </Button>
           </CardContent>
         </Card>
 

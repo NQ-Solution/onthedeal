@@ -15,7 +15,8 @@ import {
   FileEdit,
   LogOut,
   Bell,
-  ChevronDown
+  ChevronDown,
+  Coins
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -30,6 +31,7 @@ interface Notification {
 const adminMenus = [
   { href: '/admin', label: '대시보드', icon: LayoutDashboard },
   { href: '/admin/users', label: '회원 관리', icon: Users },
+  { href: '/admin/credits', label: '크레딧 관리', icon: Coins },
   { href: '/admin/rfqs', label: '발주 관리', icon: FileText },
   { href: '/admin/quotes', label: '제안 관리', icon: Receipt },
   { href: '/admin/orders', label: '주문 관리', icon: Package },

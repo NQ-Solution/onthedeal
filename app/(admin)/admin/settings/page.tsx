@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Save, Globe, Mail, Phone, MapPin, Percent, Clock, Bell, Shield, Database, CreditCard, Building, Zap, Star, Users, MessageSquare } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Save, Globe, Mail, Phone, MapPin, Percent, Clock, Bell, Shield, Database, CreditCard, Building, Zap, Star, Users, MessageSquare, Briefcase, Landmark } from 'lucide-react'
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Textarea, Badge } from '@/components/ui'
 import { DEFAULT_FEE_SETTINGS, FeeSettings } from '@/types'
 
@@ -12,6 +12,16 @@ interface SiteSettings {
   contactEmail: string
   contactPhone: string
   address: string
+
+  // 사업자 정보
+  ceoName: string
+  businessNumber: string
+  businessAddress: string
+
+  // 입금 계좌 정보
+  bankName: string
+  bankAccount: string
+  bankHolder: string
 
   // 알림 설정
   emailNotifications: boolean
@@ -32,6 +42,16 @@ export default function AdminSettingsPage() {
     contactPhone: '02-1234-5678',
     address: '서울특별시 강남구 테헤란로 123 온더딜 빌딩 10층',
 
+    // 사업자 정보
+    ceoName: '',
+    businessNumber: '',
+    businessAddress: '',
+
+    // 입금 계좌 정보
+    bankName: '',
+    bankAccount: '',
+    bankHolder: '',
+
     emailNotifications: true,
     smsNotifications: true,
     adminAlertEmail: 'admin@onthedeal.com',
@@ -47,14 +67,62 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'fees'>('general')
+  const [loading, setLoading] = useState(true)
+
+  // 설정 데이터 로드
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/admin/settings')
+        if (res.ok) {
+          const data = await res.json()
+          setSettings(prev => ({
+            ...prev,
+            siteName: data.siteName || prev.siteName,
+            siteDescription: data.siteDescription || prev.siteDescription,
+            contactEmail: data.contactEmail || prev.contactEmail,
+            contactPhone: data.contactPhone || prev.contactPhone,
+            address: data.address || prev.address,
+            ceoName: data.ceoName || '',
+            businessNumber: data.businessNumber || '',
+            businessAddress: data.businessAddress || '',
+            bankName: data.bankName || '',
+            bankAccount: data.bankAccount || '',
+            bankHolder: data.bankHolder || '',
+            emailNotifications: data.emailNotifications ?? prev.emailNotifications,
+            smsNotifications: data.smsNotifications ?? prev.smsNotifications,
+            adminAlertEmail: data.adminAlertEmail || prev.adminAlertEmail,
+            businessHoursStart: data.businessHoursStart || prev.businessHoursStart,
+            businessHoursEnd: data.businessHoursEnd || prev.businessHoursEnd,
+            businessDays: data.businessDays || prev.businessDays,
+          }))
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   const handleSave = async () => {
     setSaving(true)
-    // 실제로는 API 호출
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      })
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleChange = (key: keyof SiteSettings, value: any) => {
@@ -175,6 +243,74 @@ export default function AdminSettingsPage() {
                 value={settings.address}
                 onChange={(e) => handleChange('address', e.target.value)}
               />
+            </CardContent>
+          </Card>
+
+          {/* 사업자 정보 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-green-600" />
+                사업자 정보
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="대표자명"
+                  value={settings.ceoName}
+                  onChange={(e) => handleChange('ceoName', e.target.value)}
+                  placeholder="홍길동"
+                />
+                <Input
+                  label="사업자등록번호"
+                  value={settings.businessNumber}
+                  onChange={(e) => handleChange('businessNumber', e.target.value)}
+                  placeholder="000-00-00000"
+                />
+              </div>
+              <Input
+                label="사업자 주소"
+                value={settings.businessAddress}
+                onChange={(e) => handleChange('businessAddress', e.target.value)}
+                placeholder="사업자등록증상의 주소"
+              />
+              <p className="text-sm text-gray-500">
+                * 입력된 사업자 정보는 사이트 하단 푸터에 표시됩니다.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 입금 계좌 정보 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Landmark className="w-5 h-5 text-blue-600" />
+                입금 계좌 정보
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                label="은행명"
+                value={settings.bankName}
+                onChange={(e) => handleChange('bankName', e.target.value)}
+                placeholder="예: 신한은행"
+              />
+              <Input
+                label="계좌번호"
+                value={settings.bankAccount}
+                onChange={(e) => handleChange('bankAccount', e.target.value)}
+                placeholder="예: 110-123-456789"
+              />
+              <Input
+                label="예금주"
+                value={settings.bankHolder}
+                onChange={(e) => handleChange('bankHolder', e.target.value)}
+                placeholder="예: (주)온더딜"
+              />
+              <p className="text-sm text-gray-500">
+                * 이 계좌 정보는 공급자 크레딧 충전 시 표시됩니다.
+              </p>
             </CardContent>
           </Card>
 

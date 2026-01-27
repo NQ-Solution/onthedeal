@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { Button, Input, Textarea, ImageUpload } from '@/components/ui'
-import { UserPlus, ShoppingCart, Factory, Building2, User, MapPin, FileText, Camera } from 'lucide-react'
+import { UserPlus, ShoppingCart, Factory, Building2, User, MapPin, FileText, Camera, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react'
 import { DEMO_MODE, DEMO_MESSAGES } from '@/lib/demo-mode'
 
 function RegisterForm() {
@@ -107,8 +107,8 @@ function RegisterForm() {
       }
     }
     if (step === 2) {
-      if (!formData.companyName || !formData.businessNumber || !formData.contactName || !formData.phone) {
-        setError('필수 항목을 모두 입력해주세요 (회사명, 사업자등록번호, 담당자명, 연락처)')
+      if (!formData.companyName || !formData.businessNumber || !formData.representativeName || !formData.contactName || !formData.phone) {
+        setError('필수 항목을 모두 입력해주세요 (회사명, 사업자등록번호, 대표자명, 담당자명, 연락처)')
         return
       }
       // 사업자등록번호 형식 검증 (간단한 체크)
@@ -131,8 +131,8 @@ function RegisterForm() {
     <div className="space-y-6">
       {/* 데모 모드 배너 */}
       {DEMO_MODE && (
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
-          <p className="text-blue-700 font-medium text-lg">
+        <div className="bg-gradient-to-r from-blue-50 to-primary-50 border-2 border-blue-200 rounded-3xl p-5 text-center">
+          <p className="text-blue-700 font-bold text-lg">
             현재 데모 버전입니다. 서비스 오픈 후 회원가입이 가능합니다.
           </p>
         </div>
@@ -140,6 +140,9 @@ function RegisterForm() {
 
       {/* 헤더 */}
       <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-primary-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+          <UserPlus className="w-10 h-10 text-primary-600" />
+        </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-3">회원가입</h1>
         <p className="text-xl text-gray-500">OnTheDeal과 함께 새로운 거래를 시작하세요</p>
       </div>
@@ -149,17 +152,17 @@ function RegisterForm() {
         {[1, 2, 3].map((s) => (
           <div key={s} className="flex items-center">
             <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold transition-all ${
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold transition-all shadow-sm ${
                 step >= s
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-gray-200 text-gray-500'
+                  ? 'bg-primary-500 text-white shadow-primary-200'
+                  : 'bg-gray-100 text-gray-400'
               }`}
             >
-              {s}
+              {step > s ? <CheckCircle className="w-7 h-7" /> : s}
             </div>
             {s < 3 && (
               <div
-                className={`w-16 h-1 mx-2 ${
+                className={`w-12 lg:w-20 h-1.5 mx-2 rounded-full transition-all ${
                   step > s ? 'bg-primary-500' : 'bg-gray-200'
                 }`}
               />
@@ -167,10 +170,10 @@ function RegisterForm() {
           </div>
         ))}
       </div>
-      <div className="flex justify-center gap-8 text-base text-gray-600 mb-6">
-        <span className={step === 1 ? 'font-bold text-primary-600' : ''}>기본정보</span>
-        <span className={step === 2 ? 'font-bold text-primary-600' : ''}>사업자정보</span>
-        <span className={step === 3 ? 'font-bold text-primary-600' : ''}>추가정보</span>
+      <div className="flex justify-center gap-6 lg:gap-10 text-base text-gray-600 mb-6">
+        <span className={`transition-colors ${step === 1 ? 'font-bold text-primary-600' : step > 1 ? 'text-primary-500' : ''}`}>기본정보</span>
+        <span className={`transition-colors ${step === 2 ? 'font-bold text-primary-600' : step > 2 ? 'text-primary-500' : ''}`}>사업자정보</span>
+        <span className={`transition-colors ${step === 3 ? 'font-bold text-primary-600' : ''}`}>추가정보</span>
       </div>
 
       {/* Step 1: 역할 선택 & 기본 정보 */}
@@ -181,15 +184,19 @@ function RegisterForm() {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: 'buyer' })}
-              className={`p-6 rounded-2xl border-2 transition-all ${
+              className={`p-6 rounded-3xl border-2 transition-all hover:shadow-xl ${
                 formData.role === 'buyer'
-                  ? 'border-primary-500 bg-primary-50 shadow-lg'
+                  ? 'border-primary-500 bg-primary-50 shadow-lg ring-2 ring-primary-200'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
-              <ShoppingCart className={`w-12 h-12 mx-auto mb-3 ${
-                formData.role === 'buyer' ? 'text-primary-600' : 'text-gray-400'
-              }`} />
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all ${
+                formData.role === 'buyer' ? 'bg-primary-100 scale-110' : 'bg-gray-100'
+              }`}>
+                <ShoppingCart className={`w-8 h-8 ${
+                  formData.role === 'buyer' ? 'text-primary-600' : 'text-gray-400'
+                }`} />
+              </div>
               <p className={`text-xl font-bold ${
                 formData.role === 'buyer' ? 'text-primary-600' : 'text-gray-600'
               }`}>구매자</p>
@@ -200,15 +207,19 @@ function RegisterForm() {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: 'supplier' })}
-              className={`p-6 rounded-2xl border-2 transition-all ${
+              className={`p-6 rounded-3xl border-2 transition-all hover:shadow-xl ${
                 formData.role === 'supplier'
-                  ? 'border-green-500 bg-green-50 shadow-lg'
+                  ? 'border-green-500 bg-green-50 shadow-lg ring-2 ring-green-200'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
-              <Factory className={`w-12 h-12 mx-auto mb-3 ${
-                formData.role === 'supplier' ? 'text-green-600' : 'text-gray-400'
-              }`} />
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all ${
+                formData.role === 'supplier' ? 'bg-green-100 scale-110' : 'bg-gray-100'
+              }`}>
+                <Factory className={`w-8 h-8 ${
+                  formData.role === 'supplier' ? 'text-green-600' : 'text-gray-400'
+                }`} />
+              </div>
               <p className={`text-xl font-bold ${
                 formData.role === 'supplier' ? 'text-green-600' : 'text-gray-600'
               }`}>공급자</p>
@@ -218,17 +229,17 @@ function RegisterForm() {
             </button>
           </div>
 
-          <Card className="shadow-xl border-2">
+          <Card className="shadow-2xl border-2 rounded-3xl overflow-hidden">
             <CardContent className="pt-8 space-y-5">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center">
                   <User className="w-6 h-6 text-primary-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">기본 정보</h2>
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 text-red-700 text-lg rounded-xl border-2 border-red-200">
+                <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200">
                   {error}
                 </div>
               )}
@@ -262,8 +273,9 @@ function RegisterForm() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-3 pt-2 pb-8">
-              <Button type="button" size="xl" onClick={nextStep}>
+              <Button type="button" size="xl" onClick={nextStep} className="px-8">
                 다음 단계
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </CardFooter>
           </Card>
@@ -272,17 +284,17 @@ function RegisterForm() {
 
       {/* Step 2: 사업자 정보 */}
       {step === 2 && (
-        <Card className="shadow-xl border-2">
+        <Card className="shadow-2xl border-2 rounded-3xl overflow-hidden">
           <CardContent className="pt-8 space-y-5">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <Building2 className="w-6 h-6 text-primary-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900">사업자 정보</h2>
             </div>
 
             {error && (
-              <div className="p-4 bg-red-50 text-red-700 text-lg rounded-xl border-2 border-red-200">
+              <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200">
                 {error}
               </div>
             )}
@@ -306,10 +318,11 @@ function RegisterForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Input
-                label="대표자명"
+                label="대표자명 *"
                 value={formData.representativeName}
                 onChange={(e) => setFormData({ ...formData, representativeName: e.target.value })}
                 placeholder="대표자명을 입력하세요"
+                required
               />
               <Input
                 label="담당자명 *"
@@ -353,10 +366,10 @@ function RegisterForm() {
               />
             </div>
 
-            <div className="border-t border-gray-200 pt-5 mt-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-primary-600" />
+            <div className="border-t-2 border-gray-100 pt-6 mt-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                  <MapPin className="w-6 h-6 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">사업장 주소</h3>
               </div>
@@ -388,11 +401,13 @@ function RegisterForm() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-between gap-3 pt-2 pb-8">
-            <Button type="button" variant="outline" size="xl" onClick={prevStep}>
+            <Button type="button" variant="outline" size="xl" onClick={prevStep} className="px-6">
+              <ArrowLeft className="w-5 h-5 mr-2" />
               이전 단계
             </Button>
-            <Button type="button" size="xl" onClick={nextStep}>
+            <Button type="button" size="xl" onClick={nextStep} className="px-8">
               다음 단계
+              <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </CardFooter>
         </Card>
@@ -401,17 +416,17 @@ function RegisterForm() {
       {/* Step 3: 추가 정보 & 이미지 */}
       {step === 3 && (
         <form onSubmit={handleSubmit}>
-          <Card className="shadow-xl border-2">
+          <Card className="shadow-2xl border-2 rounded-3xl overflow-hidden">
             <CardContent className="pt-8 space-y-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-primary-600" />
+                <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-purple-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">추가 정보 및 이미지</h2>
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 text-red-700 text-lg rounded-xl border-2 border-red-200">
+                <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200">
                   {error}
                 </div>
               )}
@@ -431,10 +446,10 @@ function RegisterForm() {
                 rows={4}
               />
 
-              <div className="border-t border-gray-200 pt-5 mt-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-primary-600" />
+              <div className="border-t-2 border-gray-100 pt-6 mt-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-green-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">이미지 업로드</h3>
                 </div>
@@ -466,52 +481,74 @@ function RegisterForm() {
               </div>
 
               {/* 입력 정보 요약 */}
-              <div className="border-t border-gray-200 pt-5 mt-5">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">입력 정보 확인</h3>
-                <div className="bg-gray-50 rounded-2xl p-6 space-y-3">
-                  <div className="flex justify-between">
+              <div className="border-t-2 border-gray-100 pt-6 mt-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">입력 정보 확인</h3>
+                </div>
+                <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-gray-600">회원 유형</span>
-                    <span className="font-medium">{formData.role === 'buyer' ? '구매자' : '공급자'}</span>
+                    <span className={`font-bold px-4 py-1 rounded-full text-sm ${
+                      formData.role === 'buyer'
+                        ? 'bg-primary-100 text-primary-600'
+                        : 'bg-green-100 text-green-600'
+                    }`}>
+                      {formData.role === 'buyer' ? '구매자' : '공급자'}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 border-b border-gray-200">
                     <span className="text-gray-600">이메일</span>
-                    <span className="font-medium">{formData.email}</span>
+                    <span className="font-medium text-gray-900">{formData.email}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 border-b border-gray-200">
                     <span className="text-gray-600">회사명</span>
-                    <span className="font-medium">{formData.companyName}</span>
+                    <span className="font-medium text-gray-900">{formData.companyName}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 border-b border-gray-200">
                     <span className="text-gray-600">사업자등록번호</span>
-                    <span className="font-medium">{formData.businessNumber}</span>
+                    <span className="font-medium text-gray-900">{formData.businessNumber}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 border-b border-gray-200">
                     <span className="text-gray-600">담당자</span>
-                    <span className="font-medium">{formData.contactName}</span>
+                    <span className="font-medium text-gray-900">{formData.contactName}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2">
                     <span className="text-gray-600">연락처</span>
-                    <span className="font-medium">{formData.phone}</span>
+                    <span className="font-medium text-gray-900">{formData.phone}</span>
                   </div>
                   {formData.storeAddress && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between py-2 border-t border-gray-200">
                       <span className="text-gray-600">주소</span>
-                      <span className="font-medium">{formData.storeAddress}</span>
+                      <span className="font-medium text-gray-900 text-right">{formData.storeAddress}</span>
                     </div>
                   )}
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4 pt-2 pb-8">
+            <CardFooter className="flex flex-col gap-5 pt-2 pb-8">
               <div className="flex justify-between gap-3 w-full">
-                <Button type="button" variant="outline" size="xl" onClick={prevStep}>
+                <Button type="button" variant="outline" size="xl" onClick={prevStep} className="px-6">
+                  <ArrowLeft className="w-5 h-5 mr-2" />
                   이전 단계
                 </Button>
-                <Button type="submit" size="xl" isLoading={loading}>
+                <Button type="submit" size="xl" isLoading={loading} className="px-8">
                   <UserPlus className="w-6 h-6 mr-2" />
                   회원가입 완료
                 </Button>
               </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-base">
+                  <span className="bg-white px-4 text-gray-500">또는</span>
+                </div>
+              </div>
+
               <p className="text-lg text-center text-gray-600">
                 이미 계정이 있으신가요?{' '}
                 <Link href="/login" className="text-primary-600 hover:underline font-bold">

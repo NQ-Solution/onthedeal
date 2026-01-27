@@ -12,7 +12,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  DollarSign,
   Loader2
 } from 'lucide-react'
 import { Card, CardContent, Badge } from '@/components/ui'
@@ -327,7 +326,7 @@ export default function AdminDashboardPage() {
                         승인
                       </button>
                       <Link
-                        href={`/admin/users?filter=pending`}
+                        href={`/admin/users/${user.id}`}
                         className="flex-1 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors text-center"
                       >
                         상세
