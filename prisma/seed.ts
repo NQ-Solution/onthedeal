@@ -50,7 +50,7 @@ async function main() {
       email: 'nqadmin@onthedeal.com',
       password: adminPassword,
       role: 'admin',
-      companyName: 'NQ Solution',
+      companyName: '(주) 티투알웍스',
       businessNumber: '000-00-00000',
       representativeName: '관리자',
       contactName: 'NQ 관리자',

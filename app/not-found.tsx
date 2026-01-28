@@ -1,6 +1,31 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui'
+
+// 로고 컴포넌트 (fallback 포함)
+function LogoWithFallback({ className = '' }: { className?: string }) {
+  const [imgError, setImgError] = useState(false)
+
+  if (imgError) {
+    return (
+      <div className={`bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold ${className}`}>
+        OD
+      </div>
+    )
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="OnTheDeal"
+      className={className}
+      onError={() => setImgError(true)}
+    />
+  )
+}
 
 export default function NotFound() {
   return (
@@ -8,7 +33,7 @@ export default function NotFound() {
       {/* Header */}
       <header className="container mx-auto px-6 py-6 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12" />
+          <LogoWithFallback className="w-12 h-12" />
           <span className="font-bold text-3xl text-gray-900">OnTheDeal</span>
         </Link>
       </header>
@@ -67,10 +92,10 @@ export default function NotFound() {
       <footer className="container mx-auto px-6 py-10 border-t border-gray-200">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
+            <LogoWithFallback className="w-10 h-10" />
             <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
           </Link>
-          <p className="text-lg text-gray-500">© 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
+          <p className="text-lg text-gray-500">© 2026 (주) 티투알웍스</p>
         </div>
       </footer>
     </div>

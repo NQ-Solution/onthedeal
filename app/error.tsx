@@ -1,9 +1,31 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui'
+
+// 로고 컴포넌트 (fallback 포함)
+function LogoWithFallback({ className = '' }: { className?: string }) {
+  const [imgError, setImgError] = useState(false)
+
+  if (imgError) {
+    return (
+      <div className={`bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold ${className}`}>
+        OD
+      </div>
+    )
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="OnTheDeal"
+      className={className}
+      onError={() => setImgError(true)}
+    />
+  )
+}
 
 export default function Error({
   error,
@@ -22,7 +44,7 @@ export default function Error({
       <div className="max-w-lg w-full text-center">
         {/* 로고 */}
         <Link href="/" className="inline-flex items-center gap-3 mb-10">
-          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12" />
+          <LogoWithFallback className="w-12 h-12" />
           <span className="font-bold text-3xl text-gray-900">OnTheDeal</span>
         </Link>
 

@@ -1,7 +1,7 @@
 # OnTheDeal - B2B 식자재 거래 플랫폼
 
 > **도메인**: onthedeal.com
-> **개발사**: NQ Solution (nqsolution.kr)
+> **개발사**: (주) 티투알웍스
 
 ## 프로젝트 개요
 식자재 구매자와 공급자를 직접 연결하는 B2B 거래 플랫폼입니다.
@@ -463,9 +463,9 @@ onthedeal/
 ## 문의
 - **이메일**: support@onthedeal.com
 - **전화**: 02-1234-5678
-- **개발사**: NQ Solution (https://nqsolution.kr)
+- **개발사**: (주) 티투알웍스
 
 ---
 
 ## 라이선스
-© 2026 NQ Solution. All rights reserved.
+© 2026 (주) 티투알웍스. All rights reserved.

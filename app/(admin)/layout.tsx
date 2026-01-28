@@ -1,7 +1,7 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -18,7 +18,29 @@ import {
   ChevronDown,
   Coins
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+
+// 로고 컴포넌트 (fallback 포함)
+function LogoWithFallback({ className = '' }: { className?: string }) {
+  const [imgError, setImgError] = useState(false)
+
+  if (imgError) {
+    return (
+      <div className={`bg-white rounded-xl flex items-center justify-center text-primary-600 font-bold ${className}`}>
+        OD
+      </div>
+    )
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="OnTheDeal"
+      className={`bg-white rounded-xl p-1 ${className}`}
+      onError={() => setImgError(true)}
+    />
+  )
+}
 
 interface Notification {
   id: string
@@ -92,7 +114,7 @@ export default function AdminLayout({
         {/* Logo */}
         <div className="h-20 flex items-center px-6 border-b border-gray-700">
           <Link href="/admin" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-xl p-1" />
+            <LogoWithFallback className="w-12 h-12" />
             <div>
               <span className="font-bold text-xl text-white block">OnTheDeal</span>
               <span className="text-xs text-gray-400">Admin Console</span>

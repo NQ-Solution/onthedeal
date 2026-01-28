@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
+import { LogoImage } from '@/components/ui/Logo'
 import { Users, Shield, Zap, Heart, ArrowRight, CheckCircle } from 'lucide-react'
 
 export default function AboutPage() {
@@ -11,7 +11,7 @@ export default function AboutPage() {
       <header className="container mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12" />
+            <LogoImage size="lg" />
             <span className="font-bold text-3xl text-gray-900">OnTheDeal</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">

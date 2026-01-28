@@ -1,7 +1,7 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
 import {
@@ -15,6 +15,29 @@ import {
   Package,
   Coins,
 } from 'lucide-react'
+
+// 로고 컴포넌트 (fallback 포함)
+function LogoWithFallback({ className = '' }: { className?: string }) {
+  const [imgError, setImgError] = useState(false)
+
+  if (imgError) {
+    return (
+      <div className={`bg-white rounded-xl flex items-center justify-center text-primary-600 font-bold ${className}`}>
+        OD
+      </div>
+    )
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="OnTheDeal"
+      className={`bg-white rounded-xl p-1 ${className}`}
+      onError={() => setImgError(true)}
+    />
+  )
+}
 
 interface SidebarProps {
   userRole?: 'buyer' | 'supplier'
@@ -65,7 +88,7 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
         {/* 로고 & 닫기 버튼 */}
         <div className="h-16 lg:h-20 flex items-center justify-between px-4 lg:px-6 border-b border-primary-400/30">
           <Link href="/" className="flex items-center gap-2 lg:gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-xl p-1" />
+            <LogoWithFallback className="w-10 h-10 lg:w-12 lg:h-12" />
             <span className="font-bold text-xl lg:text-2xl text-white">OnTheDeal</span>
           </Link>
           {/* Mobile Close Button */}
@@ -118,7 +141,7 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
         {/* 하단 정보 */}
         <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6 border-t border-white/20">
           <div className="text-sm lg:text-base text-white/70 text-center">
-            © 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">NQ Solution</a>
+            © 2026 (주) 티투알웍스
           </div>
         </div>
       </aside>

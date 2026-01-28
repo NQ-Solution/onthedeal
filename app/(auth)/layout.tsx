@@ -1,6 +1,31 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ShoppingBag, FileText, MessageSquare, Shield, CheckCircle } from 'lucide-react'
+
+// 로고 컴포넌트 (fallback 포함)
+function LogoWithFallback({ className = '', bgClass = 'bg-white' }: { className?: string, bgClass?: string }) {
+  const [imgError, setImgError] = useState(false)
+
+  if (imgError) {
+    return (
+      <div className={`${bgClass} rounded-2xl flex items-center justify-center text-primary-600 font-bold ${className}`}>
+        OD
+      </div>
+    )
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="OnTheDeal"
+      className={`${bgClass} rounded-2xl p-1.5 shadow-lg ${className}`}
+      onError={() => setImgError(true)}
+    />
+  )
+}
 
 export default function AuthLayout({
   children,
@@ -17,7 +42,7 @@ export default function AuthLayout({
 
         {/* 로고 */}
         <Link href="/" className="flex items-center gap-3 relative z-10">
-          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-2xl p-1.5 shadow-lg" />
+          <LogoWithFallback className="w-12 h-12" />
           <span className="font-bold text-3xl text-white">OnTheDeal</span>
         </Link>
 
@@ -84,7 +109,7 @@ export default function AuthLayout({
 
         {/* 하단 */}
         <p className="text-white/60 text-lg relative z-10">
-          © 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-white hover:underline font-medium">NQ Solution</a>
+          © 2026 (주) 티투알웍스
         </p>
       </div>
 
@@ -93,7 +118,7 @@ export default function AuthLayout({
         {/* 모바일 헤더 */}
         <header className="lg:hidden p-6 border-b border-gray-100">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
+            <LogoWithFallback className="w-10 h-10" bgClass="bg-primary-500" />
             <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
           </Link>
         </header>
@@ -107,7 +132,7 @@ export default function AuthLayout({
 
         {/* 모바일 푸터 */}
         <footer className="lg:hidden p-6 text-center text-base text-gray-500 border-t border-gray-100">
-          © 2026 OnTheDeal. All rights reserved. | Developed by <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a>
+          © 2026 (주) 티투알웍스
         </footer>
       </div>
     </div>

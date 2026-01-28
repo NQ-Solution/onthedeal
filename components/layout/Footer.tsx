@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { LogoImage } from '@/components/ui/Logo'
 
 interface SiteSettings {
   siteName: string
@@ -45,7 +45,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
             <Link href="/about" className="hover:text-primary-600 transition-colors">회사소개</Link>
             <Link href="/contact" className="hover:text-primary-600 transition-colors">문의하기</Link>
           </div>
-          <p>© 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a></p>
+          <p>© 2026 (주) 티투알웍스</p>
         </div>
       </footer>
     )
@@ -57,7 +57,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
         {/* 상단: 로고와 링크 */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={40} height={40} className="w-10 h-10" />
+            <LogoImage size="md" />
             <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
           </Link>
           <div className="flex gap-8">
@@ -91,7 +91,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
             </div>
           )}
           <p className="text-lg text-gray-500">
-            © 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">NQ Solution</a>
+            © 2026 (주) 티투알웍스
           </p>
         </div>
       </div>

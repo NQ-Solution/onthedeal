@@ -2,10 +2,32 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
+
+// 로고 컴포넌트 (fallback 포함)
+function LogoWithFallback({ className = '' }: { className?: string }) {
+  const [imgError, setImgError] = useState(false)
+
+  if (imgError) {
+    return (
+      <div className={`bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold ${className}`}>
+        OD
+      </div>
+    )
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="OnTheDeal"
+      className={className}
+      onError={() => setImgError(true)}
+    />
+  )
+}
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -16,7 +38,7 @@ export default function HomePage() {
       <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-100">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 sm:gap-3">
-            <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-10 h-10 sm:w-12 sm:h-12" />
+            <LogoWithFallback className="w-10 h-10 sm:w-12 sm:h-12" />
             <span className="font-bold text-xl sm:text-3xl text-gray-900">OnTheDeal</span>
           </Link>
 
