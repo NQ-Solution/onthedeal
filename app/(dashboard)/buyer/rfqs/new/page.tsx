@@ -36,9 +36,53 @@ export default function NewRFQPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    alert('발주가 등록되었습니다.')
-    router.push('/buyer/rfqs')
+
+    try {
+      // 품목 정보 합산
+      const totalQuantity = items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0)
+      const mainUnit = items[0]?.unit || '박스'
+
+      // 설명에 품목 정보 추가
+      const itemsDescription = items.map((item, i) =>
+        `품목 ${i + 1}: ${item.name} ${item.quantity}${item.unit}${item.note ? ` (${item.note})` : ''}`
+      ).join('\n')
+      const fullDescription = `${formData.description}\n\n[품목 목록]\n${itemsDescription}`
+
+      const res = await fetch('/api/rfqs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          category: formData.category,
+          description: fullDescription,
+          quantity: totalQuantity,
+          unit: mainUnit,
+          budget_min: formData.budget_min ? parseInt(formData.budget_min) : null,
+          budget_max: formData.budget_max ? parseInt(formData.budget_max) : null,
+          delivery_date: formData.deadline,
+          delivery_address: formData.delivery_address,
+          items: items.map(item => ({
+            name: item.name,
+            quantity: parseInt(item.quantity) || 0,
+            unit: item.unit,
+            note: item.note,
+          })),
+        }),
+      })
+
+      if (res.ok) {
+        alert('발주가 등록되었습니다.')
+        router.push('/buyer/rfqs')
+      } else {
+        const error = await res.json()
+        alert(error.error || '발주 등록에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('RFQ 생성 오류:', error)
+      alert('발주 등록 중 오류가 발생했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (field: string, value: string) => {
