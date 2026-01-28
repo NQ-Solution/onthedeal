@@ -397,7 +397,7 @@ export default function SupplierCreditsPage() {
         </Card>
       </div>
 
-      {/* 수수료 안내 */}
+      {/* 크레딧 안내 */}
       <Card className="shadow-lg border-2">
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center gap-3 mb-6">
@@ -406,34 +406,63 @@ export default function SupplierCreditsPage() {
             </div>
             <h3 className="text-2xl font-bold text-gray-900">크레딧 안내</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* 크레딧이란? */}
             <div className="bg-gray-50 rounded-2xl p-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">크레딧이란?</h4>
+              <p className="text-gray-600 mb-4">
+                판매자가 발주에 금액을 제안하고 거래에 참여하기 위한 금액입니다.
+              </p>
               <ul className="space-y-3 text-lg text-gray-600">
                 <li className="flex items-start gap-2">
                   <span className="text-primary-500 mt-1">•</span>
-                  <span>1 크레딧 = 1원 (1:1 비율)</span>
+                  <span>1 크레딧 = 1원</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary-500 mt-1">•</span>
-                  <span>거래 성사 시 수수료가 차감됩니다.</span>
+                  <span>제안 시 거래금액의 <strong>3%</strong>가 크레딧으로 차감됩니다</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-primary-500 mt-1">•</span>
-                  <span>최소 충전 금액: <strong>{MIN_CHARGE_AMOUNT.toLocaleString()}원</strong></span>
+                  <span className="text-green-500 mt-1">•</span>
+                  <span>거래가 성사되지 않으면 차감된 크레딧은 <strong>환불</strong>됩니다</span>
                 </li>
               </ul>
             </div>
+
+            {/* 수수료 안내 */}
             <div className="bg-gray-50 rounded-2xl p-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">수수료 안내</h4>
               <ul className="space-y-3 text-lg text-gray-600">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500 mt-1">•</span>
-                  <span>거래 성사 시: <strong>거래금액의 3%</strong> 차감</span>
+                  <span>별도 입점비·광고비는 <strong>없습니다</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-1">•</span>
-                  <span>구매자는 수수료 없음</span>
+                  <span className="text-blue-500 mt-1">•</span>
+                  <span>성사된 거래에만 <strong>3%</strong>의 크레딧이 차감됩니다</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 mt-1">•</span>
+                  <span>거래 이력은 판매자 신뢰도와 향후 혜택의 기준이 됩니다</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* 초기 판매자 혜택 */}
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
+              <h4 className="text-lg font-bold text-orange-700 mb-3">초기 판매자 혜택</h4>
+              <div className="bg-white/80 rounded-xl p-4 mb-4">
+                <p className="text-2xl font-bold text-orange-600 mb-1">첫 충전 시 +30% 추가 지급</p>
+                <p className="text-gray-600">예) 10만원 충전 → <strong className="text-orange-600">13만원</strong> 크레딧</p>
+              </div>
+              <ul className="space-y-2 text-base text-gray-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 mt-1">•</span>
+                  <span>추가 지급분은 거래에 동일하게 사용 가능</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 mt-1">•</span>
+                  <span>환불 시 이벤트 지급분은 제외</span>
                 </li>
               </ul>
             </div>

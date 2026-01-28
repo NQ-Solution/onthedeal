@@ -113,13 +113,13 @@ export default function AdminLayout({
       <aside className="w-72 bg-gray-900 min-h-screen shadow-xl fixed left-0 top-0 bottom-0">
         {/* Logo */}
         <div className="h-20 flex items-center px-6 border-b border-gray-700">
-          <Link href="/admin" className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <LogoWithFallback className="w-12 h-12" />
             <div>
               <span className="font-bold text-xl text-white block">OnTheDeal</span>
               <span className="text-xs text-gray-400">Admin Console</span>
             </div>
-          </Link>
+          </div>
         </div>
 
         {/* Navigation */}
