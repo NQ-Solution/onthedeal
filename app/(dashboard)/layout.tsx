@@ -2,24 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
+import { Menu } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { UserProvider } from '@/contexts/UserContext'
-
-// 개발 모드 목업 유저 - 역할 전환 가능
-const mockUsers = {
-  buyer: {
-    email: 'buyer@company.com',
-    company_name: '맛있는식당',
-    role: 'buyer' as const,
-  },
-  supplier: {
-    email: 'supplier@company.com',
-    company_name: '프리미엄 한우농장',
-    role: 'supplier' as const,
-  },
-}
+import { NotificationBell } from '@/components/layout/NotificationBell'
+import { Button } from '@/components/ui'
 
 export default function DashboardLayout({
   children,
@@ -28,57 +17,94 @@ export default function DashboardLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const { data: session, status } = useSession()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // 현재 경로에서 역할 감지
-  const getInitialRole = () => {
+  const getCurrentRole = (): 'buyer' | 'supplier' => {
     if (pathname?.startsWith('/supplier')) return 'supplier'
     return 'buyer'
   }
 
-  const [currentRole, setCurrentRole] = useState<'buyer' | 'supplier'>(getInitialRole)
-  const [user, setUser] = useState(mockUsers[getInitialRole()])
+  const currentRole = getCurrentRole()
 
-  // 역할 전환 함수
-  const handleRoleSwitch = (newRole: 'buyer' | 'supplier') => {
-    setCurrentRole(newRole)
-    setUser(mockUsers[newRole])
-    // 해당 역할의 기본 페이지로 이동
-    if (newRole === 'buyer') {
-      router.push('/buyer/rfqs')
-    } else {
-      router.push('/supplier/rfqs')
+  // 로그인 상태 확인
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
     }
+  }, [status, router])
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false })
+    router.push('/login')
   }
 
-  // 경로 변경 시 역할 동기화
-  useEffect(() => {
-    const newRole = getInitialRole()
-    if (newRole !== currentRole) {
-      setCurrentRole(newRole)
-      setUser(mockUsers[newRole])
-    }
-  }, [pathname])
-
-  const handleLogout = () => {
-    // NextAuth signOut 호출
-    alert('로그아웃 되었습니다.')
-    router.push('/login')
+  // 로딩 중
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    )
   }
 
   return (
     <UserProvider>
       <div className="flex min-h-screen bg-gray-50">
-        <Sidebar userRole={user.role} />
-        <div className="flex-1 flex flex-col">
-          <Header
-            user={user}
-            onLogout={handleLogout}
-            onRoleSwitch={handleRoleSwitch}
-            currentRole={currentRole}
-          />
-          <main className="flex-1 p-6">
+        {/* Sidebar */}
+        <Sidebar
+          userRole={currentRole}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="h-14 lg:h-16 bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center justify-between shadow-sm sticky top-0 z-30">
+            {/* Left: Menu Button (Mobile) & Title */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100"
+              >
+                <Menu className="w-6 h-6 text-gray-600" />
+              </button>
+              <h1 className="text-base lg:text-lg font-semibold text-gray-900 truncate">
+                {session?.user?.companyName || '대시보드'}
+              </h1>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 lg:gap-4">
+              {/* Notification */}
+              <NotificationBell />
+
+              {/* User Info (Desktop only) */}
+              <span className="hidden md:block text-sm text-gray-500 truncate max-w-[150px]">
+                {session?.user?.email}
+              </span>
+
+              {/* Logout */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="text-sm"
+              >
+                <span className="hidden sm:inline">로그아웃</span>
+                <span className="sm:hidden">나가기</span>
+              </Button>
+            </div>
+          </header>
+
+          {/* Main */}
+          <main className="flex-1 p-4 lg:p-6 overflow-auto">
             {children}
           </main>
+
+          {/* Footer */}
           <Footer variant="dashboard" />
         </div>
       </div>

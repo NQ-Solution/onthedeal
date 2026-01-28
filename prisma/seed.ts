@@ -24,7 +24,7 @@ async function main() {
   await prisma.page.deleteMany()
 
   // 비밀번호 해싱
-  const testPassword = await bcrypt.hash('test1234', 12)
+  const testPassword = await bcrypt.hash('Test1234!', 12)
   const adminPassword = await bcrypt.hash('admin03532', 12)
 
   // 1. 관리자 계정 생성 (2명)
@@ -281,8 +281,8 @@ async function main() {
   console.log('  - odadmin@onthedeal.com / admin03532')
   console.log('  - nqadmin@onthedeal.com / admin03532')
   console.log('  [테스트]')
-  console.log('  - 구매자: buyer@test.com / test1234')
-  console.log('  - 공급자: supplier@test.com / test1234')
+  console.log('  - 구매자: buyer@test.com / Test1234!')
+  console.log('  - 공급자: supplier@test.com / Test1234!')
   console.log('')
   console.log('💡 발주, 제안, 주문 등은 실제로 생성해주세요.')
   console.log('')

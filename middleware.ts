@@ -149,8 +149,10 @@ export default withAuth(
           pathname.startsWith('/terms') ||
           pathname.startsWith('/privacy') ||
           pathname.startsWith('/health') ||
+          pathname.startsWith('/admintest') ||
           pathname.startsWith('/api/auth') ||
           pathname.startsWith('/api/health') ||
+          pathname.startsWith('/api/settings') ||
           pathname.startsWith('/_next') ||
           pathname.startsWith('/favicon')
         ) {

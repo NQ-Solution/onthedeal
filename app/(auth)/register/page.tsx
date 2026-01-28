@@ -45,6 +45,14 @@ function RegisterForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // 비밀번호 유효성 검사
+  const passwordChecks = {
+    length: formData.password.length >= 8,
+    uppercase: /[A-Z]/.test(formData.password),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password),
+  }
+  const isPasswordValid = passwordChecks.length && passwordChecks.uppercase && passwordChecks.special
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -101,8 +109,8 @@ function RegisterForm() {
         setError('비밀번호가 일치하지 않습니다')
         return
       }
-      if (formData.password.length < 8) {
-        setError('비밀번호는 8자 이상이어야 합니다')
+      if (!isPasswordValid) {
+        setError('비밀번호 요구사항을 모두 충족해주세요')
         return
       }
     }
@@ -259,7 +267,7 @@ function RegisterForm() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="8자 이상 입력"
+                  placeholder="8자 이상, 대문자, 특수문자 포함"
                   required
                 />
                 <Input
@@ -271,6 +279,37 @@ function RegisterForm() {
                   required
                 />
               </div>
+
+              {/* 비밀번호 요구사항 표시 */}
+              {formData.password && (
+                <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                  <p className="text-sm font-medium text-gray-700 mb-2">비밀번호 요구사항:</p>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${passwordChecks.length ? 'bg-green-500' : 'bg-gray-300'}`}>
+                      {passwordChecks.length && <CheckCircle className="w-3 h-3 text-white" />}
+                    </div>
+                    <span className={`text-sm ${passwordChecks.length ? 'text-green-600' : 'text-gray-500'}`}>
+                      8자 이상
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${passwordChecks.uppercase ? 'bg-green-500' : 'bg-gray-300'}`}>
+                      {passwordChecks.uppercase && <CheckCircle className="w-3 h-3 text-white" />}
+                    </div>
+                    <span className={`text-sm ${passwordChecks.uppercase ? 'text-green-600' : 'text-gray-500'}`}>
+                      대문자 포함 (A-Z)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${passwordChecks.special ? 'bg-green-500' : 'bg-gray-300'}`}>
+                      {passwordChecks.special && <CheckCircle className="w-3 h-3 text-white" />}
+                    </div>
+                    <span className={`text-sm ${passwordChecks.special ? 'text-green-600' : 'text-gray-500'}`}>
+                      특수문자 포함 (!@#$%^&* 등)
+                    </span>
+                  </div>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="flex justify-end gap-3 pt-2 pb-8">
               <Button type="button" size="xl" onClick={nextStep} className="px-8">

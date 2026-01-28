@@ -70,7 +70,7 @@ export function Footer({ variant = 'default' }: FooterProps) {
 
         {/* 하단: 사업자 정보 */}
         <div className="text-center md:text-left border-t border-gray-100 pt-6">
-          {(settings?.ceoName || settings?.businessNumber || settings?.businessAddress) && (
+          {(settings?.ceoName || settings?.businessNumber || settings?.businessAddress || settings?.contactEmail || settings?.contactPhone) && (
             <div className="text-base text-gray-500 space-y-1 mb-4">
               {settings?.ceoName && (
                 <p>대표자: {settings.ceoName}</p>
@@ -83,9 +83,9 @@ export function Footer({ variant = 'default' }: FooterProps) {
               )}
               {(settings?.contactEmail || settings?.contactPhone) && (
                 <p>
-                  {settings.contactEmail && <>이메일: {settings.contactEmail}</>}
-                  {settings.contactEmail && settings.contactPhone && ' | '}
                   {settings.contactPhone && <>전화: {settings.contactPhone}</>}
+                  {settings.contactEmail && settings.contactPhone && ' | '}
+                  {settings.contactEmail && <>이메일: {settings.contactEmail}</>}
                 </p>
               )}
             </div>

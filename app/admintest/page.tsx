@@ -8,8 +8,8 @@ import { Button } from '@/components/ui'
 import { User, Building2, ArrowRight, Loader2, ArrowLeft } from 'lucide-react'
 
 const TEST_ACCOUNTS = {
-  buyer: { email: 'buyer@test.com', password: 'test1234', redirect: '/buyer/rfqs' },
-  supplier: { email: 'supplier@test.com', password: 'test1234', redirect: '/supplier/rfqs' },
+  buyer: { email: 'buyer@test.com', password: 'Test1234!', redirect: '/buyer/rfqs' },
+  supplier: { email: 'supplier@test.com', password: 'Test1234!', redirect: '/supplier/rfqs' },
 }
 
 export default function AdminTestPage() {
@@ -107,8 +107,8 @@ export default function AdminTestPage() {
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="text-center text-sm text-gray-500 mb-4">
               <p className="font-medium">테스트 계정 정보</p>
-              <p>buyer@test.com / test1234</p>
-              <p>supplier@test.com / test1234</p>
+              <p>buyer@test.com / Test1234!</p>
+              <p>supplier@test.com / Test1234!</p>
             </div>
             <Link href="/login">
               <Button variant="ghost" className="w-full gap-2">

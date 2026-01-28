@@ -256,7 +256,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{user.companyName}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{user.companyName || '(회사명 없음)'}</h1>
             <p className="text-gray-500">{user.email}</p>
           </div>
         </div>
@@ -334,7 +334,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">회사명</p>
-                  <p className="font-bold text-gray-900">{user.companyName}</p>
+                  <p className="font-bold text-gray-900">{user.companyName || '-'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">사업자등록번호</p>
@@ -364,15 +364,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">담당자명</p>
-                  <p className="font-bold text-gray-900">{user.contactName}</p>
+                  <p className="font-bold text-gray-900">{user.contactName || '-'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">이메일</p>
-                  <p className="font-bold text-gray-900">{user.email}</p>
+                  <p className="font-bold text-gray-900">{user.email || '-'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">연락처</p>
-                  <p className="font-bold text-gray-900">{user.phone}</p>
+                  <p className="font-bold text-gray-900">{user.phone || '-'}</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-1">팩스</p>

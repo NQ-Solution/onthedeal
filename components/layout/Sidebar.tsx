@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { X } from 'lucide-react'
 import {
   FileText,
   PlusCircle,
@@ -13,11 +14,12 @@ import {
   Search,
   Package,
   Coins,
-  Home
 } from 'lucide-react'
 
 interface SidebarProps {
   userRole?: 'buyer' | 'supplier'
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 const buyerMenus = [
@@ -38,63 +40,88 @@ const supplierMenus = [
   { href: '/profile', label: '내 정보', icon: User },
 ]
 
-export function Sidebar({ userRole = 'buyer' }: SidebarProps) {
+export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname()
   const menus = userRole === 'buyer' ? buyerMenus : supplierMenus
 
   return (
-    <aside className="w-72 bg-gradient-to-b from-primary-500 to-primary-600 min-h-screen shadow-xl">
-      {/* 로고 */}
-      <div className="h-20 flex items-center px-6 border-b border-primary-400/30">
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-12 h-12 bg-white rounded-xl p-1" />
-          <span className="font-bold text-2xl text-white">OnTheDeal</span>
-        </Link>
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={onClose}
+        />
+      )}
 
-      {/* 유저 타입 표시 */}
-      <div className="px-6 py-5 border-b border-primary-400/30">
-        <div className={`inline-flex items-center px-5 py-3 rounded-xl text-lg font-bold ${
-          userRole === 'buyer'
-            ? 'bg-white text-primary-600'
-            : 'bg-white text-green-600'
-        }`}>
-          {userRole === 'buyer' ? '🛒 구매자 모드' : '🏭 판매자 모드'}
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 lg:w-72 bg-gradient-to-b from-primary-500 to-primary-600
+        min-h-screen shadow-xl
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* 로고 & 닫기 버튼 */}
+        <div className="h-16 lg:h-20 flex items-center justify-between px-4 lg:px-6 border-b border-primary-400/30">
+          <Link href="/" className="flex items-center gap-2 lg:gap-3">
+            <Image src="/logo.png" alt="OnTheDeal" width={48} height={48} className="w-10 h-10 lg:w-12 lg:h-12 bg-white rounded-xl p-1" />
+            <span className="font-bold text-xl lg:text-2xl text-white">OnTheDeal</span>
+          </Link>
+          {/* Mobile Close Button */}
+          <button
+            onClick={onClose}
+            className="lg:hidden p-2 rounded-lg hover:bg-white/20 text-white"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
-      </div>
 
-      {/* 네비게이션 메뉴 */}
-      <nav className="p-4">
-        <ul className="space-y-2">
-          {menus.map((menu) => {
-            const Icon = menu.icon
-            const isActive = pathname === menu.href || pathname.startsWith(menu.href + '/')
-
-            return (
-              <li key={menu.href}>
-                <Link
-                  href={menu.href}
-                  className={`flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-lg font-medium ${
-                    isActive
-                      ? 'bg-white text-primary-600 shadow-lg'
-                      : 'text-white/90 hover:bg-white/20 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-7 h-7" />
-                  <span>{menu.label}</span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
-
-      {/* 하단 정보 */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/20">
-        <div className="text-base text-white/70 text-center">
-          © 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">NQ Solution</a>
+        {/* 유저 타입 표시 */}
+        <div className="px-4 lg:px-6 py-4 lg:py-5 border-b border-primary-400/30">
+          <div className={`inline-flex items-center px-4 lg:px-5 py-2 lg:py-3 rounded-xl text-base lg:text-lg font-bold ${
+            userRole === 'buyer'
+              ? 'bg-white text-primary-600'
+              : 'bg-white text-green-600'
+          }`}>
+            {userRole === 'buyer' ? '🛒 구매자' : '🏭 판매자'}
+          </div>
         </div>
-      </div>
-    </aside>
+
+        {/* 네비게이션 메뉴 */}
+        <nav className="p-3 lg:p-4">
+          <ul className="space-y-1 lg:space-y-2">
+            {menus.map((menu) => {
+              const Icon = menu.icon
+              const isActive = pathname === menu.href || pathname.startsWith(menu.href + '/')
+
+              return (
+                <li key={menu.href}>
+                  <Link
+                    href={menu.href}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 lg:gap-4 px-4 lg:px-5 py-3 lg:py-4 rounded-xl transition-all text-base lg:text-lg font-medium ${
+                      isActive
+                        ? 'bg-white text-primary-600 shadow-lg'
+                        : 'text-white/90 hover:bg-white/20 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-6 h-6 lg:w-7 lg:h-7" />
+                    <span>{menu.label}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+
+        {/* 하단 정보 */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6 border-t border-white/20">
+          <div className="text-sm lg:text-base text-white/70 text-center">
+            © 2026 <a href="https://nqsolution.kr" target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">NQ Solution</a>
+          </div>
+        </div>
+      </aside>
+    </>
   )
 }
