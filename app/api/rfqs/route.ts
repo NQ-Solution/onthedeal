@@ -69,17 +69,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
   }
 
+  // 구매자만 발주 등록 가능
+  if (session.user.role !== 'buyer') {
+    return NextResponse.json({ error: '구매자만 발주를 등록할 수 있습니다' }, { status: 403 })
+  }
+
   try {
     const body = await request.json()
+
+    // 필수 필드 검증
+    if (!body.title || !body.description || body.quantity === undefined || !body.delivery_date || !body.delivery_address) {
+      return NextResponse.json({
+        error: '필수 항목을 모두 입력해주세요',
+        missing: {
+          title: !body.title,
+          description: !body.description,
+          quantity: body.quantity === undefined,
+          delivery_date: !body.delivery_date,
+          delivery_address: !body.delivery_address,
+        }
+      }, { status: 400 })
+    }
 
     const rfq = await prisma.rFQ.create({
       data: {
         buyerId: session.user.id,
         title: body.title,
-        category: body.category,
+        category: body.category || '육류',
         description: body.description,
         quantity: body.quantity,
-        unit: body.unit,
+        unit: body.unit || '박스',
         desiredPrice: body.desired_price || null,
         budgetMin: body.budget_min || null,
         budgetMax: body.budget_max || null,
@@ -97,9 +116,34 @@ export async function POST(request: NextRequest) {
         type: 'system',
         title: '발주 등록 완료',
         message: `"${body.title}" 발주가 등록되었습니다. 공급자의 제안을 기다려주세요.`,
-        link: '/buyer/rfqs',
+        link: `/buyer/rfqs/${rfq.id}`,
       },
     })
+
+    // 알림 생성 - 승인된 공급자들에게 (새 발주 알림)
+    const suppliers = await prisma.user.findMany({
+      where: {
+        role: 'supplier',
+        approvalStatus: 'approved',
+      },
+      select: { id: true },
+    })
+
+    if (suppliers.length > 0) {
+      const budgetText = body.budget_min && body.budget_max
+        ? `${Math.floor(body.budget_min / 10000)}만원 ~ ${Math.floor(body.budget_max / 10000)}만원`
+        : '협의'
+
+      await prisma.notification.createMany({
+        data: suppliers.map((supplier) => ({
+          userId: supplier.id,
+          type: 'system' as const,
+          title: '새로운 발주가 등록되었습니다',
+          message: `"${body.title}" (${body.category || '육류'}) - 예산: ${budgetText}`,
+          link: `/supplier/rfqs/${rfq.id}`,
+        })),
+      })
+    }
 
     return NextResponse.json(rfq)
   } catch (error) {

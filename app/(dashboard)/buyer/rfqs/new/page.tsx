@@ -70,12 +70,14 @@ export default function NewRFQPage() {
         }),
       })
 
+      const data = await res.json()
+
       if (res.ok) {
         alert('발주가 등록되었습니다.')
         router.push('/buyer/rfqs')
       } else {
-        const error = await res.json()
-        alert(error.error || '발주 등록에 실패했습니다.')
+        console.error('발주 등록 실패:', data)
+        alert(data.error || '발주 등록에 실패했습니다.')
       }
     } catch (error) {
       console.error('RFQ 생성 오류:', error)

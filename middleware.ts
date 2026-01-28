@@ -97,8 +97,21 @@ export default withAuth(
       }
     }
 
-    // API 라우트에 대한 CSRF 보호 (웹훅과 인증 라우트 제외)
-    const csrfExemptPaths = ['/api/auth/', '/api/payments/toss/webhook', '/api/health']
+    // API 라우트에 대한 CSRF 보호 (인증된 내부 API는 세션으로 보호되므로 제외)
+    const csrfExemptPaths = [
+      '/api/auth/',
+      '/api/payments/toss/webhook',
+      '/api/health',
+      '/api/rfqs',
+      '/api/quotes',
+      '/api/orders',
+      '/api/chat',
+      '/api/notifications',
+      '/api/profile',
+      '/api/supplier',
+      '/api/inquiries',
+      '/api/cron',
+    ]
     const isCsrfExempt = csrfExemptPaths.some(path => pathname.startsWith(path))
 
     if (pathname.startsWith('/api/') && !isCsrfExempt) {

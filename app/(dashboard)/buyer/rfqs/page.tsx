@@ -53,9 +53,12 @@ export default function BuyerRFQsPage() {
   const fetchRFQs = async () => {
     try {
       const res = await fetch('/api/rfqs?role=buyer')
+      const data = await res.json()
+
       if (res.ok) {
-        const data = await res.json()
         setRfqs(data)
+      } else {
+        console.error('RFQ 조회 실패:', data.error || '알 수 없는 오류')
       }
     } catch (error) {
       console.error('Failed to fetch RFQs:', error)
