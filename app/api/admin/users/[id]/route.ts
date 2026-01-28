@@ -24,29 +24,52 @@ export async function DELETE(
 
     // 관련 데이터 삭제 (cascade로 처리되지 않는 것들)
     await prisma.$transaction(async (tx) => {
-      // 크레딧 로그 삭제
-      await tx.creditLog.deleteMany({ where: { supplierId: id } })
-      // 크레딧 삭제
-      await tx.credit.deleteMany({ where: { supplierId: id } })
-      // 크레딧 충전 요청 삭제
-      await tx.creditCharge.deleteMany({ where: { supplierId: id } })
-      // 공급자 계좌 삭제
-      await tx.supplierAccount.deleteMany({ where: { supplierId: id } })
-      // 알림 삭제
-      await tx.notification.deleteMany({ where: { userId: id } })
-      // 주문 로그 삭제
-      await tx.orderLog.deleteMany({ where: { order: { OR: [{ buyerId: id }, { supplierId: id }] } } })
-      // 주문 삭제
+      // 1. 먼저 관련 주문 ID 조회
+      const orders = await tx.order.findMany({
+        where: { OR: [{ buyerId: id }, { supplierId: id }] },
+        select: { id: true }
+      })
+      const orderIds = orders.map(o => o.id)
+
+      // 2. 주문 로그 삭제
+      if (orderIds.length > 0) {
+        await tx.orderLog.deleteMany({ where: { orderId: { in: orderIds } } })
+      }
+
+      // 3. 주문 삭제
       await tx.order.deleteMany({ where: { OR: [{ buyerId: id }, { supplierId: id }] } })
-      // 채팅 메시지 삭제
-      await tx.chatMessage.deleteMany({ where: { senderId: id } })
-      // 채팅방 삭제
+
+      // 4. 채팅 메시지 삭제 (채팅방 ID 기반)
+      const chatRooms = await tx.chatRoom.findMany({
+        where: { OR: [{ buyerId: id }, { supplierId: id }] },
+        select: { id: true }
+      })
+      const chatRoomIds = chatRooms.map(c => c.id)
+      if (chatRoomIds.length > 0) {
+        await tx.chatMessage.deleteMany({ where: { chatRoomId: { in: chatRoomIds } } })
+      }
+
+      // 5. 채팅방 삭제
       await tx.chatRoom.deleteMany({ where: { OR: [{ buyerId: id }, { supplierId: id }] } })
-      // 제안 삭제
+
+      // 6. 제안 삭제
       await tx.quote.deleteMany({ where: { supplierId: id } })
-      // RFQ 삭제
+
+      // 7. RFQ 삭제
       await tx.rFQ.deleteMany({ where: { buyerId: id } })
-      // 사용자 삭제
+
+      // 8. 크레딧 관련 삭제
+      await tx.creditLog.deleteMany({ where: { supplierId: id } })
+      await tx.credit.deleteMany({ where: { supplierId: id } })
+      await tx.creditCharge.deleteMany({ where: { supplierId: id } })
+
+      // 9. 공급자 계좌 삭제
+      await tx.supplierAccount.deleteMany({ where: { supplierId: id } })
+
+      // 10. 알림 삭제
+      await tx.notification.deleteMany({ where: { userId: id } })
+
+      // 11. 사용자 삭제
       await tx.user.delete({ where: { id } })
     })
 
