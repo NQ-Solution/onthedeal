@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { useSession, signOut } from 'next-auth/react'
+import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
 
@@ -30,7 +31,23 @@ function LogoWithFallback({ className = '' }: { className?: string }) {
 }
 
 export default function HomePage() {
+  const { data: session, status } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // 로그인한 사용자의 대시보드 경로
+  const getDashboardPath = () => {
+    if (!session?.user?.role) return '/login'
+    switch (session.user.role) {
+      case 'admin': return '/admin'
+      case 'supplier': return '/supplier/rfqs'
+      case 'buyer': return '/buyer/rfqs'
+      default: return '/login'
+    }
+  }
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' })
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -54,12 +71,36 @@ export default function HomePage() {
 
           {/* Desktop Buttons */}
           <div className="hidden sm:flex gap-3 sm:gap-4">
-            <Link href="/login">
-              <Button variant="outline" size="md" className="sm:text-base">로그인</Button>
-            </Link>
-            <Link href="/register">
-              <Button size="md" className="sm:text-base">회원가입</Button>
-            </Link>
+            {status === 'loading' ? (
+              <div className="w-24 h-10 bg-gray-100 rounded-lg animate-pulse"></div>
+            ) : session ? (
+              <>
+                <Link href={getDashboardPath()}>
+                  <Button variant="outline" size="md" className="sm:text-base gap-2">
+                    <LayoutDashboard className="w-4 h-4" />
+                    대시보드
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  className="sm:text-base gap-2 text-gray-600 hover:text-red-600"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4" />
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="outline" size="md" className="sm:text-base">로그인</Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="md" className="sm:text-base">회원가입</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -95,12 +136,34 @@ export default function HomePage() {
               </Link>
             </nav>
             <div className="flex flex-col gap-3">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" size="lg" className="w-full">로그인</Button>
-              </Link>
-              <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                <Button size="lg" className="w-full">회원가입</Button>
-              </Link>
+              {session ? (
+                <>
+                  <Link href={getDashboardPath()} onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" size="lg" className="w-full gap-2">
+                      <LayoutDashboard className="w-5 h-5" />
+                      대시보드
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full gap-2 text-gray-600 hover:text-red-600"
+                    onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                  >
+                    <LogOut className="w-5 h-5" />
+                    로그아웃
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" size="lg" className="w-full">로그인</Button>
+                  </Link>
+                  <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                    <Button size="lg" className="w-full">회원가입</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
