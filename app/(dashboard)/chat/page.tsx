@@ -84,9 +84,13 @@ export default function ChatListPage() {
   const fetchChatRooms = async () => {
     try {
       const res = await fetch('/api/chat/rooms')
+      const data = await res.json()
+
       if (res.ok) {
-        const data = await res.json()
+        console.log('채팅방 데이터:', data)
         setRooms(data)
+      } else {
+        console.error('채팅방 조회 실패:', data.error || '알 수 없는 오류')
       }
     } catch (error) {
       console.error('Failed to fetch chat rooms:', error)

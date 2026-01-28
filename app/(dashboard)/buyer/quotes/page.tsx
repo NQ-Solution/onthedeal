@@ -58,9 +58,13 @@ export default function BuyerQuotesPage() {
   const fetchQuotes = async () => {
     try {
       const res = await fetch('/api/quotes?role=buyer')
+      const data = await res.json()
+
       if (res.ok) {
-        const data = await res.json()
+        console.log('받은 제안 데이터:', data)
         setQuotes(data)
+      } else {
+        console.error('제안 조회 실패:', data.error || '알 수 없는 오류')
       }
     } catch (error) {
       console.error('Failed to fetch quotes:', error)

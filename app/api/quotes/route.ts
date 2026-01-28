@@ -30,10 +30,23 @@ export async function GET(request: NextRequest) {
 
     // 구매자: 자신의 RFQ에 대한 제안만
     if (role === 'buyer') {
-      whereClause.rfq = {
-        buyerId: session.user.id,
+      // 먼저 구매자의 RFQ ID들을 가져옴
+      const buyerRfqs = await prisma.rFQ.findMany({
+        where: { buyerId: session.user.id },
+        select: { id: true },
+      })
+      const rfqIds = buyerRfqs.map(rfq => rfq.id)
+      console.log('[Quotes API] Buyer RFQ IDs:', rfqIds)
+
+      if (rfqIds.length > 0) {
+        whereClause.rfqId = { in: rfqIds }
+      } else {
+        // RFQ가 없으면 빈 배열 반환
+        return NextResponse.json([])
       }
     }
+
+    console.log('[Quotes API] User:', session.user.id, 'Role:', role, 'Where:', JSON.stringify(whereClause))
 
     const quotes = await prisma.quote.findMany({
       where: whereClause,
@@ -49,6 +62,7 @@ export async function GET(request: NextRequest) {
         },
         supplier: {
           select: {
+            id: true,
             companyName: true,
             contactName: true,
           },
@@ -58,6 +72,8 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc',
       },
     })
+
+    console.log('[Quotes API] Found quotes:', quotes.length)
 
     return NextResponse.json(quotes)
   } catch (error) {

@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const userId = session.user.id
+    console.log('[ChatRooms API] User:', userId)
 
     const chatRooms = await prisma.chatRoom.findMany({
       where: {
@@ -60,6 +61,8 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { createdAt: 'desc' },
     })
+
+    console.log('[ChatRooms API] Found rooms:', chatRooms.length)
 
     // 안읽은 메시지 수 계산
     const roomsWithUnread = await Promise.all(
