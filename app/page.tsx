@@ -182,14 +182,14 @@ export default function HomePage() {
                 간단한 발주서 하나면 제안이 모이고 거래가 끝납니다.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Link href="/register?role=buyer" className="w-full sm:w-auto">
+                <Link href={session ? (session.user?.role === 'buyer' ? '/buyer/rfqs' : session.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=buyer') : '/register?role=buyer'} className="w-full sm:w-auto">
                   <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-primary-600 hover:bg-gray-100">
-                    구매자로 시작하기
+                    {session?.user?.role === 'buyer' ? '구매자 대시보드' : '구매자로 시작하기'}
                   </Button>
                 </Link>
-                <Link href="/register?role=supplier" className="w-full sm:w-auto">
+                <Link href={session ? (session.user?.role === 'supplier' ? '/supplier/rfqs' : session.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=supplier') : '/register?role=supplier'} className="w-full sm:w-auto">
                   <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/20">
-                    판매자로 시작하기
+                    {session?.user?.role === 'supplier' ? '판매자 대시보드' : '판매자로 시작하기'}
                   </Button>
                 </Link>
               </div>
@@ -231,9 +231,9 @@ export default function HomePage() {
                 </div>
               </li>
             </ol>
-            <Link href="/register?role=buyer">
+            <Link href={session?.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer'}>
               <Button size="lg" className="w-full text-base sm:text-xl py-4 sm:py-5">
-                구매자로 시작하기
+                {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
               </Button>
             </Link>
           </div>
@@ -270,9 +270,9 @@ export default function HomePage() {
                 </div>
               </li>
             </ol>
-            <Link href="/register?role=supplier">
+            <Link href={session?.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier'}>
               <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-base sm:text-xl py-4 sm:py-5">
-                판매자로 시작하기
+                {session?.user?.role === 'supplier' ? '발주 확인하기' : '판매자로 시작하기'}
               </Button>
             </Link>
           </div>
@@ -368,9 +368,9 @@ export default function HomePage() {
             입점비X, 광고비X, 무료 회원가입으로 시작하세요.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Link href="/register" className="w-full sm:w-auto">
+            <Link href={session ? getDashboardPath() : '/register'} className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto bg-white text-primary-600 hover:bg-gray-100 text-base sm:text-xl">
-                무료로 시작하기
+                {session ? '대시보드로 이동' : '무료로 시작하기'}
               </Button>
             </Link>
             <Link href="/about" className="w-full sm:w-auto">
