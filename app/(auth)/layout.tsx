@@ -50,11 +50,11 @@ export default function AuthLayout({
         <div className="space-y-10 relative z-10">
           <div>
             <h1 className="text-5xl font-bold text-white leading-tight mb-6">
-              거래처 찾는 일은<br />가장 단순하게
+              거래처 찾는 일을<br />가장 단순하게
             </h1>
             <p className="text-xl text-white/80 leading-relaxed">
               발주를 올리고 제안이 모이면 거래는 끝.<br />
-              회원가입은 무료입니다.
+              입점비X, 광고비X, 무료 회원가입으로 시작하세요.
             </p>
           </div>
 

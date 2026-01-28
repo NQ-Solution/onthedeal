@@ -452,7 +452,7 @@ export default function SupplierCreditsPage() {
             <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
               <h4 className="text-lg font-bold text-orange-700 mb-3">초기 판매자 혜택</h4>
               <div className="bg-white/80 rounded-xl p-4 mb-4">
-                <p className="text-2xl font-bold text-orange-600 mb-1">첫 충전 시 +30% 추가 지급</p>
+                <p className="text-2xl font-bold text-orange-600 mb-1">첫 크레딧 충전 시 +30% 추가 지급</p>
                 <p className="text-gray-600">예) 10만원 충전 → <strong className="text-orange-600">13만원</strong> 크레딧</p>
               </div>
               <ul className="space-y-2 text-base text-gray-600">

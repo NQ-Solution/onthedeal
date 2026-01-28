@@ -346,7 +346,7 @@ export default function HomePage() {
               <ul className="space-y-3 sm:space-y-4 text-base sm:text-lg">
                 <li className="flex items-center gap-3 text-gray-700">
                   <span className="w-5 h-5 sm:w-6 sm:h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
-                  <span>결제 확인 후 배송으로 미수금 방지</span>
+                  <span>결제 확인 후 배송 진행</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-700">
                   <span className="w-5 h-5 sm:w-6 sm:h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
@@ -365,7 +365,7 @@ export default function HomePage() {
         <div className="bg-primary-500 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">쉽고 공정한 거래가 가능한 OnTheDeal</h2>
           <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8 max-w-xl mx-auto">
-            회원가입은 무료입니다. 거래가 성사될 때만 수수료가 발생해요.
+            입점비X, 광고비X, 무료 회원가입으로 시작하세요.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Link href="/register" className="w-full sm:w-auto">

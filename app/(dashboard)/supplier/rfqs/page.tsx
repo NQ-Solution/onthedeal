@@ -109,7 +109,7 @@ export default function SupplierRFQsPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">모집중 발주</p>
+                <p className="text-lg text-gray-500">등록된 발주</p>
                 <p className="text-4xl font-bold text-primary-600 mt-2">{totalRFQs}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">

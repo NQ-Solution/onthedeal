@@ -202,7 +202,7 @@ export default function SupplierOrdersPage() {
             <div>
               <h3 className="text-xl font-bold text-blue-900">정산 안내</h3>
               <p className="text-lg text-blue-700 mt-2">
-                상품 금액에서 플랫폼 수수료 <span className="font-bold">3%</span>를 차감한 금액이 정산됩니다.
+                제안 수락 시 거래금액의 <span className="font-bold">3%</span> 크레딧이 차감되며, 구매자 결제 금액 전액이 정산됩니다.
               </p>
               <p className="text-base text-blue-600 mt-1">
                 구매자가 수령을 확인하면 영업일 기준 2~3일 내 정산이 진행됩니다.
