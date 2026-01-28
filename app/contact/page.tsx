@@ -92,11 +92,26 @@ export default function ContactPage() {
     e.preventDefault()
     setLoading(true)
 
-    // 실제로는 API 호출
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    try {
+      const res = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
 
-    setSubmitted(true)
-    setLoading(false)
+      const data = await res.json()
+
+      if (res.ok) {
+        setSubmitted(true)
+      } else {
+        alert(data.error || '문의 접수에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('문의 접수 오류:', error)
+      alert('문의 접수 중 오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (submitted) {

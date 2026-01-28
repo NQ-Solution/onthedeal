@@ -50,21 +50,10 @@ export async function POST(
       return NextResponse.json({ error: '이미 수락된 견적입니다' }, { status: 400 })
     }
 
-    // 공급자 크레딧 확인 (수수료 3%)
+    // 크레딧은 제안 제출 시 이미 선차감되었으므로, 여기서는 차감하지 않음
+    // 단, 선차감된 크레딧 로그 확인
     const commissionRate = 0.03
     const commissionAmount = Math.round(quote.totalPrice * commissionRate)
-
-    const supplierCredit = await prisma.credit.findUnique({
-      where: { supplierId: quote.supplierId },
-    })
-
-    if (!supplierCredit || supplierCredit.balance < commissionAmount) {
-      return NextResponse.json({
-        error: '판매자의 크레딧이 부족합니다. 거래를 진행할 수 없습니다.',
-        requiredCredit: commissionAmount,
-        currentCredit: supplierCredit?.balance || 0,
-      }, { status: 400 })
-    }
 
     // 트랜잭션으로 처리
     const result = await prisma.$transaction(async (tx) => {
@@ -83,7 +72,15 @@ export async function POST(
         data: { status: 'closed' },
       })
 
-      // 3. 다른 견적들 rejected 처리
+      // 3. 다른 견적들 rejected 처리 + 해당 공급자들 크레딧 환불
+      const rejectedQuotes = await tx.quote.findMany({
+        where: {
+          rfqId: quote.rfqId,
+          id: { not: quoteId },
+          status: 'pending',
+        },
+      })
+
       await tx.quote.updateMany({
         where: {
           rfqId: quote.rfqId,
@@ -92,6 +89,47 @@ export async function POST(
         },
         data: { status: 'rejected' },
       })
+
+      // 3-1. 거절된 제안의 공급자들에게 크레딧 환불
+      for (const rejectedQuote of rejectedQuotes) {
+        // 선차감된 금액 계산 (제안 제출 시 차감된 금액)
+        const rfq = await tx.rFQ.findUnique({ where: { id: rejectedQuote.rfqId } })
+        const baseAmount = rfq?.budgetMin || rejectedQuote.totalPrice
+        const refundAmount = Math.round(baseAmount * 0.03)
+
+        const credit = await tx.credit.findUnique({
+          where: { supplierId: rejectedQuote.supplierId },
+        })
+
+        if (credit) {
+          const newBalance = credit.balance + refundAmount
+          await tx.credit.update({
+            where: { supplierId: rejectedQuote.supplierId },
+            data: { balance: newBalance },
+          })
+
+          await tx.creditLog.create({
+            data: {
+              supplierId: rejectedQuote.supplierId,
+              amount: refundAmount,
+              type: 'refund',
+              description: `제안 미선정 환불 (${rfq?.title})`,
+              referenceId: rejectedQuote.id,
+              balanceAfter: newBalance,
+            },
+          })
+
+          await tx.notification.create({
+            data: {
+              userId: rejectedQuote.supplierId,
+              type: 'system',
+              title: '크레딧 환불',
+              message: `"${rfq?.title}" 발주에서 다른 공급자가 선정되어 선차감 크레딧 ${refundAmount.toLocaleString()}원이 환불되었습니다.`,
+              link: '/supplier/credits',
+            },
+          })
+        }
+      }
 
       // 4. 채팅방 생성 또는 조회
       let chatRoom = await tx.chatRoom.findFirst({
@@ -110,9 +148,18 @@ export async function POST(
             expiresAt: expiresAt,
           },
         })
+      } else {
+        // 기존 채팅방 상태를 deal_confirmed로 업데이트
+        chatRoom = await tx.chatRoom.update({
+          where: { id: chatRoom.id },
+          data: {
+            status: 'deal_confirmed',
+            dealConfirmedAt: new Date(),
+          },
+        })
       }
 
-      // 5. 주문 생성
+      // 5. 주문 생성 (크레딧은 이미 제안 시 차감됨)
       const order = await tx.order.create({
         data: {
           chatRoomId: chatRoom.id,
@@ -120,64 +167,34 @@ export async function POST(
           quoteId: quoteId,
           buyerId: session.user.id,
           supplierId: quote.supplierId,
-          status: 'pending',
+          status: 'preparing', // 즉시 배송준비 상태로 (에스크로 없음)
           productAmount: quote.totalPrice,
           totalAmount: quote.totalPrice,
           commissionAmount: commissionAmount,
-          paymentMethod: 'escrow',
+          supplierFee: commissionAmount,
+          paymentMethod: 'direct', // 계좌이체 직접 결제
         },
       })
 
-      // 6. 크레딧 차감
-      const newBalance = supplierCredit.balance - commissionAmount
-
-      await tx.credit.update({
-        where: { supplierId: quote.supplierId },
-        data: { balance: newBalance },
-      })
-
-      // 7. 크레딧 로그 생성
-      await tx.creditLog.create({
-        data: {
-          supplierId: quote.supplierId,
-          amount: -commissionAmount,
-          type: 'use',
-          description: `거래 수수료 (${quote.rfq.title})`,
-          balanceAfter: newBalance,
-          referenceId: order.id,
-        },
-      })
-
-      // 8. 알림 생성 - 공급자에게 (견적 수락)
+      // 6. 알림 생성 - 공급자에게 (견적 수락)
       await tx.notification.create({
         data: {
           userId: quote.supplierId,
           type: 'deal_confirmed',
-          title: '견적이 수락되었습니다',
-          message: `"${quote.rfq.title}" 견적이 수락되었습니다. 채팅방에서 상세 협의를 진행해주세요.`,
-          link: `/chat/${chatRoom.id}`,
+          title: '제안이 수락되었습니다',
+          message: `"${quote.rfq.title}" 제안이 수락되었습니다. 배송을 준비해주세요.`,
+          link: `/supplier/orders`,
         },
       })
 
-      // 9. 알림 생성 - 공급자에게 (수수료 차감)
-      await tx.notification.create({
-        data: {
-          userId: quote.supplierId,
-          type: 'system',
-          title: '거래 수수료 차감',
-          message: `"${quote.rfq.title}" 거래 수수료 ${commissionAmount.toLocaleString()}원이 차감되었습니다.`,
-          link: '/supplier/credits',
-        },
-      })
-
-      // 10. 알림 생성 - 구매자에게 (견적 수락 확인)
+      // 7. 알림 생성 - 구매자에게 (견적 수락 확인)
       await tx.notification.create({
         data: {
           userId: session.user.id,
           type: 'deal_confirmed',
           title: '제안 수락 완료',
-          message: `${quote.supplier.companyName}의 제안을 수락했습니다. 채팅방에서 상세 협의를 진행하세요.`,
-          link: `/chat/${chatRoom.id}`,
+          message: `${quote.supplier.companyName}의 제안을 수락했습니다. 공급자가 배송을 준비합니다.`,
+          link: `/buyer/orders`,
         },
       })
 
@@ -200,6 +217,7 @@ export async function POST(
         commission: {
           amount: commissionAmount,
           rate: '3%',
+          note: '제안 제출 시 이미 선차감됨',
         },
       },
     })
