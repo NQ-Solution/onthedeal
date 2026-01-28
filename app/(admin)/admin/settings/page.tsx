@@ -275,6 +275,21 @@ export default function AdminSettingsPage() {
                 onChange={(e) => handleChange('businessAddress', e.target.value)}
                 placeholder="사업자등록증상의 주소"
               />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="대표 전화번호"
+                  value={settings.contactPhone}
+                  onChange={(e) => handleChange('contactPhone', e.target.value)}
+                  placeholder="02-1234-5678"
+                />
+                <Input
+                  label="대표 이메일"
+                  type="email"
+                  value={settings.contactEmail}
+                  onChange={(e) => handleChange('contactEmail', e.target.value)}
+                  placeholder="contact@example.com"
+                />
+              </div>
               <p className="text-sm text-gray-500">
                 * 입력된 사업자 정보는 사이트 하단 푸터에 표시됩니다.
               </p>

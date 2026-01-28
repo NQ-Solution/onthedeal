@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
 import { LogoImage } from '@/components/ui/Logo'
-import { Users, Shield, Zap, Heart, ArrowRight, CheckCircle } from 'lucide-react'
+import { Users, Shield, Zap, Heart } from 'lucide-react'
 
 export default function AboutPage() {
   return (
@@ -38,46 +38,47 @@ export default function AboutPage() {
         <div className="text-center mb-16">
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">About Us</h1>
           <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            OnTheDeal은 식자재 거래를 더 쉽고 공정하게 만드는 플랫폼입니다.
-            구매자와 판매자를 연결하여 모두에게 이로운 거래 환경을 제공합니다.
+            OnTheDeal은<br />
+            구매자는 거래처를 찾는 데 많은 시간을 쓰고,<br />
+            판매자는 기회를 기다릴 수밖에 없었던<br />
+            기존 B2B 거래 구조를 바꾸기 위해 만들어졌습니다.
           </p>
         </div>
 
-        {/* Mission & Vision Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-          <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 text-white">
+        {/* Mission Section */}
+        <div className="mb-16">
+          <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 text-white text-center">
             <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
-            <p className="text-xl text-white/90 leading-relaxed mb-6">
-              복잡하고 불투명했던 식자재 거래를 투명하고 효율적으로 만들어,
-              모든 참여자가 공정한 가치를 얻을 수 있는 생태계를 구축합니다.
+            <p className="text-xl text-white/90 leading-relaxed mb-8 max-w-2xl mx-auto">
+              발주를 중심으로 거래를 재구성해<br />
+              구매자에게는 선택이 모이는 환경을,<br />
+              판매자에게는 적극적으로 제안할 수 있는 기회를 만듭니다.
             </p>
-            <ul className="space-y-4">
-              <li className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-white/80" />
-                <span className="text-lg">투명한 가격 정보 제공</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-white/80" />
-                <span className="text-lg">안전한 거래 시스템</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-white/80" />
-                <span className="text-lg">효율적인 매칭 서비스</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-3xl p-10 shadow-xl border-2 border-gray-100">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Vision</h2>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              식자재 거래의 새로운 기준을 만들어 갑니다.
-              기술과 데이터를 활용해 구매자에게는 더 좋은 조건을,
-              판매자에게는 더 많은 기회를 제공하는 플랫폼이 되겠습니다.
-            </p>
-            <div className="mt-8 p-6 bg-gray-50 rounded-2xl">
-              <p className="text-lg text-gray-700 font-medium">
-                "쉽고 공정한 거래가 가능한 OnTheDeal"
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold">1</span>
+                </div>
+                <p className="text-lg">
+                  발주를 올리면<br />다양한 업체의 제안이 모입니다
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold">2</span>
+                </div>
+                <p className="text-lg">
+                  판매자는 납품 가능한 발주에만<br />선택적으로 참여합니다
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold">3</span>
+                </div>
+                <p className="text-lg">
+                  구매자와 판매자가 만족하는<br />조건으로 거래가 이루어집니다
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -129,20 +130,19 @@ export default function AboutPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-12 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">함께 성장할 파트너를 찾습니다</h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            OnTheDeal과 함께 더 나은 식자재 거래 환경을 만들어 가세요
+        <div className="bg-primary-500 rounded-3xl p-8 sm:p-12 text-center">
+          <h2 className="text-2xl sm:text-4xl font-bold text-white mb-3 sm:mb-4">쉽고 공정한 거래가 가능한 OnTheDeal</h2>
+          <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8 max-w-xl mx-auto">
+            회원가입은 무료입니다. 거래가 성사될 때만 수수료가 발생해요.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link href="/register">
-              <Button size="xl" className="bg-primary-500 hover:bg-primary-600">
-                지금 시작하기
-                <ArrowRight className="w-6 h-6 ml-2" />
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <Link href="/register" className="w-full sm:w-auto">
+              <Button size="xl" className="w-full sm:w-auto bg-white text-primary-600 hover:bg-gray-100 text-base sm:text-xl">
+                무료로 시작하기
               </Button>
             </Link>
-            <Link href="/contact">
-              <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10">
+            <Link href="/contact" className="w-full sm:w-auto">
+              <Button size="xl" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/10 text-base sm:text-xl">
                 문의하기
               </Button>
             </Link>
