@@ -91,8 +91,9 @@ export default function SupplierRFQDetailPage() {
     }
   }
 
-  // 크레딧 선차감 금액 계산 (구매 희망가 최소금액의 3%)
-  const depositAmount = rfq ? Math.round((rfq.budgetMin || rfq.desiredPrice || 100000) * 0.03) : 0
+  // 크레딧 선차감 금액 계산 (제안가 기준 3%)
+  const totalQuotePrice = quoteForm.price && rfq ? parseInt(quoteForm.price) * rfq.quantity : 0
+  const depositAmount = Math.round(totalQuotePrice * 0.03)
 
   const handleSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -314,12 +315,26 @@ export default function SupplierRFQDetailPage() {
                 />
 
                 {quoteForm.price && (
-                  <div className="p-3 bg-gray-50 rounded-xl text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">총 금액 (예상)</span>
-                      <span className="font-bold text-primary-600">
-                        {(parseInt(quoteForm.price) * rfq.quantity).toLocaleString()}원
+                  <div className="p-4 bg-gray-50 rounded-xl space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">총 제안금액</span>
+                      <span className="font-bold text-gray-900">
+                        {totalQuotePrice.toLocaleString()}원
                       </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">선차감 크레딧 (3%)</span>
+                      <span className="font-bold text-primary-600">
+                        {depositAmount.toLocaleString()}원
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">현재 보유 크레딧</span>
+                        <span className={`font-bold ${currentCredit >= depositAmount ? 'text-green-600' : 'text-red-600'}`}>
+                          {currentCredit.toLocaleString()}원
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -340,16 +355,10 @@ export default function SupplierRFQDetailPage() {
                   required
                 />
 
-                {/* 크레딧 안내 (간소화) */}
-                <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
-                  <p className="mb-1">
-                    제안 제출 시 <span className="font-bold text-gray-900">{depositAmount.toLocaleString()}원</span> 선차감
-                    <span className="mx-1">·</span>
-                    미선정 시 환불
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    제안 제출 시 구매자와 채팅방이 생성됩니다
-                  </p>
+                {/* 안내 */}
+                <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-700">
+                  <p>• 제안 제출 시 크레딧 선차감, 미선정 시 환불</p>
+                  <p>• 제안 제출 후 구매자와 채팅 가능</p>
                 </div>
 
                 {/* 크레딧 부족 경고 */}

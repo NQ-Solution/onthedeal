@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Send, Handshake, AlertTriangle, CheckCircle, Info, Building, Clock, Loader2 } from 'lucide-react'
+import { ArrowLeft, Send, Handshake, AlertTriangle, CheckCircle, Info, Building, Clock, Loader2, Edit3 } from 'lucide-react'
 import { Button, Input, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui'
 
 interface Message {
@@ -90,8 +90,11 @@ export default function ChatRoomPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [showDealModal, setShowDealModal] = useState(false)
+  const [showPriceModal, setShowPriceModal] = useState(false)
+  const [newPrice, setNewPrice] = useState('')
   const [isConfirming, setIsConfirming] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -201,6 +204,45 @@ export default function ChatRoomPage() {
     }
   }
 
+  const handleUpdatePrice = async () => {
+    if (isUpdatingPrice || !newPrice || !chatRoom?.quote) return
+
+    const newTotalPrice = parseInt(newPrice)
+    if (isNaN(newTotalPrice) || newTotalPrice <= 0) {
+      alert('올바른 금액을 입력해주세요.')
+      return
+    }
+
+    setIsUpdatingPrice(true)
+    try {
+      const res = await fetch(`/api/quotes/${chatRoom.quote.id}/update-price`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newTotalPrice }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        if (data.additionalCredit > 0) {
+          alert(`금액이 수정되었습니다.\n추가 크레딧 ${data.additionalCredit.toLocaleString()}원이 차감되었습니다.`)
+        } else {
+          alert('금액이 수정되었습니다.')
+        }
+        setShowPriceModal(false)
+        setNewPrice('')
+        fetchChatRoom()
+      } else {
+        alert(data.error || '금액 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error updating price:', error)
+      alert('금액 수정 중 오류가 발생했습니다.')
+    } finally {
+      setIsUpdatingPrice(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -251,14 +293,29 @@ export default function ChatRoomPage() {
 
       {/* Quote Info */}
       {chatRoom.quote && (
-        <div className="py-3 px-4 bg-gray-50 border-b text-sm">
-          <span className="text-gray-500">제안가: </span>
-          <span className="font-semibold text-primary-600">
-            {chatRoom.quote.totalPrice.toLocaleString()}원
-          </span>
-          <span className="mx-3 text-gray-300">|</span>
-          <span className="text-gray-500">납품일: </span>
-          <span>{new Date(chatRoom.quote.deliveryDate).toLocaleDateString('ko-KR')}</span>
+        <div className="py-3 px-4 bg-gray-50 border-b text-sm flex items-center justify-between">
+          <div>
+            <span className="text-gray-500">제안가: </span>
+            <span className="font-semibold text-primary-600">
+              {chatRoom.quote.totalPrice.toLocaleString()}원
+            </span>
+            <span className="mx-3 text-gray-300">|</span>
+            <span className="text-gray-500">납품일: </span>
+            <span>{new Date(chatRoom.quote.deliveryDate).toLocaleDateString('ko-KR')}</span>
+          </div>
+          {!isDealConfirmed && chatRoom.status === 'active' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setNewPrice(chatRoom.quote!.totalPrice.toString())
+                setShowPriceModal(true)
+              }}
+            >
+              <Edit3 className="w-3 h-3 mr-1" />
+              금액 수정
+            </Button>
+          )}
         </div>
       )}
 
@@ -426,6 +483,78 @@ export default function ChatRoomPage() {
                   isLoading={isConfirming}
                 >
                   거래 확정하기
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Price Modification Modal */}
+      {showPriceModal && chatRoom.quote && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>금액 수정</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">현재 금액</span>
+                  <span className="font-medium">{chatRoom.quote.totalPrice.toLocaleString()}원</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">기존 선차감 크레딧</span>
+                  <span className="font-medium">{Math.round(chatRoom.quote.totalPrice * 0.03).toLocaleString()}원</span>
+                </div>
+              </div>
+
+              <Input
+                label="새 금액 (원)"
+                type="number"
+                placeholder="새 금액을 입력하세요"
+                value={newPrice}
+                onChange={(e) => setNewPrice(e.target.value)}
+              />
+
+              {newPrice && parseInt(newPrice) > chatRoom.quote.totalPrice && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-sm text-yellow-700">
+                    <strong>추가 크레딧 차감:</strong>{' '}
+                    {Math.round((parseInt(newPrice) - chatRoom.quote.totalPrice) * 0.03).toLocaleString()}원
+                  </p>
+                  <p className="text-xs text-yellow-600 mt-1">
+                    금액 증가분의 3%가 추가로 차감됩니다
+                  </p>
+                </div>
+              )}
+
+              {newPrice && parseInt(newPrice) < chatRoom.quote.totalPrice && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-700">
+                    금액이 감소하더라도 기존 크레딧은 환불되지 않습니다
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowPriceModal(false)
+                    setNewPrice('')
+                  }}
+                  disabled={isUpdatingPrice}
+                >
+                  취소
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleUpdatePrice}
+                  isLoading={isUpdatingPrice}
+                >
+                  수정하기
                 </Button>
               </div>
             </CardContent>

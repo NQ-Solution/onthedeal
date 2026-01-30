@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Plus, Coins, History, Users, Loader2, CheckCircle, Building2 } from 'lucide-react'
+import { Search, Plus, Coins, History, Users, Loader2, CheckCircle, Building2, Clock, XCircle, AlertCircle } from 'lucide-react'
 import { Button, Input, Card, CardHeader, CardTitle, CardContent, Badge, Textarea, Select } from '@/components/ui'
 
 interface Supplier {
@@ -27,19 +27,38 @@ interface CreditLog {
   }
 }
 
+interface ChargeRequest {
+  id: string
+  supplierId: string
+  amount: number
+  status: string
+  paymentMethod: string | null
+  createdAt: string
+  supplier: {
+    id: string
+    email: string
+    companyName: string
+    contactName: string
+    credit: { balance: number } | null
+  } | null
+}
+
 export default function AdminCreditsPage() {
   const [loading, setLoading] = useState(true)
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [recentLogs, setRecentLogs] = useState<CreditLog[]>([])
+  const [chargeRequests, setChargeRequests] = useState<ChargeRequest[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
   const [chargeAmount, setChargeAmount] = useState('')
   const [chargeDescription, setChargeDescription] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
 
   useEffect(() => {
     fetchData()
+    fetchChargeRequests()
   }, [])
 
   const fetchData = async () => {
@@ -54,6 +73,70 @@ export default function AdminCreditsPage() {
       console.error('Failed to fetch data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchChargeRequests = async () => {
+    try {
+      const res = await fetch('/api/admin/credits/requests')
+      if (res.ok) {
+        const data = await res.json()
+        setChargeRequests(data || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch charge requests:', error)
+    }
+  }
+
+  const handleApproveRequest = async (requestId: string) => {
+    if (!confirm('이 충전 요청을 승인하시겠습니까?')) return
+
+    setProcessingRequestId(requestId)
+    try {
+      const res = await fetch('/api/admin/credits/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, action: 'approve' }),
+      })
+
+      if (res.ok) {
+        alert('충전이 승인되었습니다.')
+        fetchData()
+        fetchChargeRequests()
+      } else {
+        const data = await res.json()
+        alert(data.error || '승인에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('오류가 발생했습니다.')
+    } finally {
+      setProcessingRequestId(null)
+    }
+  }
+
+  const handleRejectRequest = async (requestId: string) => {
+    const note = prompt('반려 사유를 입력해주세요 (선택사항):')
+    if (note === null) return // 취소 클릭
+
+    setProcessingRequestId(requestId)
+    try {
+      const res = await fetch('/api/admin/credits/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, action: 'reject', note }),
+      })
+
+      if (res.ok) {
+        alert('요청이 반려되었습니다.')
+        fetchChargeRequests()
+      } else {
+        const data = await res.json()
+        alert(data.error || '반려에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('오류가 발생했습니다.')
+    } finally {
+      setProcessingRequestId(null)
     }
   }
 
@@ -148,6 +231,81 @@ export default function AdminCreditsPage() {
           <CheckCircle className="w-6 h-6 text-green-600" />
           <p className="text-green-800 font-medium">크레딧이 성공적으로 충전되었습니다.</p>
         </div>
+      )}
+
+      {/* 대기 중인 충전 요청 */}
+      {chargeRequests.length > 0 && (
+        <Card className="shadow-lg border-2 border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                <Clock className="w-6 h-6 text-orange-600" />
+              </div>
+              대기 중인 충전 요청
+              <Badge variant="warning" className="ml-2">{chargeRequests.length}건</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {chargeRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className="bg-white rounded-xl p-4 border-2 border-orange-200"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="font-bold text-gray-900">{req.supplier?.companyName || '알 수 없음'}</p>
+                        <Badge variant="info">계좌이체</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-1">{req.supplier?.email}</p>
+                      <p className="text-sm text-gray-500">
+                        요청일: {formatDate(req.createdAt)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        현재 잔액: {(req.supplier?.credit?.balance || 0).toLocaleString()}원
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-orange-600 mb-3">
+                        {req.amount.toLocaleString()}원
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          onClick={() => handleRejectRequest(req.id)}
+                          disabled={processingRequestId === req.id}
+                        >
+                          {processingRequestId === req.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <XCircle className="w-4 h-4 mr-1" />
+                          )}
+                          반려
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => handleApproveRequest(req.id)}
+                          disabled={processingRequestId === req.id}
+                        >
+                          {processingRequestId === req.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                          )}
+                          승인
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

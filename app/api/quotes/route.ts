@@ -136,9 +136,8 @@ export async function POST(request: NextRequest) {
 
     const totalPrice = body.unit_price * rfq.quantity
 
-    // 크레딧 선차감 금액 계산 (구매 희망가 최소금액의 3% 또는 총 금액의 3%)
-    const baseAmount = rfq.budgetMin || totalPrice
-    const creditDeduction = Math.round(baseAmount * 0.03)
+    // 크레딧 선차감 금액 계산 (제안 총금액의 3%)
+    const creditDeduction = Math.round(totalPrice * 0.03)
 
     // 공급자 크레딧 확인
     const credit = await prisma.credit.findUnique({

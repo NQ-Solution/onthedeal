@@ -111,11 +111,34 @@ export default function SupplierCreditsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleDepositComplete = () => {
-    alert('입금 확인 요청이 접수되었습니다.\n관리자 확인 후 크레딧이 충전됩니다.')
-    setShowDepositInfo(false)
-    setChargeAmount('')
-    setSelectedQuick(null)
+  const handleDepositComplete = async () => {
+    const amount = parseInt(chargeAmount)
+    if (!amount) return
+
+    setCharging(true)
+    try {
+      const res = await fetch('/api/supplier/credits/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        alert('입금 확인 요청이 접수되었습니다.\n관리자 확인 후 크레딧이 충전됩니다.')
+        setShowDepositInfo(false)
+        setChargeAmount('')
+        setSelectedQuick(null)
+        fetchCreditData() // 데이터 새로고침
+      } else {
+        alert(data.error || '요청에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('요청 중 오류가 발생했습니다.')
+    } finally {
+      setCharging(false)
+    }
   }
 
   const displayAmount = chargeAmount ? parseInt(chargeAmount) : 0
@@ -332,9 +355,14 @@ export default function SupplierCreditsPage() {
                     size="lg"
                     className="flex-1 bg-green-600 hover:bg-green-700"
                     onClick={handleDepositComplete}
+                    disabled={charging}
                   >
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    입금 완료
+                    {charging ? (
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                    )}
+                    {charging ? '요청 중...' : '입금 완료'}
                   </Button>
                 </div>
               </div>
