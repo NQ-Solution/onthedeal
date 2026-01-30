@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
             quantity: true,
             unit: true,
             buyerId: true,
+            status: true,
+            deliveryDate: true,
           },
         },
         supplier: {
@@ -66,6 +68,13 @@ export async function GET(request: NextRequest) {
             companyName: true,
             contactName: true,
           },
+        },
+        chatRooms: {
+          select: {
+            id: true,
+            status: true,
+          },
+          take: 1,
         },
       },
       orderBy: {
@@ -184,7 +193,7 @@ export async function POST(request: NextRequest) {
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + 3) // 3일 후 만료
 
-      await tx.chatRoom.create({
+      const chatRoom = await tx.chatRoom.create({
         data: {
           rfqId: body.rfq_id,
           quoteId: quote.id,
@@ -217,13 +226,14 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      return { quote, creditDeduction, newBalance }
+      return { quote, creditDeduction, newBalance, chatRoom }
     })
 
     return NextResponse.json({
       ...result.quote,
       creditDeduction: result.creditDeduction,
       newBalance: result.newBalance,
+      chatRoomId: result.chatRoom.id,
       message: `제안이 제출되었습니다. ${result.creditDeduction.toLocaleString()}원이 선차감되었습니다.`,
     })
   } catch (error) {

@@ -119,11 +119,14 @@ export default function SupplierRFQsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow group relative">
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">총 구매 희망 규모</p>
+                <p className="text-lg text-gray-500 flex items-center gap-1">
+                  열린 발주 총 예상 규모
+                  <span className="text-xs text-gray-400" title="현재 모집중인 발주들의 구매 희망가 합계입니다">ⓘ</span>
+                </p>
                 <p className="text-4xl font-bold text-green-600 mt-2">{formatPrice(totalBudget)}</p>
               </div>
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">

@@ -44,6 +44,10 @@ interface ChatRoom {
     id: string
     companyName: string
     contactName: string
+    phone?: string
+    bankName?: string
+    bankAccount?: string
+    bankHolder?: string
   } | null
   currentUserId: string
   currentUserRole: string
@@ -363,13 +367,33 @@ export default function ChatRoomPage() {
                 </div>
               </div>
 
-              {/* 결제 안내 */}
+              {/* 결제 안내 - 공급자 계좌 정보 */}
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-start gap-2">
                   <Building className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-blue-700">
-                    <p className="font-medium mb-1">계좌이체 결제</p>
-                    <p>거래 확정 후 공급자에게 직접 연락하여 결제를 진행해주세요.</p>
+                  <div className="text-sm text-blue-700 w-full">
+                    <p className="font-medium mb-2">계좌이체 결제</p>
+                    {chatRoom.supplier?.bankName && chatRoom.supplier?.bankAccount ? (
+                      <div className="bg-white p-3 rounded border border-blue-200 space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">은행</span>
+                          <span className="font-medium text-gray-900">{chatRoom.supplier.bankName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">계좌번호</span>
+                          <span className="font-medium text-gray-900">{chatRoom.supplier.bankAccount}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">예금주</span>
+                          <span className="font-medium text-gray-900">{chatRoom.supplier.bankHolder || '-'}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>거래 확정 후 공급자에게 직접 연락하여 결제를 진행해주세요.</p>
+                    )}
+                    {chatRoom.supplier?.phone && (
+                      <p className="mt-2">연락처: <span className="font-medium">{chatRoom.supplier.phone}</span></p>
+                    )}
                   </div>
                 </div>
               </div>

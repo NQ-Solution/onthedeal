@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { Button, Input, Textarea, ImageUpload } from '@/components/ui'
 import { UserPlus, ShoppingCart, Factory, Building2, User, MapPin, FileText, Camera, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react'
-import { DEMO_MODE, DEMO_MESSAGES } from '@/lib/demo-mode'
 
 function RegisterForm() {
   const router = useRouter()
@@ -56,13 +55,6 @@ function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
-    // 데모 모드: 실제 가입 대신 안내 메시지 표시
-    if (DEMO_MODE) {
-      alert(DEMO_MESSAGES.register)
-      router.push('/login')
-      return
-    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('비밀번호가 일치하지 않습니다')
@@ -137,15 +129,6 @@ function RegisterForm() {
 
   return (
     <div className="space-y-6">
-      {/* 데모 모드 배너 */}
-      {DEMO_MODE && (
-        <div className="bg-gradient-to-r from-blue-50 to-primary-50 border-2 border-blue-200 rounded-3xl p-5 text-center">
-          <p className="text-blue-700 font-bold text-lg">
-            현재 데모 버전입니다. 서비스 오픈 후 회원가입이 가능합니다.
-          </p>
-        </div>
-      )}
-
       {/* 헤더 */}
       <div className="text-center mb-8">
         <div className="w-20 h-20 bg-primary-100 rounded-3xl flex items-center justify-center mx-auto mb-6">

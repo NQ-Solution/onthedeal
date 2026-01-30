@@ -39,19 +39,18 @@ interface TossPaymentOptions {
   }
 }
 
-// Mock 주문 데이터 (실제로는 API에서 가져옴)
-const mockOrder = {
-  id: 'order-001',
-  buyer: { companyName: '맛있는식당', contactName: '김구매', email: 'buyer@test.com' },
-  supplier: { companyName: '프리미엄한우농장' },
-  rfq: { title: '한우 등심 1++ 등급 대량 구매' },
-  quote: { totalPrice: 600000, deliveryDate: '2025-02-14' },
-  productAmount: 600000,
-  totalAmount: 600000, // 구매자는 수수료 없음
-  commissionAmount: 18000, // 3% (공급자 부담)
-  supplierFee: 18000,
-  buyerFee: 0,
-  status: 'pending',
+interface Order {
+  id: string
+  buyer: { companyName: string; contactName: string; email: string }
+  supplier: { companyName: string }
+  rfq: { title: string }
+  quote: { totalPrice: number; deliveryDate: string }
+  productAmount: number
+  totalAmount: number
+  commissionAmount: number
+  supplierFee: number
+  buyerFee: number
+  status: string
 }
 
 type PaymentMethod = 'card' | 'virtualAccount' | 'transfer'
@@ -65,13 +64,38 @@ const paymentMethods = [
 export default function CheckoutPage() {
   const params = useParams()
   const router = useRouter()
-  const [order, setOrder] = useState(mockOrder)
+  const orderId = params?.orderId as string
+  const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const [sdkReady, setSdkReady] = useState(false)
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('card')
   const [error, setError] = useState<string | null>(null)
 
   const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || ''
+
+  // 주문 정보 로드
+  useEffect(() => {
+    if (orderId) {
+      fetchOrder()
+    }
+  }, [orderId])
+
+  const fetchOrder = async () => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setOrder(data)
+      } else {
+        setError('주문 정보를 찾을 수 없습니다.')
+      }
+    } catch (err) {
+      setError('주문 정보를 불러오는데 실패했습니다.')
+    } finally {
+      setPageLoading(false)
+    }
+  }
 
   // 토스페이먼츠 SDK 로드 완료 핸들러
   const handleSdkLoad = () => {
@@ -80,6 +104,11 @@ export default function CheckoutPage() {
 
   // 결제 요청
   const handlePayment = async () => {
+    if (!order) {
+      setError('주문 정보가 없습니다.')
+      return
+    }
+
     if (!sdkReady) {
       setError('결제 시스템을 로드하는 중입니다. 잠시 후 다시 시도해주세요.')
       return
@@ -138,6 +167,29 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // 로딩 중
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    )
+  }
+
+  // 주문 정보 없음
+  if (!order) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">주문을 찾을 수 없습니다</h2>
+          <p className="text-gray-600 mb-4">{error || '요청하신 주문 정보가 존재하지 않습니다.'}</p>
+          <Button onClick={() => router.back()}>돌아가기</Button>
+        </div>
+      </div>
+    )
   }
 
   return (

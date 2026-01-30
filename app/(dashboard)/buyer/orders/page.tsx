@@ -32,6 +32,9 @@ interface Order {
     companyName: string
     contactName: string
     phone: string
+    bankName?: string
+    bankAccount?: string
+    bankHolder?: string
   }
 }
 
@@ -275,6 +278,27 @@ export default function BuyerOrdersPage() {
                         <span>{formatPrice(order.totalAmount)}</span>
                       </div>
                     </div>
+
+                    {/* 공급자 계좌 정보 */}
+                    {order.supplier?.bankName && order.supplier?.bankAccount && (
+                      <div className="bg-blue-50 rounded-xl p-4 mt-4">
+                        <p className="text-sm font-medium text-blue-700 mb-2">결제 계좌 정보</p>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">은행</span>
+                            <span className="font-medium text-gray-900">{order.supplier.bankName}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">계좌번호</span>
+                            <span className="font-medium text-gray-900">{order.supplier.bankAccount}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">예금주</span>
+                            <span className="font-medium text-gray-900">{order.supplier.bankHolder || '-'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* 하단 */}
                     <div className="mt-4 pt-4 border-t-2 border-gray-100 flex justify-between items-center">

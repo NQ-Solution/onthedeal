@@ -90,7 +90,7 @@ export async function POST(
         data: { status: 'rejected' },
       })
 
-      // 3-1. 거절된 제안의 공급자들에게 크레딧 환불
+      // 3-1. 거절된 제안의 공급자들에게 크레딧 환불 + 채팅방 만료 처리
       for (const rejectedQuote of rejectedQuotes) {
         // 선차감된 금액 계산 (제안 제출 시 차감된 금액)
         const rfq = await tx.rFQ.findUnique({ where: { id: rejectedQuote.rfqId } })
@@ -129,6 +129,18 @@ export async function POST(
             },
           })
         }
+
+        // 거절된 제안의 채팅방 만료 처리
+        await tx.chatRoom.updateMany({
+          where: {
+            quoteId: rejectedQuote.id,
+            status: 'active',
+          },
+          data: {
+            status: 'expired',
+            expiresAt: new Date(), // 즉시 만료
+          },
+        })
       }
 
       // 4. 채팅방 생성 또는 조회

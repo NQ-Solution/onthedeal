@@ -2,7 +2,6 @@
 
 import { createContext, useContext, ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
-import { usePathname } from 'next/navigation'
 
 interface UserProfile {
   id: string
@@ -23,33 +22,14 @@ interface UserContextType {
   isLoading: boolean
 }
 
-const defaultUser: UserProfile = {
-  id: '',
-  email: '',
-  role: 'buyer',
-  companyName: '',
-  contactName: '',
-  phone: '',
-  createdAt: '',
-}
-
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession()
-  const pathname = usePathname()
 
-  // 현재 경로에서 역할 감지
-  const getCurrentRole = (): 'buyer' | 'supplier' | 'admin' => {
-    if (pathname?.startsWith('/admin')) return 'admin'
-    if (pathname?.startsWith('/supplier')) return 'supplier'
-    return 'buyer'
-  }
-
-  const currentRole = getCurrentRole()
   const isLoading = status === 'loading'
 
-  // session에서 사용자 정보 추출 (세션에 포함된 기본 필드만 사용)
+  // 세션에서 사용자 정보 추출
   const user: UserProfile | null = session?.user ? {
     id: session.user.id || '',
     email: session.user.email || '',
@@ -62,6 +42,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     address: undefined,
     createdAt: '',
   } : null
+
+  // 세션의 실제 역할 사용 (경로 기반 제거)
+  const currentRole: 'buyer' | 'supplier' | 'admin' = user?.role || 'buyer'
 
   return (
     <UserContext.Provider value={{ user, currentRole, isLoading }}>

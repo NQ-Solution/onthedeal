@@ -6,13 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { Button, Input } from '@/components/ui'
-import { LogIn, Mail, Lock, ShoppingCart, Factory, ArrowRight } from 'lucide-react'
-import { DEMO_MODE, DEMO_ACCOUNTS } from '@/lib/demo-mode'
+import { LogIn, Mail, Lock, ArrowRight } from 'lucide-react'
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const message = searchParams.get('message')
+  const expired = searchParams.get('expired')
 
   const [formData, setFormData] = useState({
     email: '',
@@ -21,35 +21,10 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // 데모 모드: 바로 대시보드로 이동
-  const handleDemoLogin = (role: 'buyer' | 'supplier' | 'admin') => {
-    if (role === 'buyer') {
-      router.push('/buyer/rfqs')
-    } else if (role === 'supplier') {
-      router.push('/supplier/rfqs')
-    } else {
-      router.push('/admin')
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
-
-    // 데모 모드에서는 계정에 따라 바로 이동
-    if (DEMO_MODE) {
-      if (formData.email.includes('buyer') || formData.email === DEMO_ACCOUNTS.buyer.email) {
-        router.push('/buyer/rfqs')
-      } else if (formData.email.includes('supplier') || formData.email === DEMO_ACCOUNTS.supplier.email) {
-        router.push('/supplier/rfqs')
-      } else {
-        // 기본 구매자로 이동
-        router.push('/buyer/rfqs')
-      }
-      setLoading(false)
-      return
-    }
 
     try {
       const result = await signIn('credentials', {
@@ -94,40 +69,14 @@ function LoginForm() {
         <p className="text-xl text-gray-500">OnTheDeal에 오신 것을 환영합니다</p>
       </div>
 
-      {/* 데모 모드 배너 & 빠른 접속 */}
-      {DEMO_MODE && (
-        <div className="bg-gradient-to-r from-blue-50 to-primary-50 border-2 border-blue-200 rounded-3xl p-6">
-          <p className="text-blue-700 font-bold text-xl text-center mb-5">
-            데모 버전 - 아래 버튼으로 바로 접속하세요
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button
-              onClick={() => handleDemoLogin('buyer')}
-              className="p-5 bg-white border-2 border-primary-200 rounded-2xl hover:border-primary-400 hover:bg-primary-50 hover:shadow-lg transition-all group"
-            >
-              <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <ShoppingCart className="w-7 h-7 text-primary-600" />
-              </div>
-              <p className="text-xl font-bold text-primary-600">구매자</p>
-              <p className="text-gray-500 mt-1">발주 등록 및 제안 요청</p>
-            </button>
-            <button
-              onClick={() => handleDemoLogin('supplier')}
-              className="p-5 bg-white border-2 border-green-200 rounded-2xl hover:border-green-400 hover:bg-green-50 hover:shadow-lg transition-all group"
-            >
-              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                <Factory className="w-7 h-7 text-green-600" />
-              </div>
-              <p className="text-xl font-bold text-green-600">공급자</p>
-              <p className="text-gray-500 mt-1">발주 확인 및 제안 제출</p>
-            </button>
-          </div>
-        </div>
-      )}
-
       <Card className="shadow-2xl border-2 rounded-3xl overflow-hidden">
         <form onSubmit={handleSubmit}>
           <CardContent className="pt-8 space-y-6">
+            {expired === 'true' && (
+              <div className="p-5 bg-yellow-50 text-yellow-700 text-lg rounded-2xl border-2 border-yellow-200">
+                세션이 만료되었습니다. 다시 로그인해주세요.
+              </div>
+            )}
             {message === 'registered' && (
               <div className="p-5 bg-green-50 text-green-700 text-lg rounded-2xl border-2 border-green-200 flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">

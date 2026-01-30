@@ -21,24 +21,24 @@ export default function ProfilePage() {
     accountNumber: '',
     accountHolder: '',
   })
-  const [profile, setProfile] = useState({
-    id: '',
-    email: '',
-    role: 'buyer' as 'buyer' | 'supplier' | 'admin',
-    companyName: '',
-    businessNumber: '',
-    contactName: '',
-    phone: '',
-    address: '',
-    createdAt: '',
-  })
+  const [profile, setProfile] = useState<{
+    id: string
+    email: string
+    role: 'buyer' | 'supplier' | 'admin'
+    companyName: string
+    businessNumber: string
+    contactName: string
+    phone: string
+    address: string
+    createdAt: string
+  } | null>(null)
 
   // API에서 프로필 정보 로드
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user?.id) {
       fetchProfile()
     }
-  }, [session])
+  }, [session?.user?.id])
 
   const fetchProfile = async () => {
     try {
@@ -48,7 +48,7 @@ export default function ProfilePage() {
         setProfile({
           id: data.id || '',
           email: data.email || '',
-          role: (data.role as 'buyer' | 'supplier' | 'admin') || 'buyer',
+          role: data.role as 'buyer' | 'supplier' | 'admin',
           companyName: data.companyName || '',
           businessNumber: data.businessNumber || '',
           contactName: data.contactName || '',
@@ -64,10 +64,10 @@ export default function ProfilePage() {
 
   // 공급자인 경우 계좌 정보 로드
   useEffect(() => {
-    if (session?.user?.role === 'supplier') {
+    if (profile?.role === 'supplier') {
       fetchBankAccount()
     }
-  }, [session])
+  }, [profile?.role])
 
   const fetchBankAccount = async () => {
     try {
@@ -88,6 +88,7 @@ export default function ProfilePage() {
   }
 
   const handleSaveProfile = async () => {
+    if (!profile) return
     setLoading(true)
     try {
       const res = await fetch('/api/profile', {
@@ -140,7 +141,7 @@ export default function ProfilePage() {
     return new Date(dateStr).toLocaleDateString('ko-KR')
   }
 
-  if (status === 'loading') {
+  if (status === 'loading' || !profile) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
@@ -220,7 +221,7 @@ export default function ProfilePage() {
                   <Input
                     label="담당자명"
                     value={profile.contactName}
-                    onChange={(e) => setProfile({ ...profile, contactName: e.target.value })}
+                    onChange={(e) => setProfile(prev => prev ? { ...prev, contactName: e.target.value } : prev)}
                   />
                 ) : (
                   <>
@@ -235,7 +236,7 @@ export default function ProfilePage() {
                     label="연락처"
                     type="tel"
                     value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    onChange={(e) => setProfile(prev => prev ? { ...prev, phone: e.target.value } : prev)}
                   />
                 ) : (
                   <>
@@ -268,7 +269,7 @@ export default function ProfilePage() {
                   <Input
                     label="회사명 (상호)"
                     value={profile.companyName}
-                    onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
+                    onChange={(e) => setProfile(prev => prev ? { ...prev, companyName: e.target.value } : prev)}
                   />
                 ) : (
                   <>
@@ -282,7 +283,7 @@ export default function ProfilePage() {
                   <Input
                     label="사업자등록번호"
                     value={profile.businessNumber}
-                    onChange={(e) => setProfile({ ...profile, businessNumber: e.target.value })}
+                    onChange={(e) => setProfile(prev => prev ? { ...prev, businessNumber: e.target.value } : prev)}
                   />
                 ) : (
                   <>
@@ -296,7 +297,7 @@ export default function ProfilePage() {
                   <Input
                     label="사업장 주소"
                     value={profile.address}
-                    onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                    onChange={(e) => setProfile(prev => prev ? { ...prev, address: e.target.value } : prev)}
                   />
                 ) : (
                   <>

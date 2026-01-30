@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, Receipt, Clock, CheckCircle, XCircle, Building2, Calendar, TrendingUp, Loader2, ChevronDown, ChevronUp, FileText } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, Receipt, Clock, CheckCircle, XCircle, Building2, Calendar, TrendingUp, Loader2, ChevronDown, ChevronUp, FileText, MessageSquare } from 'lucide-react'
 import { Input, Select, Card, CardContent, Badge, Button } from '@/components/ui'
 
 interface Quote {
@@ -27,6 +28,10 @@ interface Quote {
     id: string
     companyName: string
   }
+  chatRooms?: {
+    id: string
+    status: string
+  }[]
 }
 
 interface GroupedQuotes {
@@ -56,6 +61,7 @@ const formatDate = (dateStr: string) => {
 }
 
 export default function BuyerQuotesPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -325,9 +331,25 @@ export default function BuyerQuotesPage() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-xl font-bold text-primary-600">{formatPrice(quote.totalPrice)}</p>
-                              <p className="text-sm text-gray-500">단가 {formatPrice(quote.unitPrice)}</p>
+                            <div className="flex items-center gap-4">
+                              {/* 채팅하기 버튼 */}
+                              {quote.chatRooms?.[0] && quote.chatRooms[0].status !== 'expired' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    router.push(`/chat/${quote.chatRooms![0].id}`)
+                                  }}
+                                >
+                                  <MessageSquare className="w-4 h-4 mr-1" />
+                                  채팅
+                                </Button>
+                              )}
+                              <div className="text-right">
+                                <p className="text-xl font-bold text-primary-600">{formatPrice(quote.totalPrice)}</p>
+                                <p className="text-sm text-gray-500">단가 {formatPrice(quote.unitPrice)}</p>
+                              </div>
                             </div>
                           </div>
                           {quote.note && (

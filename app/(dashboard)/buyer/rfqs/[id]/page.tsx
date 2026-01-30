@@ -18,6 +18,10 @@ interface Quote {
     companyName: string
     contactName: string
   }
+  chatRooms?: {
+    id: string
+    status: string
+  }[]
 }
 
 interface RFQ {
@@ -117,8 +121,14 @@ export default function BuyerRFQDetailPage() {
       const data = await res.json()
 
       if (res.ok) {
-        alert('제안이 수락되었습니다. 주문 관리 페이지로 이동합니다.')
-        router.push('/buyer/orders')
+        // 채팅방으로 바로 이동
+        if (data.data?.chatRoom?.id) {
+          alert('제안이 수락되었습니다. 채팅방으로 이동합니다.')
+          router.push(`/chat/${data.data.chatRoom.id}`)
+        } else {
+          alert('제안이 수락되었습니다. 주문 관리 페이지로 이동합니다.')
+          router.push('/buyer/orders')
+        }
       } else {
         alert(data.error || '제안 수락에 실패했습니다.')
       }
@@ -303,28 +313,52 @@ export default function BuyerRFQDetailPage() {
                         </p>
                       </div>
 
-                      {quote.status === 'pending' && rfq.status === 'open' && (
-                        <div className="flex gap-2 ml-4">
-                          <Button
-                            size="lg"
-                            onClick={() => handleAcceptQuote(quote.id)}
-                            disabled={isProcessing}
-                            isLoading={isProcessing}
-                          >
-                            <Check className="w-5 h-5 mr-2" />
-                            수락
-                          </Button>
+                      <div className="flex gap-2 ml-4">
+                        {/* 채팅하기 버튼 - 채팅방이 있으면 표시 */}
+                        {quote.chatRooms?.[0] && quote.chatRooms[0].status !== 'expired' && (
                           <Button
                             size="lg"
                             variant="outline"
-                            onClick={() => handleRejectQuote(quote.id)}
-                            disabled={isProcessing}
+                            onClick={() => router.push(`/chat/${quote.chatRooms![0].id}`)}
                           >
-                            <X className="w-5 h-5 mr-2" />
-                            거절
+                            <MessageSquare className="w-5 h-5 mr-2" />
+                            채팅
                           </Button>
-                        </div>
-                      )}
+                        )}
+                        {/* 수락/거절 버튼 - 대기중인 제안만 */}
+                        {quote.status === 'pending' && rfq.status === 'open' && (
+                          <>
+                            <Button
+                              size="lg"
+                              onClick={() => handleAcceptQuote(quote.id)}
+                              disabled={isProcessing}
+                              isLoading={isProcessing}
+                            >
+                              <Check className="w-5 h-5 mr-2" />
+                              수락
+                            </Button>
+                            <Button
+                              size="lg"
+                              variant="outline"
+                              onClick={() => handleRejectQuote(quote.id)}
+                              disabled={isProcessing}
+                            >
+                              <X className="w-5 h-5 mr-2" />
+                              거절
+                            </Button>
+                          </>
+                        )}
+                        {/* 수락된 제안의 채팅방 이동 */}
+                        {quote.status === 'accepted' && quote.chatRooms?.[0] && (
+                          <Button
+                            size="lg"
+                            onClick={() => router.push(`/chat/${quote.chatRooms![0].id}`)}
+                          >
+                            <MessageSquare className="w-5 h-5 mr-2" />
+                            채팅방 이동
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

@@ -42,6 +42,11 @@ model User {
   website               String?
   introduction          String?
 
+  // 정산 계좌 정보 (공급자용)
+  bankName              String?   @map("bank_name")
+  bankAccount           String?   @map("bank_account")
+  bankHolder            String?   @map("bank_holder")
+
   // 이미지
   profileImage          String?   @map("profile_image")
   businessLicenseImage  String?   @map("business_license_image")

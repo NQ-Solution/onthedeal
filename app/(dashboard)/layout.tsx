@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -16,17 +16,8 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const pathname = usePathname()
   const { data: session, status } = useSession()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // 현재 경로에서 역할 감지
-  const getCurrentRole = (): 'buyer' | 'supplier' => {
-    if (pathname?.startsWith('/supplier')) return 'supplier'
-    return 'buyer'
-  }
-
-  const currentRole = getCurrentRole()
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -40,14 +31,17 @@ export default function DashboardLayout({
     router.push('/login')
   }
 
-  // 로딩 중
-  if (status === 'loading') {
+  // 로딩 중 또는 세션 정보가 아직 없을 때
+  if (status === 'loading' || !session?.user?.role) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
+
+  // 세션이 완전히 로드된 후에만 역할 결정 (기본값 사용 안함)
+  const currentRole: 'buyer' | 'supplier' = session.user.role as 'buyer' | 'supplier'
 
   return (
     <UserProvider>

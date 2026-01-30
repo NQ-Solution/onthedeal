@@ -13,7 +13,6 @@ import {
   User,
   Search,
   Package,
-  Coins,
 } from 'lucide-react'
 
 // 로고 컴포넌트 (fallback 포함)
@@ -58,7 +57,6 @@ const supplierMenus = [
   { href: '/supplier/rfqs', label: '발주 찾기', icon: Search },
   { href: '/supplier/quotes', label: '보낸 제안', icon: Receipt },
   { href: '/supplier/orders', label: '주문 관리', icon: Package },
-  { href: '/supplier/credits', label: '크레딧', icon: Coins },
   { href: '/chat', label: '채팅', icon: MessageSquare },
   { href: '/profile', label: '내 정보', icon: User },
 ]
@@ -77,7 +75,7 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
 
   const fetchCreditBalance = async () => {
     try {
-      const res = await fetch('/api/credits')
+      const res = await fetch('/api/supplier/credits')
       if (res.ok) {
         const data = await res.json()
         setCreditBalance(data.balance ?? 0)

@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const settings = await prisma.siteSettings.findUnique({
       where: { id: 'default' },
-      // 공개적으로 필요한 필드만 선택 (민감 정보 제외)
+      // 공개적으로 필요한 필드 선택 (관리자 알림 이메일만 제외)
       select: {
         siteName: true,
         siteDescription: true,
@@ -22,11 +22,11 @@ export async function GET() {
         businessHoursStart: true,
         businessHoursEnd: true,
         businessDays: true,
-        // 아래 필드는 민감 정보로 제외
-        // adminAlertEmail: false,
-        // bankName: false,
-        // bankAccount: false,
-        // bankHolder: false,
+        // 입금 계좌 정보 (공급자 크레딧 충전에 필요)
+        bankName: true,
+        bankAccount: true,
+        bankHolder: true,
+        // adminAlertEmail은 제외
       }
     })
 
@@ -44,6 +44,9 @@ export async function GET() {
         businessHoursStart: null,
         businessHoursEnd: null,
         businessDays: null,
+        bankName: null,
+        bankAccount: null,
+        bankHolder: null,
       })
     }
 

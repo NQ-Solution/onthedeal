@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-// 크레딧 잔액 및 내역 조회
-export async function GET(request: NextRequest) {
+// GET - 공급자 크레딧 조회
+export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
@@ -12,22 +12,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
     }
 
-    // 공급자인지 확인
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-
-    if (user?.role !== 'supplier') {
+    if (session.user.role !== 'supplier') {
       return NextResponse.json({ error: '공급자만 접근 가능합니다' }, { status: 403 })
     }
 
-    // 크레딧 잔액 조회
-    const credit = await prisma.credit.findUnique({
+    // 크레딧 조회 (없으면 생성)
+    let credit = await prisma.credit.findUnique({
       where: { supplierId: session.user.id },
     })
 
-    // 크레딧 로그 조회 (최근 50건)
+    if (!credit) {
+      credit = await prisma.credit.create({
+        data: {
+          supplierId: session.user.id,
+          balance: 0,
+        },
+      })
+    }
+
+    // 크레딧 로그 조회
     const logs = await prisma.creditLog.findMany({
       where: { supplierId: session.user.id },
       orderBy: { createdAt: 'desc' },
@@ -35,11 +38,11 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      balance: credit?.balance || 0,
+      balance: credit.balance,
       logs,
     })
   } catch (error) {
-    console.error('크레딧 조회 오류:', error)
+    console.error('Credit GET error:', error)
     return NextResponse.json({ error: '크레딧 조회에 실패했습니다' }, { status: 500 })
   }
 }

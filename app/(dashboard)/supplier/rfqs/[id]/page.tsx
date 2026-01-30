@@ -126,7 +126,12 @@ export default function SupplierRFQDetailPage() {
 
       if (res.ok) {
         alert(`제안이 제출되었습니다.\n\n선차감 크레딧: ${data.creditDeduction?.toLocaleString() || depositAmount.toLocaleString()}원\n\n※ 3일 내 거래 미확정 시 크레딧이 환불됩니다.`)
-        router.push('/supplier/quotes')
+        // 채팅방으로 바로 이동
+        if (data.chatRoomId) {
+          router.push(`/chat/${data.chatRoomId}`)
+        } else {
+          router.push('/supplier/quotes')
+        }
       } else {
         if (data.required && data.current !== undefined) {
           alert(`크레딧이 부족합니다.\n필요: ${data.required.toLocaleString()}원\n보유: ${data.current.toLocaleString()}원`)
