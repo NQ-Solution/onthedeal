@@ -187,66 +187,74 @@ export default function SupplierRFQDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 발주 정보 */}
         <Card className="shadow-lg border-2">
-          <CardHeader>
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
               <Badge variant="info">{rfq.category}</Badge>
             </div>
             <CardTitle className="text-2xl">{rfq.title}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+          <CardContent className="space-y-4">
+            {/* 핵심 정보 요약 */}
+            <div className="bg-primary-50 rounded-xl p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-primary-600 mb-1">구매 희망가</p>
+                  <p className="font-bold text-xl text-primary-700">
+                    {rfq.budgetMin && rfq.budgetMax ? (
+                      `${(rfq.budgetMin / 10000).toFixed(0)}~${(rfq.budgetMax / 10000).toFixed(0)}만원`
+                    ) : rfq.desiredPrice ? (
+                      `${(rfq.desiredPrice / 10000).toFixed(0)}만원`
+                    ) : (
+                      '협의'
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-primary-600 mb-1">수량</p>
+                  <p className="font-bold text-xl text-primary-700">{rfq.quantity.toLocaleString()} {rfq.unit}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 구매자 정보 */}
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
               <Building2 className="w-5 h-5 text-gray-500" />
               <div>
-                <p className="text-sm text-gray-500">구매자</p>
+                <p className="text-xs text-gray-500">구매자</p>
                 <p className="font-bold text-gray-900">{rfq.buyer.companyName}</p>
               </div>
             </div>
 
+            {/* 상세 설명 */}
             <div>
-              <p className="text-sm text-gray-500 mb-2">상세 설명</p>
-              <p className="text-gray-700 bg-gray-50 p-4 rounded-xl">{rfq.description}</p>
+              <p className="text-xs text-gray-500 mb-2">요청 상세</p>
+              <div className="text-gray-700 bg-gray-50 p-4 rounded-xl whitespace-pre-wrap leading-relaxed">
+                {rfq.description}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-              <div className="flex items-center gap-3">
-                <Package className="w-5 h-5 text-primary-500" />
+            {/* 배송 정보 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t">
+              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-xl">
+                <Calendar className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-500">수량</p>
-                  <p className="font-bold text-lg">{rfq.quantity.toLocaleString()} {rfq.unit}</p>
+                  <p className="text-xs text-blue-600">납품 희망일</p>
+                  <p className="font-bold text-blue-800">{formatDate(rfq.deliveryDate)}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">구매 희망가</p>
-                <p className="font-bold text-lg text-primary-600">
-                  {rfq.budgetMin && rfq.budgetMax ? (
-                    `${(rfq.budgetMin / 10000).toFixed(0)}만원 ~ ${(rfq.budgetMax / 10000).toFixed(0)}만원`
-                  ) : rfq.desiredPrice ? (
-                    `${(rfq.desiredPrice / 10000).toFixed(0)}만원`
-                  ) : (
-                    '협의'
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-blue-500" />
+              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl">
+                <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-500">납품 희망일</p>
-                  <p className="font-bold">{formatDate(rfq.deliveryDate)}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-red-500" />
-                <div>
-                  <p className="text-sm text-gray-500">배송지</p>
-                  <p className="font-medium text-sm">{rfq.deliveryAddress}</p>
+                  <p className="text-xs text-red-600">배송지</p>
+                  <p className="font-medium text-sm text-red-800">{rfq.deliveryAddress}</p>
                 </div>
               </div>
             </div>
 
-            <div className="text-sm text-gray-500 pt-4 border-t">
+            <p className="text-xs text-gray-400 pt-2">
               등록일: {formatDate(rfq.createdAt)}
-            </div>
+            </p>
           </CardContent>
         </Card>
 
@@ -279,6 +287,17 @@ export default function SupplierRFQDetailPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmitQuote} className="space-y-6">
+                {/* +/- 버튼(스피너) 숨김 스타일 적용 */}
+                <style jsx>{`
+                  input[type="number"]::-webkit-outer-spin-button,
+                  input[type="number"]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                  }
+                  input[type="number"] {
+                    -moz-appearance: textfield;
+                  }
+                `}</style>
                 <Input
                   label="제안가 (단가, 원)"
                   type="number"
@@ -286,6 +305,7 @@ export default function SupplierRFQDetailPage() {
                   value={quoteForm.price}
                   onChange={(e) => setQuoteForm(prev => ({ ...prev, price: e.target.value }))}
                   required
+                  className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
 
                 {quoteForm.price && (
@@ -315,42 +335,16 @@ export default function SupplierRFQDetailPage() {
                   required
                 />
 
-                {/* 크레딧 선차감 안내 */}
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-blue-700 w-full">
-                      <p className="font-bold mb-2">크레딧 선차감 안내</p>
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span>기준 금액</span>
-                          <span>{((rfq.budgetMin || rfq.desiredPrice || 100000)).toLocaleString()}원</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>선차감 비율</span>
-                          <span>3%</span>
-                        </div>
-                        <div className="flex justify-between font-bold pt-2 border-t border-blue-200">
-                          <span>제안 제출 시 차감</span>
-                          <span className="text-blue-800">{depositAmount.toLocaleString()}원</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 환불 정책 안내 */}
-                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <RefreshCw className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-green-700">
-                      <p className="font-bold mb-2">환불 정책</p>
-                      <ul className="space-y-1 list-disc list-inside">
-                        <li>거래 확정 시: 크레딧 차감 유지 (수수료로 전환)</li>
-                        <li className="text-green-800 font-medium">3일 내 거래 미확정 시: 크레딧 전액 환불</li>
-                      </ul>
-                    </div>
-                  </div>
+                {/* 크레딧 안내 (간소화) */}
+                <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
+                  <p className="mb-1">
+                    제안 제출 시 <span className="font-bold text-gray-900">{depositAmount.toLocaleString()}원</span> 선차감
+                    <span className="mx-1">·</span>
+                    미선정 시 환불
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    제안 제출 시 구매자와 채팅방이 생성됩니다
+                  </p>
                 </div>
 
                 {/* 크레딧 부족 경고 */}

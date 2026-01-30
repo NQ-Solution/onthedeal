@@ -202,10 +202,10 @@ export default function SupplierOrdersPage() {
             <div>
               <h3 className="text-xl font-bold text-blue-900">정산 안내</h3>
               <p className="text-lg text-blue-700 mt-2">
-                제안 수락 시 거래금액의 <span className="font-bold">3%</span> 크레딧이 차감되며, 구매자 결제 금액 전액이 정산됩니다.
+                제안 제출 시 선차감된 크레딧(3%)이 거래 성사 시 수수료로 확정됩니다.
               </p>
               <p className="text-base text-blue-600 mt-1">
-                구매자가 수령을 확인하면 영업일 기준 2~3일 내 정산이 진행됩니다.
+                미선정 시 크레딧이 환불되며, 구매자 수령 확인 후 영업일 2~3일 내 정산됩니다.
               </p>
             </div>
           </div>

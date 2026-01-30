@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X } from 'lucide-react'
+import { X, Wallet } from 'lucide-react'
 import {
   FileText,
   PlusCircle,
@@ -66,6 +66,33 @@ const supplierMenus = [
 export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname()
   const menus = userRole === 'buyer' ? buyerMenus : supplierMenus
+  const [creditBalance, setCreditBalance] = useState<number | null>(null)
+
+  // 공급자인 경우 크레딧 잔액 조회
+  useEffect(() => {
+    if (userRole === 'supplier') {
+      fetchCreditBalance()
+    }
+  }, [userRole])
+
+  const fetchCreditBalance = async () => {
+    try {
+      const res = await fetch('/api/credits')
+      if (res.ok) {
+        const data = await res.json()
+        setCreditBalance(data.balance ?? 0)
+      }
+    } catch (error) {
+      console.error('크레딧 조회 실패:', error)
+    }
+  }
+
+  const formatCredit = (amount: number) => {
+    if (amount >= 10000) {
+      return `${Math.floor(amount / 10000).toLocaleString()}만원`
+    }
+    return `${amount.toLocaleString()}원`
+  }
 
   return (
     <>
@@ -111,6 +138,25 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
           </div>
         </div>
 
+        {/* 공급자 크레딧 잔액 표시 */}
+        {userRole === 'supplier' && (
+          <Link
+            href="/supplier/credits"
+            onClick={onClose}
+            className="block px-4 lg:px-6 py-3 lg:py-4 border-b border-primary-400/30 hover:bg-white/10 transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white/80 text-sm lg:text-base">
+                <Wallet className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span>크레딧 잔액</span>
+              </div>
+              <span className="text-white font-bold text-lg lg:text-xl">
+                {creditBalance !== null ? formatCredit(creditBalance) : '-'}
+              </span>
+            </div>
+          </Link>
+        )}
+
         {/* 네비게이션 메뉴 */}
         <nav className="p-3 lg:p-4">
           <ul className="space-y-1 lg:space-y-2">
@@ -137,13 +183,6 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
             })}
           </ul>
         </nav>
-
-        {/* 하단 정보 */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6 border-t border-white/20">
-          <div className="text-sm lg:text-base text-white/70 text-center">
-            © 2026 (주) 티투알웍스
-          </div>
-        </div>
       </aside>
     </>
   )

@@ -110,6 +110,11 @@ model RFQ {
   budgetMax       Int?      @map("budget_max")
   items           Json?
 
+  // 간소화된 폼 신규 필드
+  orderSizeRange  String?   @map("order_size_range")   // 평균 거래규모: "50만미만" | "50~100만원" | "100~300만원" | "300만원이상"
+  orderFrequency  String?   @map("order_frequency")    // 발주주기: "비정기" | "주1회이상" | "주2~3회" | "월1~2회"
+  referenceImages String[]  @map("reference_images")   // 참고사진 (Base64 인코딩)
+
   deliveryDate    DateTime  @map("delivery_date")
   deliveryAddress String    @map("delivery_address")
 
@@ -161,6 +166,9 @@ model Quote {
   optionType      QuoteOptionType @default(basic) @map("option_type")
   commissionRate  Float?          @map("commission_rate")
   isPremium       Boolean         @default(false) @map("is_premium")
+
+  // 첨부파일 (견적서, 거래명세서 등)
+  attachments     String[]    @map("attachments")
 
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")

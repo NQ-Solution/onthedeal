@@ -45,7 +45,14 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            quotes: true,
+            // 대기중 또는 수락된 제안만 카운트 (거절/만료 제외)
+            quotes: {
+              where: {
+                status: {
+                  in: ['pending', 'accepted'],
+                },
+              },
+            },
           },
         },
       },
@@ -103,6 +110,10 @@ export async function POST(request: NextRequest) {
         budgetMin: body.budget_min || null,
         budgetMax: body.budget_max || null,
         items: body.items || null,
+        // 간소화된 폼 신규 필드
+        orderSizeRange: body.order_size_range || null,
+        orderFrequency: body.order_frequency || null,
+        referenceImages: body.reference_images || [],
         deliveryDate: new Date(body.delivery_date),
         deliveryAddress: body.delivery_address,
         status: 'open',

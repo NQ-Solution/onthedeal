@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ShoppingBag, FileText, MessageSquare, Shield, CheckCircle } from 'lucide-react'
+import { ShoppingBag, FileText, MessageSquare, CheckCircle } from 'lucide-react'
 
 // 로고 컴포넌트 (fallback 포함)
 function LogoWithFallback({ className = '', bgClass = 'bg-white' }: { className?: string, bgClass?: string }) {
@@ -59,7 +59,7 @@ export default function AuthLayout({
           </div>
 
           {/* 특징 카드 */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
               <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
                 <FileText className="w-7 h-7 text-white" />
@@ -73,13 +73,6 @@ export default function AuthLayout({
               </div>
               <h3 className="text-lg font-bold text-white">실시간 채팅</h3>
               <p className="text-white/70 text-sm mt-1">직접 소통하며 협의</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
-              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
-                <Shield className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-white">안전 거래</h3>
-              <p className="text-white/70 text-sm mt-1">에스크로 결제 시스템</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 hover:bg-white/15 transition-colors">
               <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">

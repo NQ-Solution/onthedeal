@@ -1,72 +1,83 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, AlertCircle, Info, Plus, X } from 'lucide-react'
+import { ArrowLeft, Upload, X, Image as ImageIcon } from 'lucide-react'
 import { Button, Input, Select, Textarea, Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
-import { UNITS } from '@/types'
 
-// 품목 타입 정의
-interface ItemEntry {
-  id: string
-  name: string
-  quantity: string
-  unit: string
-  note: string
-}
+// 거래 규모 옵션
+const ORDER_SIZE_OPTIONS = [
+  { value: '50만미만', label: '50만원 미만' },
+  { value: '50~100만원', label: '50~100만원' },
+  { value: '100~300만원', label: '100~300만원' },
+  { value: '300만원이상', label: '300만원 이상' },
+]
+
+// 발주 주기 옵션
+const ORDER_FREQUENCY_OPTIONS = [
+  { value: '비정기', label: '비정기' },
+  { value: '주1회이상', label: '주 1회 이상' },
+  { value: '주2~3회', label: '주 2~3회' },
+  { value: '월1~2회', label: '월 1~2회' },
+]
 
 export default function NewRFQPage() {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: '육류', // 기본값을 육류로 설정
-    budget_min: '',
-    budget_max: '',
+    orderSizeRange: '',
+    orderFrequency: '',
     deadline: '',
     delivery_address: '',
   })
-
-  // 복수 품목 지원
-  const [items, setItems] = useState<ItemEntry[]>([
-    { id: '1', name: '', quantity: '', unit: '박스', note: '' }
-  ])
+  const [images, setImages] = useState<string[]>([])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
-      // 품목 정보 합산
-      const totalQuantity = items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0)
-      const mainUnit = items[0]?.unit || '박스'
-
-      // 설명에 품목 정보 추가
-      const itemsDescription = items.map((item, i) =>
-        `품목 ${i + 1}: ${item.name} ${item.quantity}${item.unit}${item.note ? ` (${item.note})` : ''}`
-      ).join('\n')
-      const fullDescription = `${formData.description}\n\n[품목 목록]\n${itemsDescription}`
+      // 거래 규모를 기반으로 예산 범위 추정
+      let budgetMin = 0
+      let budgetMax = 0
+      switch (formData.orderSizeRange) {
+        case '50만미만':
+          budgetMin = 100000
+          budgetMax = 500000
+          break
+        case '50~100만원':
+          budgetMin = 500000
+          budgetMax = 1000000
+          break
+        case '100~300만원':
+          budgetMin = 1000000
+          budgetMax = 3000000
+          break
+        case '300만원이상':
+          budgetMin = 3000000
+          budgetMax = 10000000
+          break
+      }
 
       const res = await fetch('/api/rfqs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: formData.title,
-          category: formData.category,
-          description: fullDescription,
-          quantity: totalQuantity,
-          unit: mainUnit,
-          budget_min: formData.budget_min ? parseInt(formData.budget_min) : null,
-          budget_max: formData.budget_max ? parseInt(formData.budget_max) : null,
+          category: '육류',
+          description: formData.description,
+          quantity: 1, // 간소화된 폼에서는 기본값
+          unit: '건',
+          budget_min: budgetMin,
+          budget_max: budgetMax,
+          order_size_range: formData.orderSizeRange,
+          order_frequency: formData.orderFrequency,
+          reference_images: images,
           delivery_date: formData.deadline,
           delivery_address: formData.delivery_address,
-          items: items.map(item => ({
-            name: item.name,
-            quantity: parseInt(item.quantity) || 0,
-            unit: item.unit,
-            note: item.note,
-          })),
         }),
       })
 
@@ -91,202 +102,170 @@ export default function NewRFQPage() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleItemChange = (id: string, field: keyof ItemEntry, value: string) => {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, [field]: value } : item
-    ))
-  }
+  // 이미지 업로드 처리 (Base64 변환)
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
 
-  const addItem = () => {
-    const newId = (items.length + 1).toString()
-    setItems(prev => [...prev, { id: newId, name: '', quantity: '', unit: '박스', note: '' }])
-  }
+    const remainingSlots = 5 - images.length
+    const filesToProcess = Array.from(files).slice(0, remainingSlots)
 
-  const removeItem = (id: string) => {
-    if (items.length > 1) {
-      setItems(prev => prev.filter(item => item.id !== id))
+    filesToProcess.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('이미지 크기는 5MB 이하로 업로드해주세요.')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImages(prev => [...prev, reader.result as string])
+      }
+      reader.readAsDataURL(file)
+    })
+
+    // 파일 입력 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index))
+  }
 
   // 상세 설명 예시 (placeholder로 사용)
-  const descriptionPlaceholder = `원하시는 품목의 상세 조건을 적어주세요.
+  const descriptionPlaceholder = `원하시는 품목과 상세 조건을 자유롭게 작성해주세요.
 
-예) 제주흑돼지 오겹살, 1등급 이상
-- 지방이 너무 많지 않은 것
+예시)
+- 품목: 한우 1++ 등심 20kg, 제주흑돼지 삼겹살 30kg
 - 도축 후 3일 이내 배송 희망
-- 등급판정확인서 필요`
+- 등급판정확인서 필요
+- 진공포장 요청`
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="lg" onClick={() => router.back()}>
           <ArrowLeft className="w-5 h-5 mr-2" />
           뒤로가기
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900">새 발주</h1>
+        <h1 className="text-2xl font-bold text-gray-900">새 발주 등록</h1>
       </div>
 
-      {/* 카테고리 선택 - 육류 강조 */}
-      <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-            <span className="text-4xl">🥩</span>
-          </div>
+      {/* 카테고리 표시 */}
+      <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🥩</span>
           <div>
-            <h3 className="text-2xl font-bold">육류</h3>
-            <p className="text-white/80">현재 서비스 중인 카테고리</p>
+            <span className="font-bold text-primary-700">육류</span>
+            <span className="ml-2 text-sm text-primary-600">현재 서비스 중</span>
           </div>
         </div>
-        <p className="text-white/90">
-          한우, 돼지고기, 닭고기 등 다양한 육류 품목을 거래하세요.
-        </p>
       </div>
 
-      {/* 추후 서비스 예정 안내 */}
-      <div className="text-center text-gray-500 text-sm">
-        <p>추후 채소, 과일, 수산물 등 다른 영역도 추가될 예정입니다.</p>
-      </div>
-
-      <Card className="shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl">발주 정보 입력</CardTitle>
+      <Card className="shadow-lg">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl">발주 정보</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* 제목 */}
             <Input
               label="제목"
-              placeholder="예: 한우 등심 및 제주흑돼지 대량 구매"
+              placeholder="예: 한우 등심 및 삼겹살 구매"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
               required
             />
 
-            <div>
-              <Textarea
-                label="상세 설명"
-                placeholder={descriptionPlaceholder}
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                rows={5}
-                required
-              />
-              <div className="mt-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                <p className="text-sm text-gray-600">편하게 내용을 작성해주세요.</p>
-              </div>
-            </div>
+            {/* 상세 요청 */}
+            <Textarea
+              label="상세 요청"
+              placeholder={descriptionPlaceholder}
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              rows={6}
+              required
+            />
 
-            {/* 카테고리 (현재 육류만) */}
+            {/* 참고 사진 첨부 */}
             <div>
-              <label className="block text-lg font-medium text-gray-700 mb-2">
-                카테고리
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                참고 사진 (선택, 최대 5장)
               </label>
-              <div className="p-4 bg-primary-50 border-2 border-primary-500 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🥩</span>
-                  <div>
-                    <span className="text-lg font-bold text-primary-700">육류</span>
-                    <span className="ml-2 text-sm text-primary-600 bg-primary-100 px-2 py-0.5 rounded">선택됨</span>
-                  </div>
-                </div>
-              </div>
-              <input type="hidden" name="category" value="육류" />
-            </div>
-
-            {/* 품목 리스트 */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-lg font-medium text-gray-700">품목 목록</label>
-                <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                  <Plus className="w-4 h-4 mr-1" />
-                  품목 추가
-                </Button>
-              </div>
-              <div className="space-y-4">
-                {items.map((item, index) => (
-                  <div key={item.id} className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-base font-medium text-gray-700">품목 {index + 1}</span>
-                      {items.length > 1 && (
+              <div className="space-y-3">
+                {images.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {images.map((img, index) => (
+                      <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img} alt={`참고 이미지 ${index + 1}`} className="w-full h-full object-cover" />
                         <button
                           type="button"
-                          onClick={() => removeItem(item.id)}
-                          className="text-red-500 hover:text-red-700"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-1"
                         >
-                          <X className="w-5 h-5" />
+                          <X className="w-3 h-3" />
                         </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Input
-                        placeholder="품목명 (예: 오겹살)"
-                        value={item.name}
-                        onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
-                        required
-                      />
-                      <Input
-                        type="number"
-                        placeholder="수량"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                        required
-                      />
-                      <Select
-                        options={UNITS.map(unit => ({ value: unit, label: unit }))}
-                        value={item.unit}
-                        onChange={(e) => handleItemChange(item.id, 'unit', e.target.value)}
-                      />
-                    </div>
-                    <Input
-                      placeholder="품목별 참고사항 (예: 등급 1이상)"
-                      value={item.note}
-                      onChange={(e) => handleItemChange(item.id, 'note', e.target.value)}
-                      className="mt-3"
-                    />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                여러 품목을 한 번에 구매하려면 품목 추가 버튼을 눌러 추가하세요.
-              </p>
-            </div>
-
-            {/* 구매희망가 */}
-            <div>
-              <label className="block text-lg font-medium text-gray-700 mb-2">
-                구매희망가 (범위)
-              </label>
-              <div className="grid grid-cols-2 gap-6">
-                <Input
-                  label="최소 금액 (원)"
-                  type="number"
-                  placeholder="500000"
-                  value={formData.budget_min}
-                  onChange={(e) => handleChange('budget_min', e.target.value)}
-                  required
-                />
-                <Input
-                  label="최대 금액 (원)"
-                  type="number"
-                  placeholder="700000"
-                  value={formData.budget_max}
-                  onChange={(e) => handleChange('budget_max', e.target.value)}
-                  required
+                )}
+                {images.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary-400 hover:text-primary-600 transition-colors"
+                  >
+                    <Upload className="w-5 h-5" />
+                    <span>이미지 업로드 ({images.length}/5)</span>
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
                 />
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                모든 품목의 총 금액 범위를 입력해주세요.
-              </p>
             </div>
 
+            {/* 평균 거래 규모 */}
+            <Select
+              label="평균 거래 규모"
+              options={[
+                { value: '', label: '선택해주세요' },
+                ...ORDER_SIZE_OPTIONS,
+              ]}
+              value={formData.orderSizeRange}
+              onChange={(e) => handleChange('orderSizeRange', e.target.value)}
+              required
+            />
+
+            {/* 발주 주기 */}
+            <Select
+              label="발주 주기"
+              options={[
+                { value: '', label: '선택해주세요' },
+                ...ORDER_FREQUENCY_OPTIONS,
+              ]}
+              value={formData.orderFrequency}
+              onChange={(e) => handleChange('orderFrequency', e.target.value)}
+              required
+            />
+
+            {/* 납품 희망일 */}
             <Input
-              label="납품희망일"
+              label="납품 희망일"
               type="date"
               value={formData.deadline}
               onChange={(e) => handleChange('deadline', e.target.value)}
               required
             />
 
+            {/* 배송 주소 */}
             <Textarea
               label="배송 주소"
               placeholder="배송받을 주소를 입력해주세요."
@@ -296,11 +275,11 @@ export default function NewRFQPage() {
               required
             />
 
-            <div className="flex gap-4 pt-6">
-              <Button type="button" variant="outline" size="xl" className="flex-1" onClick={() => router.back()}>
+            <div className="flex gap-3 pt-4">
+              <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => router.back()}>
                 취소
               </Button>
-              <Button type="submit" size="xl" className="flex-1" isLoading={isSubmitting}>
+              <Button type="submit" size="lg" className="flex-1" isLoading={isSubmitting}>
                 발주 등록
               </Button>
             </div>
