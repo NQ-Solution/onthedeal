@@ -194,24 +194,6 @@ export default function SupplierOrdersPage() {
         </Card>
       </div>
 
-      {/* 정산 안내 */}
-      <Card className="bg-blue-50 border-2 border-blue-200">
-        <CardContent className="py-6">
-          <div className="flex items-start gap-4">
-            <Info className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="text-xl font-bold text-blue-900">정산 안내</h3>
-              <p className="text-lg text-blue-700 mt-2">
-                제안 제출 시 선차감된 크레딧(3%)이 거래 성사 시 수수료로 확정됩니다.
-              </p>
-              <p className="text-base text-blue-600 mt-1">
-                미선정 시 크레딧이 환불되며, 구매자 수령 확인 후 영업일 2~3일 내 정산됩니다.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* 검색 및 필터 */}
       <Card>
         <CardContent className="py-6">
@@ -293,15 +275,15 @@ export default function SupplierOrdersPage() {
                       <div className="lg:w-80">
                         <div className="bg-gray-50 rounded-2xl p-5 space-y-3">
                           <div className="flex justify-between text-lg text-gray-700">
-                            <span>상품 금액</span>
+                            <span>거래 금액</span>
                             <span className="font-medium">{formatPrice(order.productAmount)}</span>
                           </div>
-                          <div className="flex justify-between text-base text-red-500">
-                            <span>플랫폼 수수료 (3%)</span>
-                            <span>-{order.commission.toLocaleString()}원</span>
+                          <div className="flex justify-between text-base text-gray-500">
+                            <span>수수료 (3%, 크레딧 차감)</span>
+                            <span>{order.commission.toLocaleString()}원</span>
                           </div>
-                          <div className="flex justify-between text-2xl font-bold text-primary-600 pt-3 border-t-2 border-gray-200">
-                            <span>정산 금액</span>
+                          <div className="flex justify-between text-2xl font-bold text-green-600 pt-3 border-t-2 border-gray-200">
+                            <span>정산 예정액</span>
                             <span>{formatPrice(order.net_amount)}</span>
                           </div>
                         </div>
@@ -342,6 +324,24 @@ export default function SupplierOrdersPage() {
           )}
         </div>
       </div>
+
+      {/* 정산 안내 */}
+      <Card className="bg-blue-50 border-2 border-blue-200">
+        <CardContent className="py-6">
+          <div className="flex items-start gap-4">
+            <Info className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="text-xl font-bold text-blue-900">정산 안내</h3>
+              <p className="text-lg text-blue-700 mt-2">
+                제안 제출 시 선차감된 크레딧(3%)이 거래 성사 시 수수료로 확정됩니다.
+              </p>
+              <p className="text-base text-blue-600 mt-1">
+                미선정 시 크레딧이 환불되며, 구매자 수령 확인 후 영업일 2~3일 내 정산됩니다.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

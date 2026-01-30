@@ -398,16 +398,14 @@ export default function ChatRoomPage() {
                 </div>
               </div>
 
-              {/* 공급자 수수료 안내 */}
-              <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              {/* 결제 안내 */}
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex items-start gap-2">
-                  <Info className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-yellow-700">
-                    <p className="font-medium mb-1">수수료 안내</p>
-                    <p>공급자에게 상품 금액의 3%가 수수료로 차감됩니다.</p>
-                    <p className="font-bold mt-1">
-                      수수료: {Math.round(chatRoom.quote.totalPrice * 0.03).toLocaleString()}원
-                    </p>
+                  <Info className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-green-700">
+                    <p className="font-medium mb-1">결제 안내</p>
+                    <p>구매자님은 상품 금액만 결제하시면 됩니다.</p>
+                    <p className="text-green-600 mt-1">(플랫폼 수수료는 공급자 부담)</p>
                   </div>
                 </div>
               </div>

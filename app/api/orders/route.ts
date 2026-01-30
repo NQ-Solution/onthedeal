@@ -92,24 +92,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '제안을 찾을 수 없습니다' }, { status: 404 })
     }
 
-    const commissionRate = 0.03 // 3% 플랫폼 수수료 (판매자 크레딧에서 차감)
+    // 수수료 계산 (제안 제출 시 이미 선차감됨 - 여기서 추가 차감 없음)
+    const commissionRate = 0.03
     const commissionAmount = Math.round(quote.totalPrice * commissionRate)
 
-    // 판매자 크레딧 확인
-    const supplierCredit = await prisma.credit.findUnique({
-      where: { supplierId: quote.supplierId },
-    })
-
-    if (!supplierCredit || supplierCredit.balance < commissionAmount) {
-      return NextResponse.json({
-        error: '판매자의 크레딧이 부족합니다. 크레딧 충전 후 거래가 가능합니다.',
-        requiredCredit: commissionAmount,
-        currentCredit: supplierCredit?.balance || 0,
-      }, { status: 400 })
-    }
-
-    // 주문 생성 (구매자가 지불하는 금액 = productAmount = totalAmount)
-    // 수수료는 판매자 크레딧에서 별도 차감
+    // 주문 생성 (크레딧은 제안 제출 시 이미 선차감되었으므로 여기서 차감하지 않음)
     const order = await prisma.order.create({
       data: {
         chatRoomId: body.chat_room_id,
@@ -126,24 +113,6 @@ export async function POST(request: NextRequest) {
         paymentMethod: body.payment_method,
       },
     })
-
-    // 판매자 크레딧에서 수수료 차감
-    await prisma.$transaction([
-      prisma.credit.update({
-        where: { supplierId: quote.supplierId },
-        data: { balance: { decrement: commissionAmount } },
-      }),
-      prisma.creditLog.create({
-        data: {
-          supplierId: quote.supplierId,
-          amount: -commissionAmount,
-          type: 'use',
-          description: `주문 수수료 (주문번호: ${order.id.slice(0, 8)})`,
-          referenceId: order.id,
-          balanceAfter: supplierCredit.balance - commissionAmount,
-        },
-      }),
-    ])
 
     // 채팅방 상태 업데이트
     await prisma.chatRoom.update({
