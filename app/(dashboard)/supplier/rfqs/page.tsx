@@ -16,6 +16,8 @@ interface RFQ {
   budgetMin: number | null
   budgetMax: number | null
   desiredPrice: number | null
+  orderSizeRange: string | null
+  orderFrequency: string | null
   deliveryDate: string
   deliveryAddress: string
   status: string
@@ -246,13 +248,15 @@ export default function SupplierRFQsPage() {
 
                     <div className="flex items-center justify-between text-lg">
                       <span className="text-gray-600">{rfq.quantity} {rfq.unit}</span>
-                      <span className="font-bold text-primary-600">
-                        {rfq.budgetMin && rfq.budgetMax ? (
-                          `구매희망가: ${formatPrice(rfq.budgetMin)} ~ ${formatPrice(rfq.budgetMax)}`
-                        ) : rfq.desiredPrice ? (
-                          `구매희망가: ${formatPrice(rfq.desiredPrice)}`
+                      <span className="font-medium text-gray-700">
+                        {rfq.orderFrequency || rfq.orderSizeRange ? (
+                          <>
+                            {rfq.orderFrequency && <span className="text-primary-600">{rfq.orderFrequency}</span>}
+                            {rfq.orderFrequency && rfq.orderSizeRange && ' · '}
+                            {rfq.orderSizeRange && <span className="text-green-600">{rfq.orderSizeRange}</span>}
+                          </>
                         ) : (
-                          '가격 협의'
+                          <span className="text-gray-400">납품정보 미기재</span>
                         )}
                       </span>
                     </div>
