@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import { ArrowLeft, Send, Info, AlertCircle, RefreshCw, Loader2, Calendar, MapPin, Package, Building2 } from 'lucide-react'
+import { ArrowLeft, Send, AlertCircle, Loader2, Calendar, MapPin, Building2, Upload, FileText, CheckCircle, Image, X } from 'lucide-react'
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui'
 
 interface RFQ {
@@ -16,10 +15,13 @@ interface RFQ {
   budgetMin: number | null
   budgetMax: number | null
   desiredPrice: number | null
+  orderSizeRange: string | null
+  orderFrequency: string | null
   deliveryDate: string
   deliveryAddress: string
   status: string
   createdAt: string
+  referenceImages?: string[]
   buyer: {
     companyName: string
     contactName: string
@@ -29,16 +31,17 @@ interface RFQ {
 export default function SupplierRFQDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { data: session } = useSession()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [rfq, setRfq] = useState<RFQ | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentCredit, setCurrentCredit] = useState(0)
   const [alreadyQuoted, setAlreadyQuoted] = useState(false)
+  const [attachments, setAttachments] = useState<string[]>([])
   const [quoteForm, setQuoteForm] = useState({
-    price: '',
+    totalPrice: '',
     description: '',
-    delivery_date: '',
+    deliveryDate: '',
   })
 
   useEffect(() => {
@@ -55,8 +58,6 @@ export default function SupplierRFQDetailPage() {
       if (res.ok) {
         const data = await res.json()
         setRfq(data)
-      } else {
-        console.error('Failed to fetch RFQ')
       }
     } catch (error) {
       console.error('Error fetching RFQ:', error)
@@ -92,8 +93,35 @@ export default function SupplierRFQDetailPage() {
   }
 
   // 크레딧 선차감 금액 계산 (제안가 기준 3%)
-  const totalQuotePrice = quoteForm.price && rfq ? parseInt(quoteForm.price) * rfq.quantity : 0
-  const depositAmount = Math.round(totalQuotePrice * 0.03)
+  const totalPrice = quoteForm.totalPrice ? parseInt(quoteForm.totalPrice) : 0
+  const depositAmount = Math.round(totalPrice * 0.03)
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    for (const file of Array.from(files)) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('파일 크기는 5MB 이하여야 합니다.')
+        continue
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        setAttachments(prev => [...prev, base64])
+      }
+      reader.readAsDataURL(file)
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,8 +133,8 @@ export default function SupplierRFQDetailPage() {
       return
     }
 
-    if (!quoteForm.price || !quoteForm.delivery_date) {
-      alert('제안가와 납품 가능일을 입력해주세요.')
+    if (!quoteForm.totalPrice || !quoteForm.deliveryDate) {
+      alert('제안 금액과 납품 가능일을 입력해주세요.')
       return
     }
 
@@ -117,21 +145,22 @@ export default function SupplierRFQDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rfq_id: rfq.id,
-          unit_price: parseInt(quoteForm.price),
-          delivery_date: quoteForm.delivery_date,
+          unit_price: Math.round(totalPrice / (rfq.quantity || 1)),
+          total_price: totalPrice,
+          delivery_date: quoteForm.deliveryDate,
           note: quoteForm.description,
+          attachments: attachments,
         }),
       })
 
       const data = await res.json()
 
       if (res.ok) {
-        alert(`제안이 제출되었습니다.\n\n선차감 크레딧: ${data.creditDeduction?.toLocaleString() || depositAmount.toLocaleString()}원\n\n※ 3일 내 거래 미확정 시 크레딧이 환불됩니다.`)
-        // 채팅방으로 바로 이동
+        alert('제안이 제출되었습니다.\n\n※ 3일 내 거래 미확정 시 크레딧이 환불됩니다.')
         if (data.chatRoomId) {
           router.push(`/chat/${data.chatRoomId}`)
         } else {
-          router.push('/supplier/quotes')
+          router.push('/supplier/rfqs')
         }
       } else {
         if (data.required && data.current !== undefined) {
@@ -198,67 +227,86 @@ export default function SupplierRFQDetailPage() {
               <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
               <Badge variant="info">{rfq.category}</Badge>
             </div>
+            {/* 1. 제목 */}
             <CardTitle className="text-2xl">{rfq.title}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* 핵심 정보 요약 */}
-            <div className="bg-primary-50 rounded-xl p-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-primary-600 mb-1">구매 희망가</p>
-                  <p className="font-bold text-xl text-primary-700">
-                    {rfq.budgetMin && rfq.budgetMax ? (
-                      `${(rfq.budgetMin / 10000).toFixed(0)}~${(rfq.budgetMax / 10000).toFixed(0)}만원`
-                    ) : rfq.desiredPrice ? (
-                      `${(rfq.desiredPrice / 10000).toFixed(0)}만원`
-                    ) : (
-                      '협의'
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-primary-600 mb-1">수량</p>
-                  <p className="font-bold text-xl text-primary-700">{rfq.quantity.toLocaleString()} {rfq.unit}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 구매자 정보 */}
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <Building2 className="w-5 h-5 text-gray-500" />
-              <div>
-                <p className="text-xs text-gray-500">구매자</p>
-                <p className="font-bold text-gray-900">{rfq.buyer.companyName}</p>
-              </div>
-            </div>
-
-            {/* 상세 설명 */}
+          <CardContent className="space-y-5">
+            {/* 2. 발주상세 + 첨부파일 */}
             <div>
-              <p className="text-xs text-gray-500 mb-2">요청 상세</p>
+              <p className="text-sm font-medium text-gray-700 mb-2">발주 상세</p>
               <div className="text-gray-700 bg-gray-50 p-4 rounded-xl whitespace-pre-wrap leading-relaxed">
                 {rfq.description}
               </div>
+              {rfq.referenceImages && rfq.referenceImages.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500 mb-2">첨부 이미지</p>
+                  <div className="flex flex-wrap gap-2">
+                    {rfq.referenceImages.map((img, idx) => (
+                      <img
+                        key={idx}
+                        src={img}
+                        alt={`참고이미지 ${idx + 1}`}
+                        className="w-20 h-20 object-cover rounded-lg border"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* 배송 정보 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t">
+            {/* 3. 업체정보 */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <p className="text-sm font-medium text-gray-700 mb-3">업체 정보</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-gray-400" />
+                  <div>
+                    <p className="text-xs text-gray-500">업체명</p>
+                    <p className="font-medium text-gray-900">{rfq.buyer.companyName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <div>
+                    <p className="text-xs text-gray-500">지역</p>
+                    <p className="font-medium text-gray-900">{rfq.deliveryAddress?.split(' ')[0] || '-'}</p>
+                  </div>
+                </div>
+                {rfq.orderSizeRange && (
+                  <div>
+                    <p className="text-xs text-gray-500">평균발주금액</p>
+                    <p className="font-medium text-green-700">{rfq.orderSizeRange}</p>
+                  </div>
+                )}
+                {rfq.orderFrequency && (
+                  <div>
+                    <p className="text-xs text-gray-500">발주주기</p>
+                    <p className="font-medium text-primary-700">{rfq.orderFrequency}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 4. 납품희망일, 배송지 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-xl">
-                <Calendar className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <Calendar className="w-5 h-5 text-blue-500 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-blue-600">납품 희망일</p>
                   <p className="font-bold text-blue-800">{formatDate(rfq.deliveryDate)}</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl">
-                <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-xl">
+                <MapPin className="w-5 h-5 text-orange-500 flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-red-600">배송지</p>
-                  <p className="font-medium text-sm text-red-800">{rfq.deliveryAddress}</p>
+                  <p className="text-xs text-orange-600">배송지</p>
+                  <p className="font-medium text-sm text-orange-800">{rfq.deliveryAddress}</p>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-gray-400 pt-2">
+            {/* 5. 등록일 */}
+            <p className="text-xs text-gray-400">
               등록일: {formatDate(rfq.createdAt)}
             </p>
           </CardContent>
@@ -268,21 +316,17 @@ export default function SupplierRFQDetailPage() {
         <Card className="shadow-lg border-2">
           <CardHeader>
             <CardTitle className="text-xl">제안 제출</CardTitle>
-            <div className="flex items-center gap-2 mt-2 p-3 bg-primary-50 rounded-xl">
-              <span className="text-gray-600">현재 보유 크레딧:</span>
-              <span className="text-xl font-bold text-primary-600">{currentCredit.toLocaleString()}원</span>
-            </div>
           </CardHeader>
           <CardContent>
             {alreadyQuoted ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Send className="w-8 h-8 text-green-600" />
+                  <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">이미 제안을 제출하셨습니다</h3>
-                <p className="text-gray-500 mb-4">이 발주에 대한 제안은 한 번만 가능합니다.</p>
-                <Button variant="outline" onClick={() => router.push('/supplier/quotes')}>
-                  내 제안 목록 보기
+                <h3 className="text-xl font-bold text-gray-900 mb-2">제안 완료</h3>
+                <p className="text-gray-500 mb-4">이 발주에 대한 제안을 이미 제출하셨습니다.</p>
+                <Button variant="outline" onClick={() => router.push('/chat')}>
+                  채팅 목록 보기
                 </Button>
               </div>
             ) : rfq.status !== 'open' ? (
@@ -292,84 +336,107 @@ export default function SupplierRFQDetailPage() {
                 <p className="text-gray-500">더 이상 제안을 제출할 수 없습니다.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmitQuote} className="space-y-6">
-                {/* +/- 버튼(스피너) 숨김 스타일 적용 */}
-                <style jsx>{`
-                  input[type="number"]::-webkit-outer-spin-button,
-                  input[type="number"]::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                  }
-                  input[type="number"] {
-                    -moz-appearance: textfield;
-                  }
-                `}</style>
-                <Input
-                  label="제안가 (단가, 원)"
-                  type="number"
-                  placeholder="단가를 입력하세요"
-                  value={quoteForm.price}
-                  onChange={(e) => setQuoteForm(prev => ({ ...prev, price: e.target.value }))}
-                  required
-                  className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-
-                {quoteForm.price && (
-                  <div className="p-4 bg-gray-50 rounded-xl space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">총 제안금액</span>
-                      <span className="font-bold text-gray-900">
-                        {totalQuotePrice.toLocaleString()}원
-                      </span>
+              <form onSubmit={handleSubmitQuote} className="space-y-5">
+                {/* 1. 첨부파일 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    거래명세서, 단가표 첨부
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    거래명세서 및 발주품목 단가표를 첨부해주세요 (파일형식: 이미지, PDF)
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    파일 선택
+                  </Button>
+                  {attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {attachments.map((file, idx) => (
+                        <div key={idx} className="relative">
+                          {file.startsWith('data:image') ? (
+                            <img src={file} alt="" className="w-16 h-16 object-cover rounded border" />
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center">
+                              <FileText className="w-6 h-6 text-gray-400" />
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeAttachment(idx)}
+                            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">선차감 크레딧 (3%)</span>
-                      <span className="font-bold text-primary-600">
-                        {depositAmount.toLocaleString()}원
-                      </span>
-                    </div>
-                    <div className="pt-2 border-t border-gray-200">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">현재 보유 크레딧</span>
-                        <span className={`font-bold ${currentCredit >= depositAmount ? 'text-green-600' : 'text-red-600'}`}>
-                          {currentCredit.toLocaleString()}원
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                <Textarea
-                  label="제안 설명"
-                  placeholder="상품의 특징, 품질, 배송 조건 등을 설명해주세요."
-                  value={quoteForm.description}
-                  onChange={(e) => setQuoteForm(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                />
+                {/* 2. 제안 금액 */}
+                <div>
+                  <Input
+                    label="제안 금액 (원)"
+                    type="number"
+                    placeholder="해당 발주의 총 금액을 기입하세요"
+                    value={quoteForm.totalPrice}
+                    onChange={(e) => setQuoteForm(prev => ({ ...prev, totalPrice: e.target.value }))}
+                    required
+                    className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">해당 발주의 총 금액을 기입하세요</p>
+                </div>
 
+                {/* 3. 제안 설명 */}
+                <div>
+                  <Textarea
+                    label="제안 설명"
+                    placeholder="첨부파일에 담지 못한 내용이나 귀사가 이 거래에 적합한 이유를 적어주세요 (원산지, 등급, 거래 강점 등)"
+                    value={quoteForm.description}
+                    onChange={(e) => setQuoteForm(prev => ({ ...prev, description: e.target.value }))}
+                    rows={4}
+                  />
+                </div>
+
+                {/* 4. 납품 가능일 */}
                 <Input
                   label="납품 가능일"
                   type="date"
-                  value={quoteForm.delivery_date}
-                  onChange={(e) => setQuoteForm(prev => ({ ...prev, delivery_date: e.target.value }))}
+                  value={quoteForm.deliveryDate}
+                  onChange={(e) => setQuoteForm(prev => ({ ...prev, deliveryDate: e.target.value }))}
                   required
                 />
 
-                {/* 안내 */}
+                {/* 5. 크레딧 설명 */}
                 <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-700">
-                  <p>• 제안 제출 시 크레딧 선차감, 미선정 시 환불</p>
-                  <p>• 제안 제출 후 구매자와 채팅 가능</p>
+                  <p className="font-medium mb-1">수수료 안내</p>
+                  <p>• 제안 제출 시 제안금액의 3% 크레딧이 선차감됩니다</p>
+                  <p>• 거래 미성사 시 크레딧이 전액 환불됩니다</p>
+                  <p>• 제안 제출 후 구매자와 채팅이 가능합니다</p>
                 </div>
 
                 {/* 크레딧 부족 경고 */}
-                {depositAmount > currentCredit && (
+                {depositAmount > 0 && depositAmount > currentCredit && (
                   <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
                       <div className="text-sm">
                         <p className="font-bold text-red-800">크레딧 부족</p>
                         <p className="text-red-700 mt-1">
-                          필요 크레딧: {depositAmount.toLocaleString()}원 / 보유: {currentCredit.toLocaleString()}원
+                          필요: {depositAmount.toLocaleString()}원 / 보유: {currentCredit.toLocaleString()}원
                         </p>
                         <Button
                           type="button"
@@ -385,6 +452,7 @@ export default function SupplierRFQDetailPage() {
                   </div>
                 )}
 
+                {/* 6. 제안 제출 버튼 */}
                 <Button
                   type="submit"
                   size="xl"
@@ -393,7 +461,7 @@ export default function SupplierRFQDetailPage() {
                   disabled={depositAmount > currentCredit}
                 >
                   <Send className="w-5 h-5 mr-2" />
-                  제안 제출하기 ({depositAmount.toLocaleString()}원 선차감)
+                  제안 제출하기
                 </Button>
               </form>
             )}

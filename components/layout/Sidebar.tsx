@@ -7,12 +7,9 @@ import { X, Wallet } from 'lucide-react'
 import {
   FileText,
   PlusCircle,
-  Receipt,
-  ShoppingBag,
   MessageSquare,
   User,
   Search,
-  Package,
 } from 'lucide-react'
 
 // 로고 컴포넌트 (fallback 포함)
@@ -47,16 +44,12 @@ interface SidebarProps {
 const buyerMenus = [
   { href: '/buyer/rfqs', label: '내 발주', icon: FileText },
   { href: '/buyer/rfqs/new', label: '새 발주 등록', icon: PlusCircle },
-  { href: '/buyer/quotes', label: '받은 제안', icon: Receipt },
-  { href: '/buyer/orders', label: '주문 내역', icon: ShoppingBag },
   { href: '/chat', label: '채팅', icon: MessageSquare },
   { href: '/profile', label: '내 정보', icon: User },
 ]
 
 const supplierMenus = [
   { href: '/supplier/rfqs', label: '발주 찾기', icon: Search },
-  { href: '/supplier/quotes', label: '보낸 제안', icon: Receipt },
-  { href: '/supplier/orders', label: '주문 관리', icon: Package },
   { href: '/chat', label: '채팅', icon: MessageSquare },
   { href: '/profile', label: '내 정보', icon: User },
 ]

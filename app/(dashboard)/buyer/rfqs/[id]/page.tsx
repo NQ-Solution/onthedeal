@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, MessageSquare, Check, X, Loader2, Building2, Calendar, MapPin, Package } from 'lucide-react'
+import { ArrowLeft, MessageSquare, Check, X, Loader2, Building2, Calendar, MapPin } from 'lucide-react'
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui'
 
 interface Quote {
@@ -221,25 +221,13 @@ export default function BuyerRFQDetailPage() {
             <p className="text-sm text-gray-500 mb-2">상세 설명</p>
             <p className="text-gray-700 bg-gray-50 p-4 rounded-xl whitespace-pre-wrap">{rfq.description}</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
             <div className="flex items-center gap-3">
-              <Package className="w-5 h-5 text-primary-500" />
+              <Calendar className="w-5 h-5 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-500">수량</p>
-                <p className="font-medium">{rfq.quantity.toLocaleString()} {rfq.unit}</p>
+                <p className="text-sm text-gray-500">납품 희망일</p>
+                <p className="font-medium">{formatDate(rfq.deliveryDate)}</p>
               </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">구매 희망가</p>
-              <p className="font-medium text-primary-600">
-                {rfq.budgetMin && rfq.budgetMax ? (
-                  `${formatPrice(rfq.budgetMin)} ~ ${formatPrice(rfq.budgetMax)}`
-                ) : rfq.desiredPrice ? (
-                  formatPrice(rfq.desiredPrice)
-                ) : (
-                  '협의'
-                )}
-              </p>
             </div>
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-red-500" />
@@ -247,10 +235,6 @@ export default function BuyerRFQDetailPage() {
                 <p className="text-sm text-gray-500">배송지</p>
                 <p className="font-medium text-sm">{rfq.deliveryAddress}</p>
               </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">받은 제안</p>
-              <p className="font-medium text-primary-600">{quotes.length}개</p>
             </div>
           </div>
         </CardContent>
@@ -291,26 +275,16 @@ export default function BuyerRFQDetailPage() {
                           <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{quote.note}</p>
                         )}
 
-                        <div className="flex gap-6 text-base">
+                        <div className="flex items-center gap-6 text-base">
                           <div>
-                            <span className="text-gray-500">제안가: </span>
-                            <span className="font-bold text-xl text-primary-600">
+                            <span className="font-bold text-2xl text-primary-600">
                               {formatPrice(quote.totalPrice)}
                             </span>
-                            <span className="text-sm text-gray-500 ml-1">
-                              (단가 {quote.unitPrice.toLocaleString()}원)
-                            </span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-500" />
-                            <span className="text-gray-500">납품일: </span>
-                            <span className="font-medium">{formatDate(quote.deliveryDate)}</span>
+                          <div className="text-gray-600">
+                            납품가능: {formatDate(quote.deliveryDate)}
                           </div>
                         </div>
-
-                        <p className="text-sm text-gray-400">
-                          제안일: {formatDate(quote.createdAt)}
-                        </p>
                       </div>
 
                       <div className="flex gap-2 ml-4">

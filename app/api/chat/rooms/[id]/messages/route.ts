@@ -69,9 +69,10 @@ export async function GET(
         id: m.id,
         room_id: m.chatRoomId,
         sender_id: m.senderId,
-        sender_type: m.sender.role,
-        sender_name: m.sender.companyName,
+        sender_type: m.senderType || m.sender.role,
+        sender_name: m.senderName || m.sender.companyName,
         content: m.content,
+        image: m.image,
         is_read: m.isRead,
         created_at: m.createdAt.toISOString(),
       })),
@@ -99,9 +100,9 @@ export async function POST(
 
     const roomId = params.id
     const body = await request.json()
-    const { content } = body
+    const { content, image } = body
 
-    if (!content || !content.trim()) {
+    if ((!content || !content.trim()) && !image) {
       return NextResponse.json(
         { error: '메시지 내용이 필요합니다.' },
         { status: 400 }
@@ -138,7 +139,8 @@ export async function POST(
       data: {
         chatRoomId: roomId,
         senderId: session.user.id,
-        content: content.trim(),
+        content: content?.trim() || '',
+        image: image || null,
       },
       include: {
         sender: {
@@ -153,12 +155,15 @@ export async function POST(
 
     // 상대방에게 알림 생성
     const recipientId = chatRoom.buyerId === session.user.id ? chatRoom.supplierId : chatRoom.buyerId
+    const notificationMessage = image
+      ? `${message.sender.companyName}: 이미지를 보냈습니다`
+      : `${message.sender.companyName}: ${(content || '').trim().substring(0, 50)}${(content || '').length > 50 ? '...' : ''}`
     await prisma.notification.create({
       data: {
         userId: recipientId,
         type: 'new_message',
         title: '새 메시지',
-        message: `${message.sender.companyName}: ${content.trim().substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+        message: notificationMessage,
         link: `/chat/${roomId}`,
       },
     })
@@ -172,6 +177,7 @@ export async function POST(
         sender_type: message.sender.role,
         sender_name: message.sender.companyName,
         content: message.content,
+        image: message.image,
         is_read: message.isRead,
         created_at: message.createdAt.toISOString(),
       },

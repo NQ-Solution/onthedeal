@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Badge, Button } from '@/components/ui'
-import { MessageSquare, Clock, AlertTriangle, CheckCircle, Eye, Loader2 } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Badge, Button, Input } from '@/components/ui'
+import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar } from 'lucide-react'
 
 interface ChatRoom {
   id: string
@@ -20,6 +19,7 @@ interface ChatRoom {
   quote: {
     id: string
     totalPrice: number
+    deliveryDate: string
   } | null
   buyer: {
     id: string
@@ -28,6 +28,9 @@ interface ChatRoom {
   supplier: {
     id: string
     companyName: string
+    bankName?: string
+    bankAccount?: string
+    bankHolder?: string
   } | null
   lastMessage: {
     content: string
@@ -36,6 +39,20 @@ interface ChatRoom {
     senderId: string
   } | null
   unreadCount: number
+  currentUserId?: string
+  currentUserRole?: string
+}
+
+interface Message {
+  id: string
+  room_id: string
+  sender_id: string
+  sender_type: string
+  sender_name: string
+  content: string
+  image?: string
+  is_read: boolean
+  created_at: string
 }
 
 const formatRelativeTime = (dateStr: string) => {
@@ -46,51 +63,87 @@ const formatRelativeTime = (dateStr: string) => {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffMins < 1) return '방금 전'
-  if (diffMins < 60) return `${diffMins}분 전`
-  if (diffHours < 24) return `${diffHours}시간 전`
-  if (diffDays < 7) return `${diffDays}일 전`
+  if (diffMins < 1) return '방금'
+  if (diffMins < 60) return `${diffMins}분`
+  if (diffHours < 24) return `${diffHours}시간`
+  if (diffDays < 7) return `${diffDays}일`
 
-  return date.toLocaleDateString('ko-KR')
+  return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
 }
 
-function getTimeRemaining(expiresAt: string | null): { text: string; isUrgent: boolean } {
-  if (!expiresAt) return { text: '', isUrgent: false }
+const formatKoreanTime = (date: Date | string) => {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
-  const now = new Date()
-  const expires = new Date(expiresAt)
-  const diffMs = expires.getTime() - now.getTime()
-
-  if (diffMs <= 0) return { text: '만료됨', isUrgent: true }
-
-  const hours = Math.floor(diffMs / (1000 * 60 * 60))
-  const days = Math.floor(hours / 24)
-
-  if (days > 0) {
-    return { text: `${days}일 ${hours % 24}시간 남음`, isUrgent: days < 1 }
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'payment_requested': return { label: '입금 확인 대기', color: 'bg-yellow-100 text-yellow-800' }
+    case 'payment_confirmed': return { label: '납품 진행중', color: 'bg-blue-100 text-blue-800' }
+    case 'deal_confirmed': return { label: '거래 확정', color: 'bg-blue-100 text-blue-800' }
+    case 'delivery_completed': return { label: '거래 완료', color: 'bg-green-100 text-green-800' }
+    case 'expired': return { label: '만료됨', color: 'bg-gray-100 text-gray-600' }
+    default: return { label: '협의중', color: 'bg-primary-100 text-primary-800' }
   }
-  return { text: `${hours}시간 남음`, isUrgent: true }
 }
 
-export default function ChatListPage() {
+export default function ChatPage() {
+  const searchParams = useSearchParams()
+  const roomFromQuery = searchParams.get('room')
+
   const [rooms, setRooms] = useState<ChatRoom[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'active' | 'confirmed'>('all')
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(roomFromQuery)
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [isConfirming, setIsConfirming] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const [isMobileView, setIsMobileView] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'bank' | 'card' | null>(null)
 
   useEffect(() => {
     fetchChatRooms()
   }, [])
 
+  useEffect(() => {
+    if (selectedRoomId) {
+      fetchRoomDetail(selectedRoomId)
+      fetchMessages(selectedRoomId)
+    }
+  }, [selectedRoomId])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  useEffect(() => {
+    if (!selectedRoomId) return
+    const interval = setInterval(() => fetchMessages(selectedRoomId), 5000)
+    return () => clearInterval(interval)
+  }, [selectedRoomId])
+
   const fetchChatRooms = async () => {
     try {
       const res = await fetch('/api/chat/rooms')
       const data = await res.json()
-
       if (res.ok) {
-        console.log('채팅방 데이터:', data)
         setRooms(data)
-      } else {
-        console.error('채팅방 조회 실패:', data.error || '알 수 없는 오류')
+        if (roomFromQuery) {
+          setSelectedRoomId(roomFromQuery)
+          setIsMobileView(true)
+        } else if (data.length > 0 && window.innerWidth >= 1024) {
+          setSelectedRoomId(data[0].id)
+        }
       }
     } catch (error) {
       console.error('Failed to fetch chat rooms:', error)
@@ -99,16 +152,189 @@ export default function ChatListPage() {
     }
   }
 
-  const filteredRooms = rooms.filter(room => {
-    if (filter === 'all') return true
-    if (filter === 'active') return room.status === 'active'
-    if (filter === 'confirmed') return room.status === 'deal_confirmed'
-    return true
-  })
+  const fetchRoomDetail = async (roomId: string) => {
+    try {
+      const res = await fetch(`/api/chat/rooms/${roomId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setSelectedRoom(data)
+      }
+    } catch (error) {
+      console.error('Error fetching chat room:', error)
+    }
+  }
 
-  const activeCount = rooms.filter(r => r.status === 'active').length
-  const confirmedCount = rooms.filter(r => r.status === 'deal_confirmed').length
+  const fetchMessages = async (roomId: string) => {
+    try {
+      const res = await fetch(`/api/chat/rooms/${roomId}/messages`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          setMessages(data.data)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+    }
+  }
+
+  const handleSelectRoom = (roomId: string) => {
+    setSelectedRoomId(roomId)
+    setIsMobileView(true)
+  }
+
+  const handleBackToList = () => {
+    setIsMobileView(false)
+  }
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 크기는 5MB 이하여야 합니다.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onloadend = () => setSelectedImage(reader.result as string)
+    reader.readAsDataURL(file)
+    if (imageInputRef.current) imageInputRef.current.value = ''
+  }
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if ((!newMessage.trim() && !selectedImage) || isSending || !selectedRoomId) return
+
+    setIsSending(true)
+    try {
+      const content = selectedImage
+        ? (newMessage.trim() ? `[이미지]\n${newMessage}` : '[이미지]')
+        : newMessage
+
+      const res = await fetch(`/api/chat/rooms/${selectedRoomId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, image: selectedImage || undefined }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          setMessages(prev => [...prev, data.data])
+          setNewMessage('')
+          setSelectedImage(null)
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  // 구매자: 입금 확인 요청
+  const handleRequestPayment = async () => {
+    if (isConfirming || !selectedRoomId) return
+    setIsConfirming(true)
+    try {
+      const res = await fetch(`/api/chat/rooms/${selectedRoomId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request_payment' }),
+      })
+      if (res.ok) {
+        alert('입금 확인 요청이 완료되었습니다.')
+        fetchRoomDetail(selectedRoomId)
+        fetchMessages(selectedRoomId)
+      } else {
+        const data = await res.json()
+        alert(data.error || '요청에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('요청 중 오류가 발생했습니다.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }
+
+  // 판매자: 입금 확인 완료
+  const handleConfirmPayment = async () => {
+    if (isConfirming || !selectedRoomId) return
+    if (!confirm('입금이 확인되었습니까? 확인 후 납품을 진행해주세요.')) return
+    setIsConfirming(true)
+    try {
+      const res = await fetch(`/api/chat/rooms/${selectedRoomId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'confirm_payment' }),
+      })
+      if (res.ok) {
+        alert('입금 확인 완료! 납품을 진행해주세요.')
+        fetchRoomDetail(selectedRoomId)
+        fetchMessages(selectedRoomId)
+      } else {
+        const data = await res.json()
+        alert(data.error || '요청에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('요청 중 오류가 발생했습니다.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }
+
+  // 판매자: 납품 완료
+  const handleCompleteDelivery = async () => {
+    if (isConfirming || !selectedRoomId) return
+    if (!confirm('납품이 완료되었습니까? 거래가 완료 처리됩니다.')) return
+    setIsConfirming(true)
+    try {
+      const res = await fetch(`/api/chat/rooms/${selectedRoomId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'complete_delivery' }),
+      })
+      if (res.ok) {
+        alert('납품 완료! 거래가 완료되었습니다.')
+        fetchRoomDetail(selectedRoomId)
+        fetchMessages(selectedRoomId)
+      } else {
+        const data = await res.json()
+        alert(data.error || '요청에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('요청 중 오류가 발생했습니다.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }
+
+  const activeRooms = rooms
+    .filter(r => r.status !== 'expired')
+    .sort((a, b) => {
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1
+      if (a.unreadCount === 0 && b.unreadCount > 0) return 1
+      const aTime = a.lastMessage?.createdAt || a.createdAt
+      const bTime = b.lastMessage?.createdAt || b.createdAt
+      return new Date(bTime).getTime() - new Date(aTime).getTime()
+    })
+
   const totalUnread = rooms.reduce((sum, r) => sum + r.unreadCount, 0)
+
+  // 역할 판단 - buyerId와 currentUserId 비교, 또는 role로 판단
+  const isBuyer = selectedRoom?.buyer?.id === selectedRoom?.currentUserId ||
+                  selectedRoom?.currentUserRole === 'buyer'
+  const isSupplier = selectedRoom?.supplier?.id === selectedRoom?.currentUserId ||
+                     selectedRoom?.currentUserRole === 'supplier'
+
+  // 상태 체크
+  const status = selectedRoom?.status || 'active'
+  const isActive = status === 'active'
+  const isPaymentRequested = status === 'payment_requested'
+  const isPaymentConfirmed = status === 'payment_confirmed' || status === 'deal_confirmed' // deal_confirmed도 동일 처리
+  const isDeliveryCompleted = status === 'delivery_completed'
 
   if (loading) {
     return (
@@ -119,195 +345,387 @@ export default function ChatListPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* 페이지 헤더 */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">채팅</h1>
-        <p className="text-lg text-gray-500 mt-1">공급자/구매자와 실시간으로 소통하세요</p>
-      </div>
-
-      {/* 만료 경고 배너 */}
-      {rooms.some(r => r.status === 'active' && r.expiresAt && getTimeRemaining(r.expiresAt).isUrgent) && (
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6">
-          <div className="flex items-start gap-4">
-            <AlertTriangle className="w-8 h-8 text-yellow-600 flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="text-xl font-bold text-yellow-800">채팅방 만료 예정</h3>
-              <p className="text-lg text-yellow-700 mt-1">
-                일부 채팅방이 곧 만료됩니다. 거래를 확정하지 않으면 채팅 내용이 삭제됩니다.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 벤토 그리드 - 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card
-          className={`hover:shadow-lg transition-all cursor-pointer ${filter === 'active' ? 'ring-2 ring-primary-500' : ''}`}
-          onClick={() => setFilter(filter === 'active' ? 'all' : 'active')}
-        >
-          <CardContent className="py-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg text-gray-500">진행중</p>
-                <p className="text-4xl font-bold text-primary-600 mt-2">{activeCount}</p>
-              </div>
-              <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
-                <MessageSquare className="w-8 h-8 text-primary-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card
-          className={`hover:shadow-lg transition-all cursor-pointer ${filter === 'confirmed' ? 'ring-2 ring-green-500' : ''}`}
-          onClick={() => setFilter(filter === 'confirmed' ? 'all' : 'confirmed')}
-        >
-          <CardContent className="py-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg text-gray-500">딜 확정</p>
-                <p className="text-4xl font-bold text-green-600 mt-2">{confirmedCount}</p>
-              </div>
-              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="py-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg text-gray-500">안 읽은 메시지</p>
-                <p className="text-4xl font-bold text-red-600 mt-2">{totalUnread}</p>
-              </div>
-              <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
-                <Eye className="w-8 h-8 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 채팅 목록 */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">채팅 목록</h2>
-          {filter !== 'all' && (
-            <Button variant="outline" size="md" onClick={() => setFilter('all')}>
-              전체 보기
-            </Button>
+    <div className="flex h-[calc(100vh-8rem)] gap-4">
+      {/* 왼쪽: 채팅 목록 */}
+      <div className={`w-full lg:w-80 flex-shrink-0 flex flex-col ${isMobileView ? 'hidden lg:flex' : 'flex'}`}>
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-gray-900">채팅</h1>
+          {totalUnread > 0 && (
+            <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              {totalUnread}
+            </span>
           )}
         </div>
 
-        {filteredRooms.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <MessageSquare className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <p className="text-xl text-gray-500">진행 중인 채팅이 없습니다</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {filteredRooms.map((room) => {
-              const timeRemaining = room.status === 'active' ? getTimeRemaining(room.expiresAt) : null
+        <div className="flex-1 overflow-y-auto space-y-1">
+          {activeRooms.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <MessageSquare className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+              <p>진행 중인 채팅이 없습니다</p>
+            </div>
+          ) : (
+            activeRooms.map((room) => {
+              const statusInfo = getStatusLabel(room.status)
+              const isSelected = room.id === selectedRoomId
 
               return (
-                <Link key={room.id} href={room.status !== 'expired' ? `/chat/${room.id}` : '#'}>
-                  <Card className={`hover:shadow-xl transition-all cursor-pointer ${
-                    room.status === 'expired' ? 'opacity-60' : ''
-                  } ${room.unreadCount > 0 ? 'border-l-4 border-l-primary-500' : ''}`}>
-                    <CardContent className="py-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          {/* 상태 및 만료 시간 */}
-                          <div className="flex items-center gap-3 mb-3">
-                            <Badge
-                              variant={
-                                room.status === 'deal_confirmed' ? 'success' :
-                                room.status === 'expired' ? 'error' : 'default'
-                              }
-                              className="text-base px-4 py-2"
-                            >
-                              {room.status === 'deal_confirmed' ? '딜 확정' :
-                               room.status === 'expired' ? '만료됨' : '진행중'}
-                            </Badge>
-                            {timeRemaining && (
-                              <span className={`flex items-center gap-1 text-base ${
-                                timeRemaining.isUrgent ? 'text-red-600 font-bold' : 'text-gray-500'
-                              }`}>
-                                <Clock className="w-5 h-5" />
-                                {timeRemaining.text}
-                              </span>
-                            )}
-                            {room.unreadCount > 0 && (
-                              <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                                {room.unreadCount}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* 제목 */}
-                          <h3 className="text-2xl font-bold text-gray-900 mb-2">{room.rfq?.title}</h3>
-
-                          {/* 참여자 */}
-                          <p className="text-lg text-gray-600 mb-2">
-                            {room.buyer?.companyName} ↔ {room.supplier?.companyName}
-                          </p>
-
-                          {/* 마지막 메시지 */}
-                          {room.lastMessage && (
-                            <p className="text-base text-gray-500 truncate">
-                              {room.lastMessage.content}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="text-right ml-4">
-                          <p className="text-base text-gray-400">
-                            {formatRelativeTime(room.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 만료 경고 */}
-                      {room.status === 'active' && timeRemaining?.isUrgent && (
-                        <div className="mt-4 pt-4 border-t-2 border-gray-100">
-                          <div className="flex items-center gap-2 text-red-600">
-                            <AlertTriangle className="w-5 h-5" />
-                            <span className="text-base font-medium">
-                              거래를 확정하지 않으면 {timeRemaining.text} 후 채팅 내용이 삭제됩니다
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Link>
+                <div
+                  key={room.id}
+                  onClick={() => handleSelectRoom(room.id)}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-primary-50 border-2 border-primary-500'
+                      : room.unreadCount > 0
+                        ? 'bg-primary-50/50 hover:bg-primary-50'
+                        : 'hover:bg-gray-50 border border-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${statusInfo.color}`}>
+                        {statusInfo.label}
+                      </span>
+                      <span className="font-medium text-sm truncate max-w-[100px]">
+                        {room.buyer?.companyName || room.supplier?.companyName}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-gray-400">
+                      {formatRelativeTime(room.lastMessage?.createdAt || room.createdAt)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 truncate">{room.rfq?.title}</p>
+                  {room.unreadCount > 0 && (
+                    <span className="inline-block mt-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      {room.unreadCount}
+                    </span>
+                  )}
+                </div>
               )
-            })}
-          </div>
-        )}
+            })
+          )}
+        </div>
       </div>
 
-      {/* 안내 문구 */}
-      <Card className="bg-gray-50 border-2 border-dashed border-gray-300">
-        <CardContent className="py-6">
-          <div className="flex items-start gap-4">
-            <Clock className="w-8 h-8 text-gray-400 flex-shrink-0" />
-            <div>
-              <h4 className="text-lg font-bold text-gray-700">채팅 만료 안내</h4>
-              <p className="text-base text-gray-600 mt-1">
-                채팅 시작 후 3일 이내에 거래를 확정하지 않으면 모든 채팅 내용이 자동 삭제됩니다.
-                원활한 거래를 위해 빠른 협의를 권장합니다.
-              </p>
+      {/* 오른쪽: 채팅방 */}
+      <div className={`flex-1 flex flex-col bg-white rounded-xl border overflow-hidden ${!isMobileView && !selectedRoomId ? 'hidden lg:flex' : ''} ${isMobileView ? 'flex' : 'hidden lg:flex'}`}>
+        {!selectedRoom ? (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            <div className="text-center">
+              <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>채팅방을 선택하세요</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        ) : (
+          <>
+            {/* 헤더 */}
+            <div className="p-3 border-b flex items-center justify-between bg-white">
+              <div className="flex items-center gap-3">
+                <button onClick={handleBackToList} className="lg:hidden p-1 hover:bg-gray-100 rounded">
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <p className="font-bold text-lg">
+                    {isBuyer ? selectedRoom.supplier?.companyName : selectedRoom.buyer?.companyName}
+                  </p>
+                  <p className="text-xs text-gray-500">{selectedRoom.rfq?.title}</p>
+                </div>
+              </div>
+              <span className={`text-xs px-2 py-1 rounded-full ${getStatusLabel(status).color}`}>
+                {getStatusLabel(status).label}
+              </span>
+            </div>
+
+            {/* 거래 요약 영역 - 항상 표시 */}
+            <div className="p-4 bg-gray-50 border-b">
+              {/* 금액 + 납품일 */}
+              {selectedRoom.quote && (
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-xs text-gray-500">거래금액</span>
+                      <p className="font-bold text-xl text-primary-600">
+                        {selectedRoom.quote.totalPrice.toLocaleString()}원
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-gray-500 flex items-center gap-1 justify-end">
+                      <Calendar className="w-3 h-3" /> 납품예정일
+                    </span>
+                    <p className="font-medium">
+                      {new Date(selectedRoom.quote.deliveryDate).toLocaleDateString('ko-KR')}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 거래 상태별 카드 */}
+              {/* 1. 협의중 - 구매자: 결제 수단 선택 */}
+              {isActive && isBuyer && (
+                <div className="bg-white border-2 border-primary-200 rounded-lg p-4">
+                  <p className="font-bold text-primary-700 mb-3 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    결제 수단 선택
+                  </p>
+
+                  {/* 결제 수단 선택 버튼 */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => setPaymentMethod('bank')}
+                      className={`flex-1 p-3 rounded-lg border-2 text-left transition-all ${
+                        paymentMethod === 'bank'
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Building className="w-4 h-4" />
+                        <span className="font-medium">계좌이체</span>
+                      </div>
+                      <p className="text-xs text-gray-500">판매자 계좌로 직접 입금</p>
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('card')}
+                      className={`flex-1 p-3 rounded-lg border-2 text-left transition-all ${
+                        paymentMethod === 'card'
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <CreditCard className="w-4 h-4" />
+                        <span className="font-medium">카드결제</span>
+                      </div>
+                      <p className="text-xs text-gray-500">신용/체크카드 결제</p>
+                    </button>
+                  </div>
+
+                  {/* 계좌이체 선택 시 */}
+                  {paymentMethod === 'bank' && (
+                    <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                      <p className="text-sm font-medium mb-2">판매자 계좌 정보</p>
+                      {selectedRoom.supplier?.bankAccount ? (
+                        <div className="text-sm space-y-1">
+                          <p><span className="text-gray-500">은행:</span> {selectedRoom.supplier.bankName}</p>
+                          <p><span className="text-gray-500">계좌:</span> <strong className="text-lg">{selectedRoom.supplier.bankAccount}</strong></p>
+                          <p><span className="text-gray-500">예금주:</span> {selectedRoom.supplier.bankHolder || selectedRoom.supplier.companyName}</p>
+                          <p className="mt-2 pt-2 border-t">
+                            <span className="text-gray-500">입금액:</span>{' '}
+                            <strong className="text-primary-600">{selectedRoom.quote?.totalPrice.toLocaleString()}원</strong>
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-orange-600">⚠️ 판매자가 계좌정보를 등록하지 않았습니다. 채팅으로 문의해주세요.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 카드결제 선택 시 */}
+                  {paymentMethod === 'card' && (
+                    <div className="bg-blue-50 rounded-lg p-4 mb-3 text-center">
+                      <div className="text-blue-600 mb-2">
+                        <CreditCard className="w-8 h-8 mx-auto" />
+                      </div>
+                      <p className="font-medium text-blue-800">카드결제 연결 준비중</p>
+                      <p className="text-sm text-blue-600 mt-1">현재 PG사 연동을 준비하고 있습니다.</p>
+                      <p className="text-xs text-blue-500 mt-2">빠른 시일 내에 서비스될 예정입니다.</p>
+                    </div>
+                  )}
+
+                  {/* 입금 확인 요청 버튼 (계좌이체일 때만 활성화) */}
+                  {paymentMethod === 'bank' && selectedRoom.supplier?.bankAccount && (
+                    <div className="flex justify-end">
+                      <Button onClick={handleRequestPayment} disabled={isConfirming}>
+                        {isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                        입금 완료 - 확인 요청
+                      </Button>
+                    </div>
+                  )}
+
+                  {!paymentMethod && (
+                    <p className="text-xs text-gray-500 text-center">
+                      결제 수단을 선택해주세요
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* 1. 협의중 - 판매자: 대기 안내 */}
+              {isActive && isSupplier && (
+                <div className="bg-white border rounded-lg p-4">
+                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    구매자의 입금 확인 요청을 기다리고 있습니다
+                  </p>
+                </div>
+              )}
+
+              {/* 2. 입금 확인 대기 - 구매자 */}
+              {isPaymentRequested && isBuyer && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="font-medium text-yellow-800 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    입금 확인 대기 중
+                  </p>
+                  <p className="text-sm text-yellow-700 mt-1">판매자가 입금을 확인하면 납품이 시작됩니다</p>
+                </div>
+              )}
+
+              {/* 2. 입금 확인 대기 - 판매자: 입금확인완료 버튼 */}
+              {isPaymentRequested && isSupplier && (
+                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-yellow-800 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        구매자가 입금 확인을 요청했습니다
+                      </p>
+                      <p className="text-sm text-yellow-700 mt-1">입금을 확인하고 버튼을 눌러주세요</p>
+                    </div>
+                    <Button onClick={handleConfirmPayment} disabled={isConfirming} className="bg-yellow-600 hover:bg-yellow-700">
+                      {isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                      입금 확인 완료
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. 납품 진행중 - 구매자 */}
+              {isPaymentConfirmed && isBuyer && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="font-medium text-blue-800 flex items-center gap-2">
+                    <Truck className="w-4 h-4" />
+                    입금 확인 완료 - 납품 진행중
+                  </p>
+                  <p className="text-sm text-blue-700 mt-1">판매자가 납품을 준비하고 있습니다</p>
+                </div>
+              )}
+
+              {/* 3. 납품 진행중 - 판매자: 납품완료 버튼 */}
+              {isPaymentConfirmed && isSupplier && (
+                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-blue-800 flex items-center gap-2">
+                        <Truck className="w-4 h-4" />
+                        납품을 진행해주세요
+                      </p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        납품예정일: {selectedRoom.quote && new Date(selectedRoom.quote.deliveryDate).toLocaleDateString('ko-KR')}
+                      </p>
+                    </div>
+                    <Button onClick={handleCompleteDelivery} disabled={isConfirming} className="bg-green-600 hover:bg-green-700">
+                      {isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Truck className="w-4 h-4 mr-1" />}
+                      납품 완료
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. 거래 완료 */}
+              {isDeliveryCompleted && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="font-bold text-green-800 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    거래가 완료되었습니다
+                  </p>
+                  <p className="text-sm text-green-700 mt-1">감사합니다. 좋은 거래였습니다!</p>
+                </div>
+              )}
+
+              {/* Fallback: 역할이 감지되지 않았을 때 - 안내 메시지만 표시 */}
+              {!isBuyer && !isSupplier && isActive && (
+                <div className="bg-gray-100 rounded-lg p-4 text-center">
+                  <p className="text-sm text-gray-600">역할 정보를 불러오는 중입니다...</p>
+                  <p className="text-xs text-gray-500 mt-1">페이지를 새로고침해 주세요</p>
+                </div>
+              )}
+            </div>
+
+            {/* 메시지 영역 */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
+              {messages.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  <p>첫 메시지를 보내보세요</p>
+                </div>
+              ) : (
+                messages.map((message) => {
+                  const isMe = message.sender_id === selectedRoom.currentUserId
+                  const isSystem = message.sender_type === 'system'
+
+                  if (isSystem) {
+                    return (
+                      <div key={message.id} className="flex justify-center">
+                        <div className="bg-white shadow-sm text-gray-600 text-xs px-4 py-2 rounded-full border">
+                          {message.content}
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div key={message.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[75%] px-3 py-2 rounded-lg shadow-sm ${
+                        isMe ? 'bg-primary-500 text-white' : 'bg-white text-gray-900'
+                      }`}>
+                        {!isMe && (
+                          <p className="text-[10px] font-medium mb-0.5 opacity-70">{message.sender_name}</p>
+                        )}
+                        {message.image && (
+                          <img
+                            src={message.image}
+                            alt="첨부"
+                            className="max-w-full rounded mb-1 cursor-pointer"
+                            onClick={() => window.open(message.image, '_blank')}
+                          />
+                        )}
+                        {message.content && message.content !== '[이미지]' && (
+                          <p className="text-sm whitespace-pre-wrap">{message.content.replace('[이미지]\n', '')}</p>
+                        )}
+                        <p className={`text-[10px] mt-0.5 ${isMe ? 'text-primary-200' : 'text-gray-400'}`}>
+                          {formatKoreanTime(message.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* 입력 영역 */}
+            <form onSubmit={handleSendMessage} className="p-3 border-t bg-white">
+              {selectedImage && (
+                <div className="mb-2 relative inline-block">
+                  <img src={selectedImage} alt="첨부" className="max-h-20 rounded border" />
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImage(null)}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                <Button type="button" variant="outline" size="sm" onClick={() => imageInputRef.current?.click()}>
+                  <ImagePlus className="w-4 h-4" />
+                </Button>
+                <Input
+                  placeholder="메시지 입력..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" size="sm" disabled={isSending}>
+                  {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </Button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
     </div>
   )
 }

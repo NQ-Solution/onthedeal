@@ -19,6 +19,7 @@
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.22.0",
     "@prisma/extension-accelerate": "^3.0.1",
+    "@tosspayments/payment-sdk": "^1.9.2",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.0",
     "csrf-csrf": "^4.0.3",

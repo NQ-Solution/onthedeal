@@ -236,7 +236,10 @@ model ChatRoom {
 
 enum ChatRoomStatus {
   active
+  payment_requested
+  payment_confirmed
   deal_confirmed
+  delivery_completed
   expired
   closed
 }
@@ -253,6 +256,9 @@ model ChatMessage {
   sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   content     String
+  image       String?   @db.Text               // Base64 이미지
+  senderType  String?   @map("sender_type")   // 'buyer' | 'supplier' | 'system'
+  senderName  String?   @map("sender_name")   // 표시용 발신자 이름
   isRead      Boolean   @default(false) @map("is_read")
   readAt      DateTime? @map("read_at")
 
@@ -306,6 +312,7 @@ model Order {
 
 enum OrderStatus {
   pending
+  payment_pending
   paid
   preparing
   shipping
@@ -318,6 +325,8 @@ enum OrderStatus {
 enum PaymentMethod {
   escrow
   direct
+  card
+  bank_transfer
 }
 
 // ============================================
@@ -367,6 +376,9 @@ enum NotificationType {
   order_update
   chat_expiring
   chat_expired
+  payment_request
+  payment_confirmed
+  delivery_completed
   system
 }
 
