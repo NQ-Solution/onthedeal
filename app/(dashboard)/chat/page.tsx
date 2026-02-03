@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Badge, Button, Input } from '@/components/ui'
-import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar } from 'lucide-react'
+import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText } from 'lucide-react'
 
 interface ChatRoom {
   id: string
@@ -20,6 +20,9 @@ interface ChatRoom {
     id: string
     totalPrice: number
     deliveryDate: string
+    status: string
+    note?: string
+    attachments?: string[]
   } | null
   buyer: {
     id: string
@@ -110,6 +113,7 @@ export default function ChatPage() {
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [isMobileView, setIsMobileView] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'bank' | 'card' | null>(null)
+  const [imageViewerSrc, setImageViewerSrc] = useState<string | null>(null)
 
   useEffect(() => {
     fetchChatRooms()
@@ -311,6 +315,32 @@ export default function ChatPage() {
     }
   }
 
+  // 구매자: 제안 수락 (거래 확정)
+  const handleAcceptQuote = async () => {
+    if (isConfirming || !selectedRoom?.quote?.id) return
+    if (!confirm('이 제안을 수락하시겠습니까? 수락 후 입금을 진행해주세요.')) return
+    setIsConfirming(true)
+    try {
+      const res = await fetch(`/api/quotes/${selectedRoom.quote.id}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (res.ok) {
+        alert('제안이 수락되었습니다. 입금을 진행해주세요.')
+        fetchRoomDetail(selectedRoomId!)
+        fetchMessages(selectedRoomId!)
+      } else {
+        const data = await res.json()
+        alert(data.error || '요청에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('요청 중 오류가 발생했습니다.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }
+
   const activeRooms = rooms
     .filter(r => r.status !== 'expired')
     .sort((a, b) => {
@@ -336,6 +366,7 @@ export default function ChatPage() {
   const isPaymentRequested = status === 'payment_requested' // 입금 확인 요청됨
   const isPaymentConfirmed = status === 'payment_confirmed' // 입금 확인 완료
   const isDeliveryCompleted = status === 'delivery_completed' // 납품 완료
+  const isQuotePending = selectedRoom?.quote?.status === 'pending' // 제안 아직 미수락
 
   if (loading) {
     return (
@@ -346,7 +377,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-4">
+    <div className="flex h-[calc(100vh-10rem)] gap-4 -mb-6">
       {/* 왼쪽: 채팅 목록 */}
       <div className={`w-full lg:w-80 flex-shrink-0 flex flex-col ${isMobileView ? 'hidden lg:flex' : 'flex'}`}>
         <div className="flex items-center justify-between mb-3">
@@ -463,12 +494,71 @@ export default function ChatPage() {
               {/* 거래 상태별 카드 */}
 
               {/* 0. 협의중 (active) - 제안 수락 전 */}
-              {isActive && isBuyer && (
-                <div className="bg-white border rounded-lg p-4">
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    채팅으로 협의 후, 내 발주 페이지에서 제안을 수락해주세요
+              {isActive && isBuyer && isQuotePending && (
+                <div className="bg-white border-2 border-primary-200 rounded-lg p-4 space-y-3">
+                  <p className="font-bold text-primary-700 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    제안 내용
                   </p>
+
+                  {/* 제안 설명 */}
+                  {selectedRoom?.quote?.note && (
+                    <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                      <p className="text-gray-500 text-xs mb-1">제안 설명</p>
+                      <p className="whitespace-pre-line">{selectedRoom.quote.note}</p>
+                    </div>
+                  )}
+
+                  {/* 첨부파일 */}
+                  {selectedRoom?.quote?.attachments && selectedRoom.quote.attachments.length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500 mb-2">첨부파일 (클릭하여 확대)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedRoom.quote.attachments.map((file, idx) => {
+                          const isImage = file.startsWith('data:image') || /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
+                          return isImage ? (
+                            <img
+                              key={idx}
+                              src={file}
+                              alt={`첨부파일 ${idx + 1}`}
+                              className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => setImageViewerSrc(file)}
+                            />
+                          ) : (
+                            <a
+                              key={idx}
+                              href={file}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-3 py-2 bg-gray-100 rounded-lg text-sm text-primary-600 hover:bg-gray-200"
+                            >
+                              <FileText className="w-4 h-4" />
+                              첨부파일 {idx + 1}
+                            </a>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 제안 수락 버튼 */}
+                  <div className="pt-2 border-t">
+                    <Button
+                      onClick={handleAcceptQuote}
+                      disabled={isConfirming}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      {isConfirming ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
+                      제안 수락하기
+                    </Button>
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      수락 후 입금을 진행해주세요
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -702,8 +792,8 @@ export default function ChatPage() {
                           <img
                             src={message.image}
                             alt="첨부"
-                            className="max-w-full rounded mb-1 cursor-pointer"
-                            onClick={() => window.open(message.image, '_blank')}
+                            className="max-w-full max-h-48 rounded mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => setImageViewerSrc(message.image!)}
                           />
                         )}
                         {message.content && message.content !== '[이미지]' && (
@@ -753,6 +843,27 @@ export default function ChatPage() {
           </>
         )}
       </div>
+
+      {/* 이미지 뷰어 모달 */}
+      {imageViewerSrc && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setImageViewerSrc(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70"
+            onClick={() => setImageViewerSrc(null)}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={imageViewerSrc}
+            alt="확대 이미지"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   )
 }

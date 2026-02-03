@@ -35,6 +35,9 @@ export async function GET(
             unitPrice: true,
             totalPrice: true,
             deliveryDate: true,
+            status: true,
+            note: true,
+            attachments: true,
           },
         },
         buyer: {
