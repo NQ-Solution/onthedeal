@@ -143,13 +143,24 @@ export async function POST(
         })
       }
 
-      // 4. 채팅방 생성 또는 조회
-      let chatRoom = await tx.chatRoom.findFirst({
+      // 4. 채팅방 조회 (제안 제출 시 이미 생성됨)
+      // quoteId에 @unique 제약조건이 있으므로 findUnique 사용
+      let chatRoom = await tx.chatRoom.findUnique({
         where: { quoteId: quoteId },
       })
 
-      if (!chatRoom) {
-        // 채팅방 만료일: 7일 후
+      if (chatRoom) {
+        // 기존 채팅방 상태를 deal_confirmed로 업데이트
+        chatRoom = await tx.chatRoom.update({
+          where: { id: chatRoom.id },
+          data: {
+            status: 'deal_confirmed',
+            dealConfirmedAt: new Date(),
+          },
+        })
+      } else {
+        // 예외 케이스: 채팅방이 없으면 새로 생성 (정상적인 경우 제안 제출 시 이미 생성됨)
+        console.warn('[Accept API] ChatRoom not found for quote, creating new one:', quoteId)
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         chatRoom = await tx.chatRoom.create({
           data: {
@@ -157,16 +168,9 @@ export async function POST(
             quoteId: quoteId,
             buyerId: session.user.id,
             supplierId: quote.supplierId,
-            expiresAt: expiresAt,
-          },
-        })
-      } else {
-        // 기존 채팅방 상태를 deal_confirmed로 업데이트
-        chatRoom = await tx.chatRoom.update({
-          where: { id: chatRoom.id },
-          data: {
             status: 'deal_confirmed',
             dealConfirmedAt: new Date(),
+            expiresAt: expiresAt,
           },
         })
       }

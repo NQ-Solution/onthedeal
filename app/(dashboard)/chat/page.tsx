@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Badge, Button, Input } from '@/components/ui'
-import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText } from 'lucide-react'
+import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText, ChevronDown, ChevronUp, Eye } from 'lucide-react'
 
 interface ChatRoom {
   id: string
@@ -114,6 +114,7 @@ export default function ChatPage() {
   const [isMobileView, setIsMobileView] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'bank' | 'card' | null>(null)
   const [imageViewerSrc, setImageViewerSrc] = useState<string | null>(null)
+  const [showQuoteDetails, setShowQuoteDetails] = useState(false)
 
   useEffect(() => {
     fetchChatRooms()
@@ -488,6 +489,70 @@ export default function ChatPage() {
                       {new Date(selectedRoom.quote.deliveryDate).toLocaleDateString('ko-KR')}
                     </p>
                   </div>
+                </div>
+              )}
+
+              {/* 제안 내용 확인 토글 (항상 표시, 단 isQuotePending이 아닐 때만) */}
+              {selectedRoom.quote && (selectedRoom.quote.note || (selectedRoom.quote.attachments && selectedRoom.quote.attachments.length > 0)) && !(isActive && isBuyer && isQuotePending) && (
+                <div className="mb-3">
+                  <button
+                    onClick={() => setShowQuoteDetails(!showQuoteDetails)}
+                    className="flex items-center justify-between w-full bg-gray-100 hover:bg-gray-200 rounded-lg px-4 py-2.5 transition-colors"
+                  >
+                    <span className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <Eye className="w-4 h-4" />
+                      제안 내용 확인
+                    </span>
+                    {showQuoteDetails ? (
+                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    )}
+                  </button>
+
+                  {showQuoteDetails && (
+                    <div className="mt-2 bg-white border rounded-lg p-4 space-y-3">
+                      {/* 제안 설명 */}
+                      {selectedRoom.quote.note && (
+                        <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                          <p className="text-gray-500 text-xs mb-1">제안 설명</p>
+                          <p className="whitespace-pre-line">{selectedRoom.quote.note}</p>
+                        </div>
+                      )}
+
+                      {/* 첨부파일 */}
+                      {selectedRoom.quote.attachments && selectedRoom.quote.attachments.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">첨부파일 (클릭하여 확대)</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedRoom.quote.attachments.map((file, idx) => {
+                              const isImage = file.startsWith('data:image') || /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
+                              return isImage ? (
+                                <img
+                                  key={idx}
+                                  src={file}
+                                  alt={`첨부파일 ${idx + 1}`}
+                                  className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => setImageViewerSrc(file)}
+                                />
+                              ) : (
+                                <a
+                                  key={idx}
+                                  href={file}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 px-3 py-2 bg-gray-100 rounded-lg text-sm text-primary-600 hover:bg-gray-200"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  첨부파일 {idx + 1}
+                                </a>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

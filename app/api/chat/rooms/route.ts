@@ -64,9 +64,21 @@ export async function GET(request: NextRequest) {
 
     console.log('[ChatRooms API] Found rooms:', chatRooms.length)
 
+    // quoteId 기준 중복 제거 (가장 최신 채팅방만 유지)
+    const uniqueRooms = chatRooms.reduce((acc, room) => {
+      const key = room.quoteId
+      if (!acc[key] || new Date(room.createdAt) > new Date(acc[key].createdAt)) {
+        acc[key] = room
+      }
+      return acc
+    }, {} as Record<string, typeof chatRooms[0]>)
+
+    const deduplicatedRooms = Object.values(uniqueRooms)
+    console.log('[ChatRooms API] After deduplication:', deduplicatedRooms.length)
+
     // 안읽은 메시지 수 계산
     const roomsWithUnread = await Promise.all(
-      chatRooms.map(async (room) => {
+      deduplicatedRooms.map(async (room) => {
         const unreadCount = await prisma.chatMessage.count({
           where: {
             chatRoomId: room.id,
