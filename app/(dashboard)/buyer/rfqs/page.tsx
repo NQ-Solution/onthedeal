@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, FileText, Clock, CheckCircle, XCircle, Loader2, Building2, MessageSquare, Receipt } from 'lucide-react'
+import {
+  Plus, FileText, Clock, CheckCircle, XCircle, Loader2,
+  Building2, MessageSquare, ChevronDown, ChevronUp, Paperclip,
+  Calendar, MapPin
+} from 'lucide-react'
 import { Button, Card, CardContent, Badge } from '@/components/ui'
 
 interface RFQ {
@@ -31,12 +35,12 @@ interface Quote {
   id: string
   rfqId: string
   supplierId: string
-  unitPrice: number
   totalPrice: number
   deliveryDate: string
   note: string | null
   status: string
   createdAt: string
+  attachments?: string[]
   supplier: {
     id: string
     companyName: string
@@ -44,18 +48,22 @@ interface Quote {
   chatRooms?: {
     id: string
     status: string
+    _count?: {
+      messages: number
+    }
+    unreadCount?: number
   }[]
 }
 
 const rfqStatusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error'; icon: any }> = {
-  open: { label: '모집중', variant: 'success', icon: Clock },
+  open: { label: '제안 받는 중', variant: 'success', icon: Clock },
   in_progress: { label: '진행중', variant: 'warning', icon: Clock },
   closed: { label: '마감', variant: 'default', icon: CheckCircle },
   cancelled: { label: '취소', variant: 'error', icon: XCircle },
 }
 
 const quoteStatusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error'; icon: any }> = {
-  pending: { label: '대기중', variant: 'warning', icon: Clock },
+  pending: { label: '검토 중', variant: 'warning', icon: Clock },
   accepted: { label: '수락됨', variant: 'success', icon: CheckCircle },
   rejected: { label: '거절됨', variant: 'error', icon: XCircle },
   expired: { label: '만료됨', variant: 'default', icon: Clock },
@@ -77,7 +85,8 @@ export default function BuyerRFQsPage() {
   const [loading, setLoading] = useState(true)
   const [rfqs, setRfqs] = useState<RFQ[]>([])
   const [quotes, setQuotes] = useState<Quote[]>([])
-  const [selectedRfqId, setSelectedRfqId] = useState<string | null>(null)
+  const [expandedRfqIds, setExpandedRfqIds] = useState<Set<string>>(new Set())
+  const [expandedQuoteId, setExpandedQuoteId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -93,10 +102,6 @@ export default function BuyerRFQsPage() {
       if (rfqRes.ok) {
         const rfqData = await rfqRes.json()
         setRfqs(rfqData)
-        // 첫 번째 발주 자동 선택
-        if (rfqData.length > 0) {
-          setSelectedRfqId(rfqData[0].id)
-        }
       }
 
       if (quoteRes.ok) {
@@ -110,22 +115,57 @@ export default function BuyerRFQsPage() {
     }
   }
 
-  // 선택된 발주의 제안 필터링
-  const selectedQuotes = useMemo(() => {
-    if (!selectedRfqId) return []
-    return quotes.filter(q => q.rfqId === selectedRfqId)
-  }, [quotes, selectedRfqId])
+  const toggleRfqExpand = (rfqId: string) => {
+    setExpandedRfqIds(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(rfqId)) {
+        newSet.delete(rfqId)
+      } else {
+        newSet.add(rfqId)
+      }
+      return newSet
+    })
+  }
 
-  // 선택된 발주 정보
-  const selectedRfq = useMemo(() => {
-    return rfqs.find(r => r.id === selectedRfqId)
-  }, [rfqs, selectedRfqId])
+  const toggleQuoteExpand = (quoteId: string) => {
+    setExpandedQuoteId(prev => prev === quoteId ? null : quoteId)
+  }
 
-  // 최저가 계산
-  const lowestPrice = useMemo(() => {
-    if (selectedQuotes.length === 0) return 0
-    return Math.min(...selectedQuotes.map(q => q.totalPrice))
-  }, [selectedQuotes])
+  const getQuotesForRfq = (rfqId: string) => {
+    return quotes.filter(q => q.rfqId === rfqId)
+  }
+
+  const getLowestPrice = (rfqQuotes: Quote[]) => {
+    if (rfqQuotes.length === 0) return 0
+    return Math.min(...rfqQuotes.map(q => q.totalPrice))
+  }
+
+  const handleAcceptQuote = async (quoteId: string, rfqId: string) => {
+    if (!confirm('이 제안을 수락하시겠습니까? 수락 후 채팅방에서 거래를 진행합니다.')) return
+
+    try {
+      const res = await fetch(`/api/quotes/${quoteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'accept' })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        alert('제안을 수락했습니다. 채팅방으로 이동합니다.')
+        if (data.chatRoomId) {
+          router.push(`/chat?room=${data.chatRoomId}`)
+        } else {
+          router.push('/chat')
+        }
+      } else {
+        const error = await res.json()
+        alert(error.error || '제안 수락에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('제안 수락 중 오류가 발생했습니다.')
+    }
+  }
 
   if (loading) {
     return (
@@ -141,7 +181,9 @@ export default function BuyerRFQsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">내 발주</h1>
-          <p className="text-lg text-gray-500 mt-1">발주 목록과 받은 제안을 한눈에 관리하세요</p>
+          <p className="text-base text-gray-500 mt-1">
+            발주를 등록하면 판매자의 제안이 시작됩니다.
+          </p>
         </div>
         <Link href="/buyer/rfqs/new">
           <Button size="lg">
@@ -151,196 +193,250 @@ export default function BuyerRFQsPage() {
         </Link>
       </div>
 
-      {/* 2단 레이아웃 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 왼쪽: 발주 목록 */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">발주 목록</h2>
-            <span className="text-sm text-gray-500">{rfqs.length}개</span>
-          </div>
+      {/* 발주 목록 */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">발주 목록</h2>
+          <span className="text-sm text-gray-500">{rfqs.length}개</span>
+        </div>
 
-          {rfqs.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FileText className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-lg text-gray-500">등록된 발주가 없습니다</p>
-                <Link href="/buyer/rfqs/new">
-                  <Button size="md" className="mt-4">
-                    <Plus className="w-5 h-5 mr-2" />
-                    첫 발주 등록하기
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-2">
-              {rfqs.map((rfq) => {
-                const status = rfqStatusConfig[rfq.status] || rfqStatusConfig.open
-                const StatusIcon = status.icon
-                const isSelected = selectedRfqId === rfq.id
-                const quoteCount = rfq._count?.quotes || 0
+        {rfqs.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <FileText className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-lg text-gray-500">등록된 발주가 없습니다</p>
+              <Link href="/buyer/rfqs/new">
+                <Button size="md" className="mt-4">
+                  <Plus className="w-5 h-5 mr-2" />
+                  첫 발주 등록하기
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {rfqs.map((rfq) => {
+              const status = rfqStatusConfig[rfq.status] || rfqStatusConfig.open
+              const StatusIcon = status.icon
+              const rfqQuotes = getQuotesForRfq(rfq.id)
+              const quoteCount = rfqQuotes.length
+              const isExpanded = expandedRfqIds.has(rfq.id)
+              const lowestPrice = getLowestPrice(rfqQuotes)
 
-                return (
-                  <Card
-                    key={rfq.id}
-                    className={`cursor-pointer transition-all ${
-                      isSelected
-                        ? 'ring-2 ring-primary-500 shadow-lg bg-primary-50'
-                        : 'hover:shadow-md hover:bg-gray-50'
-                    }`}
-                    onClick={() => setSelectedRfqId(rfq.id)}
-                  >
-                    <CardContent className="py-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={status.variant} className="text-sm px-3 py-1">
-                            <StatusIcon className="w-3 h-3 mr-1" />
-                            {status.label}
-                          </Badge>
-                          <Badge variant="info" className="text-sm px-3 py-1">{rfq.category}</Badge>
-                        </div>
-                        {quoteCount > 0 && (
-                          <span className="text-sm font-bold text-primary-600 bg-primary-100 px-2 py-1 rounded">
-                            제안 {quoteCount}개
+              return (
+                <Card key={rfq.id} className="overflow-hidden">
+                  <CardContent className="py-4">
+                    {/* 발주 헤더 */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={status.variant} className="text-sm px-3 py-1">
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {status.label}
+                        </Badge>
+                        <Badge variant="info" className="text-sm px-3 py-1">{rfq.category}</Badge>
+                      </div>
+                      {quoteCount > 0 && (
+                        <span className="text-sm font-bold text-primary-600 bg-primary-100 px-3 py-1 rounded-full">
+                          제안 {quoteCount}개
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 발주 제목 */}
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{rfq.title}</h3>
+
+                    {/* 발주 정보 */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mb-3">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span>등록: {formatDate(rfq.createdAt)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span>납품희망: {formatDate(rfq.deliveryDate)}</span>
+                      </div>
+                    </div>
+
+                    {/* 평균발주/발주주기 */}
+                    {(rfq.orderFrequency || rfq.orderSizeRange) && (
+                      <div className="flex flex-wrap gap-2 text-sm mb-3">
+                        {rfq.orderSizeRange && (
+                          <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
+                            평균발주: {rfq.orderSizeRange}
+                          </span>
+                        )}
+                        {rfq.orderFrequency && (
+                          <span className="bg-primary-50 text-primary-700 px-2 py-1 rounded">
+                            발주주기: {rfq.orderFrequency}
                           </span>
                         )}
                       </div>
+                    )}
 
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{rfq.title}</h3>
-
-                      <div className="text-sm text-gray-600">
-                        납품희망: {formatDate(rfq.deliveryDate)}
-                      </div>
-
-                      {(rfq.orderFrequency || rfq.orderSizeRange) && (
-                        <div className="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-2 text-sm">
-                          {rfq.orderSizeRange && (
-                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
-                              평균발주: {rfq.orderSizeRange}
-                            </span>
-                          )}
-                          {rfq.orderFrequency && (
-                            <span className="bg-primary-50 text-primary-700 px-2 py-1 rounded">
-                              발주주기: {rfq.orderFrequency}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* 오른쪽: 받은 제안 */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">
-              받은 제안
-              {selectedRfq && <span className="text-base font-normal text-gray-500 ml-2">- {selectedRfq.title}</span>}
-            </h2>
-            <span className="text-sm text-gray-500">{selectedQuotes.length}개</span>
-          </div>
-
-          {!selectedRfqId ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Receipt className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-lg text-gray-500">왼쪽에서 발주를 선택하세요</p>
-              </CardContent>
-            </Card>
-          ) : selectedQuotes.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Receipt className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-lg text-gray-500">아직 받은 제안이 없습니다</p>
-                <p className="text-sm text-gray-400 mt-1">공급자들의 제안을 기다려주세요</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-2">
-              {selectedQuotes.map((quote) => {
-                const status = quoteStatusConfig[quote.status] || quoteStatusConfig.pending
-                const StatusIcon = status.icon
-                const isLowest = quote.totalPrice === lowestPrice && selectedQuotes.length > 1
-                const hasChatRoom = quote.chatRooms?.[0] && quote.chatRooms[0].status !== 'expired'
-
-                return (
-                  <Card key={quote.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="py-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={status.variant} className="text-sm px-3 py-1">
-                            <StatusIcon className="w-3 h-3 mr-1" />
-                            {status.label}
-                          </Badge>
-                          {isLowest && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
-                              최저가
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-primary-600">{formatPrice(quote.totalPrice)}</p>
-                          <p className="text-xs text-gray-500">단가 {formatPrice(quote.unitPrice)}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium text-gray-900">{quote.supplier?.companyName}</span>
-                      </div>
-
-                      <p className="text-sm text-gray-600 mb-3">
-                        납품 가능일: {formatDate(quote.deliveryDate)}
-                      </p>
-
-                      {quote.note && (
-                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg mb-3 line-clamp-2">
-                          {quote.note}
-                        </p>
-                      )}
-
-                      <div className="flex gap-2">
-                        {hasChatRoom && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => router.push(`/chat/${quote.chatRooms![0].id}`)}
-                          >
-                            <MessageSquare className="w-4 h-4 mr-1" />
-                            채팅하기
-                          </Button>
+                    {/* 제안 펼침/접힘 버튼 */}
+                    {quoteCount > 0 && (
+                      <button
+                        onClick={() => toggleRfqExpand(rfq.id)}
+                        className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors mt-2"
+                      >
+                        <span className="font-medium text-gray-700">
+                          받은 제안 {quoteCount}개 {lowestPrice > 0 && `· 최저가 ${formatPrice(lowestPrice)}`}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-gray-500" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-gray-500" />
                         )}
-                        <Link href={`/buyer/rfqs/${quote.rfqId}`} className="flex-1">
-                          <Button size="sm" className="w-full">
-                            상세보기
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          )}
+                      </button>
+                    )}
 
-          {/* 선택된 발주 요약 */}
-          {selectedRfq && selectedQuotes.length > 0 && (
-            <div className="bg-primary-50 rounded-xl p-4 text-sm">
-              <p className="font-medium text-primary-800 mb-1">
-                {selectedQuotes.filter(q => q.status === 'pending').length}개 제안 검토 대기중
-              </p>
-              <p className="text-primary-600">
-                최저가 {formatPrice(lowestPrice)} · 납품희망 {formatDate(selectedRfq.deliveryDate)}
-              </p>
-            </div>
-          )}
-        </div>
+                    {/* 제안이 없는 경우 */}
+                    {quoteCount === 0 && (
+                      <div className="py-3 px-4 bg-gray-50 rounded-lg mt-2 text-center text-gray-500">
+                        아직 받은 제안이 없습니다. 판매자들의 제안을 기다려주세요.
+                      </div>
+                    )}
+                  </CardContent>
+
+                  {/* 제안 목록 (펼쳐진 경우) */}
+                  {isExpanded && quoteCount > 0 && (
+                    <div className="border-t border-gray-200 bg-gray-50">
+                      {rfqQuotes.map((quote, index) => {
+                        const quoteStatus = quoteStatusConfig[quote.status] || quoteStatusConfig.pending
+                        const QuoteStatusIcon = quoteStatus.icon
+                        const isLowest = quote.totalPrice === lowestPrice && quoteCount > 1
+                        const isQuoteExpanded = expandedQuoteId === quote.id
+                        const chatRoom = quote.chatRooms?.[0]
+                        const unreadCount = chatRoom?.unreadCount || 0
+
+                        return (
+                          <div key={quote.id} className="border-b border-gray-200 last:border-b-0">
+                            {/* 제안 요약 (클릭 시 상세 펼침) */}
+                            <button
+                              onClick={() => toggleQuoteExpand(quote.id)}
+                              className="w-full px-6 py-4 text-left hover:bg-gray-100 transition-colors"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <span className="font-medium text-gray-600">[제안 {String.fromCharCode(65 + index)}]</span>
+                                  <span className="text-xl font-bold text-primary-600">
+                                    제안가 {formatPrice(quote.totalPrice)}
+                                  </span>
+                                  {isLowest && (
+                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-medium">
+                                      최저가
+                                    </span>
+                                  )}
+                                  <Badge variant={quoteStatus.variant} className="text-xs px-2 py-0.5">
+                                    <QuoteStatusIcon className="w-3 h-3 mr-1" />
+                                    {quoteStatus.label}
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-gray-500">{quote.supplier?.companyName}</span>
+                                  {isQuoteExpanded ? (
+                                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+
+                            {/* 제안 상세 (펼쳐진 경우) */}
+                            {isQuoteExpanded && (
+                              <div className="px-6 pb-4 bg-white border-t border-gray-100">
+                                <div className="py-4 space-y-4">
+                                  {/* 기본 정보 */}
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="text-gray-500">판매자:</span>
+                                      <span className="ml-2 font-medium">{quote.supplier?.companyName}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">납품 가능일:</span>
+                                      <span className="ml-2 font-medium">{formatDate(quote.deliveryDate)}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* 제안 설명 */}
+                                  {quote.note && (
+                                    <div>
+                                      <p className="text-sm text-gray-500 mb-1">제안 설명:</p>
+                                      <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700 whitespace-pre-line">
+                                        {quote.note}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* 첨부파일 */}
+                                  {quote.attachments && quote.attachments.length > 0 && (
+                                    <div>
+                                      <p className="text-sm text-gray-500 mb-2">첨부파일:</p>
+                                      <div className="space-y-1">
+                                        {quote.attachments.map((file, fileIndex) => (
+                                          <a
+                                            key={fileIndex}
+                                            href={file}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700"
+                                          >
+                                            <Paperclip className="w-4 h-4" />
+                                            <span>첨부파일 {fileIndex + 1}</span>
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* 버튼 영역 */}
+                                  <div className="flex gap-2 pt-2">
+                                    {chatRoom && chatRoom.status !== 'expired' && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          router.push(`/chat?room=${chatRoom.id}`)
+                                        }}
+                                        className="relative"
+                                      >
+                                        <MessageSquare className="w-4 h-4 mr-1" />
+                                        채팅하기
+                                        {unreadCount > 0 && (
+                                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                                            {unreadCount > 9 ? '9+' : unreadCount}
+                                          </span>
+                                        )}
+                                      </Button>
+                                    )}
+                                    {quote.status === 'pending' && (
+                                      <Button
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleAcceptQuote(quote.id, rfq.id)
+                                        }}
+                                      >
+                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                        수락하기
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

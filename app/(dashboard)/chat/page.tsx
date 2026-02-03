@@ -84,9 +84,9 @@ const formatKoreanTime = (date: Date | string) => {
 
 const getStatusLabel = (status: string) => {
   switch (status) {
+    case 'deal_confirmed': return { label: '거래확정 - 입금대기', color: 'bg-orange-100 text-orange-800' }
     case 'payment_requested': return { label: '입금 확인 대기', color: 'bg-yellow-100 text-yellow-800' }
     case 'payment_confirmed': return { label: '납품 진행중', color: 'bg-blue-100 text-blue-800' }
-    case 'deal_confirmed': return { label: '거래 확정', color: 'bg-blue-100 text-blue-800' }
     case 'delivery_completed': return { label: '거래 완료', color: 'bg-green-100 text-green-800' }
     case 'expired': return { label: '만료됨', color: 'bg-gray-100 text-gray-600' }
     default: return { label: '협의중', color: 'bg-primary-100 text-primary-800' }
@@ -332,9 +332,10 @@ export default function ChatPage() {
   // 상태 체크
   const status = selectedRoom?.status || 'active'
   const isActive = status === 'active'
-  const isPaymentRequested = status === 'payment_requested'
-  const isPaymentConfirmed = status === 'payment_confirmed' || status === 'deal_confirmed' // deal_confirmed도 동일 처리
-  const isDeliveryCompleted = status === 'delivery_completed'
+  const isDealConfirmed = status === 'deal_confirmed' // 거래확정 - 입금 전
+  const isPaymentRequested = status === 'payment_requested' // 입금 확인 요청됨
+  const isPaymentConfirmed = status === 'payment_confirmed' // 입금 확인 완료
+  const isDeliveryCompleted = status === 'delivery_completed' // 납품 완료
 
   if (loading) {
     return (
@@ -460,12 +461,35 @@ export default function ChatPage() {
               )}
 
               {/* 거래 상태별 카드 */}
-              {/* 1. 협의중 - 구매자: 결제 수단 선택 */}
+
+              {/* 0. 협의중 (active) - 제안 수락 전 */}
               {isActive && isBuyer && (
-                <div className="bg-white border-2 border-primary-200 rounded-lg p-4">
-                  <p className="font-bold text-primary-700 mb-3 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    결제 수단 선택
+                <div className="bg-white border rounded-lg p-4">
+                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    채팅으로 협의 후, 내 발주 페이지에서 제안을 수락해주세요
+                  </p>
+                </div>
+              )}
+
+              {isActive && isSupplier && (
+                <div className="bg-white border rounded-lg p-4">
+                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    구매자의 제안 수락을 기다리고 있습니다
+                  </p>
+                </div>
+              )}
+
+              {/* 1. 거래확정 (deal_confirmed) - 구매자: 결제 수단 선택 */}
+              {isDealConfirmed && isBuyer && (
+                <div className="bg-white border-2 border-orange-300 rounded-lg p-4">
+                  <p className="font-bold text-orange-700 mb-3 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    거래가 확정되었습니다
+                  </p>
+                  <p className="text-sm text-orange-600 mb-4">
+                    아래에서 결제 수단을 선택하고 입금 후 확인을 요청해주세요
                   </p>
 
                   {/* 결제 수단 선택 버튼 */}
@@ -550,12 +574,15 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {/* 1. 협의중 - 판매자: 대기 안내 */}
-              {isActive && isSupplier && (
-                <div className="bg-white border rounded-lg p-4">
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    구매자의 입금 확인 요청을 기다리고 있습니다
+              {/* 1. 거래확정 - 판매자: 대기 안내 */}
+              {isDealConfirmed && isSupplier && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <p className="font-bold text-orange-800 flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-4 h-4" />
+                    거래가 확정되었습니다
+                  </p>
+                  <p className="text-sm text-orange-600">
+                    구매자의 입금과 확인 요청을 기다리고 있습니다
                   </p>
                 </div>
               )}

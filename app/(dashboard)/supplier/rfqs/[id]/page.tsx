@@ -37,6 +37,15 @@ export default function SupplierRFQDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentCredit, setCurrentCredit] = useState(0)
   const [alreadyQuoted, setAlreadyQuoted] = useState(false)
+  const [myQuote, setMyQuote] = useState<{
+    id: string
+    totalPrice: number
+    deliveryDate: string
+    note: string | null
+    status: string
+    createdAt: string
+    chatRooms?: { id: string; status: string }[]
+  } | null>(null)
   const [attachments, setAttachments] = useState<string[]>([])
   const [quoteForm, setQuoteForm] = useState({
     totalPrice: '',
@@ -85,6 +94,7 @@ export default function SupplierRFQDetailPage() {
         const quotes = await res.json()
         if (quotes.length > 0) {
           setAlreadyQuoted(true)
+          setMyQuote(quotes[0])
         }
       }
     } catch (error) {
@@ -318,16 +328,67 @@ export default function SupplierRFQDetailPage() {
             <CardTitle className="text-xl">제안 제출</CardTitle>
           </CardHeader>
           <CardContent>
-            {alreadyQuoted ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+            {alreadyQuoted && myQuote ? (
+              <div className="space-y-4">
+                {/* 제안 상태 */}
+                <div className={`p-4 rounded-xl text-center ${
+                  myQuote.status === 'accepted' ? 'bg-green-50 border-2 border-green-200' :
+                  myQuote.status === 'rejected' ? 'bg-red-50 border-2 border-red-200' :
+                  'bg-yellow-50 border-2 border-yellow-200'
+                }`}>
+                  <CheckCircle className={`w-10 h-10 mx-auto mb-2 ${
+                    myQuote.status === 'accepted' ? 'text-green-600' :
+                    myQuote.status === 'rejected' ? 'text-red-600' :
+                    'text-yellow-600'
+                  }`} />
+                  <h3 className="text-lg font-bold">
+                    {myQuote.status === 'accepted' ? '제안이 수락되었습니다!' :
+                     myQuote.status === 'rejected' ? '제안이 거절되었습니다' :
+                     '제안 검토 중'}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {myQuote.status === 'accepted' ? '채팅방에서 거래를 진행하세요' :
+                     myQuote.status === 'rejected' ? '다음 기회에 더 좋은 제안 부탁드립니다' :
+                     '구매자가 제안을 검토하고 있습니다'}
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">제안 완료</h3>
-                <p className="text-gray-500 mb-4">이 발주에 대한 제안을 이미 제출하셨습니다.</p>
-                <Button variant="outline" onClick={() => router.push('/chat')}>
-                  채팅 목록 보기
-                </Button>
+
+                {/* 내 제안 정보 */}
+                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                  <h4 className="font-bold text-gray-800">내 제안 내용</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-500">제안가</p>
+                      <p className="text-xl font-bold text-primary-600">
+                        {myQuote.totalPrice.toLocaleString()}원
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">납품 가능일</p>
+                      <p className="font-medium">{formatDate(myQuote.deliveryDate)}</p>
+                    </div>
+                  </div>
+                  {myQuote.note && (
+                    <div>
+                      <p className="text-gray-500 text-sm">제안 설명</p>
+                      <p className="text-sm bg-white p-2 rounded mt-1">{myQuote.note}</p>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400">
+                    제출일: {formatDate(myQuote.createdAt)}
+                  </p>
+                </div>
+
+                {/* 채팅 버튼 */}
+                {myQuote.chatRooms && myQuote.chatRooms[0] && (
+                  <Button
+                    className="w-full"
+                    onClick={() => router.push(`/chat?room=${myQuote.chatRooms![0].id}`)}
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    채팅방으로 이동
+                  </Button>
+                )}
               </div>
             ) : rfq.status !== 'open' ? (
               <div className="text-center py-8">

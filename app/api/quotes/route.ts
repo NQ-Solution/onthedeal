@@ -73,6 +73,13 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             status: true,
+            messages: {
+              where: {
+                isRead: false,
+                senderId: { not: session.user.id },
+              },
+              select: { id: true },
+            },
           },
           take: 1,
         },
@@ -82,9 +89,19 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // 안읽은 메시지 개수 추가
+    const quotesWithUnread = quotes.map(quote => ({
+      ...quote,
+      chatRooms: quote.chatRooms.map(room => ({
+        id: room.id,
+        status: room.status,
+        unreadCount: room.messages.length,
+      })),
+    }))
+
     console.log('[Quotes API] Found quotes:', quotes.length)
 
-    return NextResponse.json(quotes)
+    return NextResponse.json(quotesWithUnread)
   } catch (error) {
     console.error('제안 조회 오류:', error)
     return NextResponse.json({ error: '제안 조회에 실패했습니다' }, { status: 500 })

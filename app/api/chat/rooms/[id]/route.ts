@@ -144,8 +144,9 @@ export async function POST(
         if (!isBuyer) {
           return NextResponse.json({ error: '구매자만 입금 확인을 요청할 수 있습니다' }, { status: 403 })
         }
-        if (chatRoom.status !== 'active') {
-          return NextResponse.json({ error: '활성 상태의 채팅에서만 입금 요청이 가능합니다' }, { status: 400 })
+        // deal_confirmed (제안 수락 후) 또는 active 상태에서 입금 요청 가능
+        if (chatRoom.status !== 'active' && chatRoom.status !== 'deal_confirmed') {
+          return NextResponse.json({ error: '거래 확정 후에만 입금 요청이 가능합니다' }, { status: 400 })
         }
         return handleRequestPayment(chatRoom)
 
@@ -164,9 +165,9 @@ export async function POST(
         if (!isSupplier) {
           return NextResponse.json({ error: '판매자만 납품 완료를 처리할 수 있습니다' }, { status: 403 })
         }
-        // payment_confirmed 또는 deal_confirmed (기존 거래 확정) 상태에서 납품 완료 가능
-        if (chatRoom.status !== 'payment_confirmed' && chatRoom.status !== 'deal_confirmed') {
-          return NextResponse.json({ error: '거래 확정 상태에서만 납품 완료가 가능합니다' }, { status: 400 })
+        // 입금 확인 완료 후에만 납품 완료 가능
+        if (chatRoom.status !== 'payment_confirmed') {
+          return NextResponse.json({ error: '입금 확인 후에만 납품 완료가 가능합니다' }, { status: 400 })
         }
         return handleCompleteDelivery(chatRoom)
 

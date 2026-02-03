@@ -51,7 +51,7 @@ export default function SupplierRFQsPage() {
   const fetchData = async () => {
     try {
       const [rfqRes, quoteRes] = await Promise.all([
-        fetch('/api/rfqs?status=open'),
+        fetch('/api/rfqs'), // 모든 발주 가져오기
         fetch('/api/quotes?role=supplier')
       ])
 
@@ -72,9 +72,14 @@ export default function SupplierRFQsPage() {
     }
   }
 
+  // 열린 발주 (모집중)
   const openRFQs = rfqs.filter(rfq => rfq.status === 'open')
+  // 내가 제안한 발주 중 완료된 것 (closed/in_progress)
+  const myCompletedRFQs = rfqs.filter(rfq =>
+    myQuoteRfqIds.has(rfq.id) && (rfq.status === 'closed' || rfq.status === 'in_progress')
+  )
 
-  const filteredRFQs = openRFQs.filter(rfq => {
+  const filteredOpenRFQs = openRFQs.filter(rfq => {
     const matchesSearch = rfq.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           rfq.buyer?.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = !categoryFilter || rfq.category === categoryFilter
@@ -152,20 +157,25 @@ export default function SupplierRFQsPage() {
         </CardContent>
       </Card>
 
-      {/* 발주 목록 */}
+      {/* 열린 발주 목록 */}
       <div className="space-y-4">
-        {filteredRFQs.length === 0 ? (
+        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-green-600" />
+          모집중인 발주
+          <span className="text-sm font-normal text-gray-500">({filteredOpenRFQs.length}개)</span>
+        </h2>
+
+        {filteredOpenRFQs.length === 0 ? (
           <Card>
-            <CardContent className="py-16 text-center">
-              <Search className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <p className="text-xl text-gray-500">
+            <CardContent className="py-12 text-center">
+              <Search className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500">
                 {statusFilter === 'submitted' ? '제안한 발주가 없습니다' : '현재 모집중인 발주가 없습니다'}
               </p>
-              <p className="text-lg text-gray-400 mt-2">새로운 발주가 등록되면 여기에 표시됩니다</p>
             </CardContent>
           </Card>
         ) : (
-          filteredRFQs.map((rfq) => {
+          filteredOpenRFQs.map((rfq) => {
             const hasMyQuote = myQuoteRfqIds.has(rfq.id)
 
             return (
@@ -173,18 +183,17 @@ export default function SupplierRFQsPage() {
                 <Card className="hover:shadow-lg transition-all cursor-pointer">
                   <CardContent className="py-5">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                      {/* 왼쪽: 메인 정보 */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           {hasMyQuote ? (
-                            <Badge variant="success" className="text-sm px-3 py-1">
+                            <Badge variant="warning" className="text-sm px-3 py-1">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               제안완료
                             </Badge>
                           ) : (
                             <Badge variant="success" className="text-sm px-3 py-1">
                               <Clock className="w-3 h-3 mr-1" />
-                              모집중
+                              제안가능
                             </Badge>
                           )}
                           <Badge variant="info" className="text-sm px-3 py-1">{rfq.category}</Badge>
@@ -202,17 +211,12 @@ export default function SupplierRFQsPage() {
                             {rfq.deliveryAddress?.split(' ')[0] || ''}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Eye className="w-4 h-4" />
-                            조회 {rfq.viewCount || 0}
-                          </span>
-                          <span className="flex items-center gap-1">
                             <MessageSquare className="w-4 h-4" />
                             제안 {rfq._count?.quotes || 0}개
                           </span>
                         </div>
                       </div>
 
-                      {/* 오른쪽: 발주 조건 */}
                       <div className="flex flex-col lg:items-end gap-2 lg:min-w-[200px]">
                         {(rfq.orderSizeRange || rfq.orderFrequency) && (
                           <div className="flex flex-wrap gap-2 text-sm">
@@ -233,16 +237,9 @@ export default function SupplierRFQsPage() {
                           납품희망: {formatDate(rfq.deliveryDate)}
                         </div>
 
-                        {hasMyQuote ? (
-                          <Button size="sm" variant="outline" disabled className="mt-1">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            제안완료
-                          </Button>
-                        ) : (
-                          <Button size="sm" className="mt-1">
-                            제안 제출하기
-                          </Button>
-                        )}
+                        <Button size="sm" className="mt-1" variant={hasMyQuote ? "outline" : "primary"}>
+                          {hasMyQuote ? '제안 확인하기' : '발주 상세보기'}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -253,11 +250,41 @@ export default function SupplierRFQsPage() {
         )}
       </div>
 
-      {/* 하단 안내 */}
-      <div className="text-center text-sm text-gray-500">
-        총 {filteredRFQs.length}개의 발주
-        {statusFilter === 'all' && ` (제안완료: ${filteredRFQs.filter(r => myQuoteRfqIds.has(r.id)).length}개)`}
-      </div>
+      {/* 완료된 거래 (내가 제안한 것 중 마감된 것) */}
+      {myCompletedRFQs.length > 0 && (
+        <div className="space-y-4 mt-8">
+          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-blue-600" />
+            완료된 거래
+            <span className="text-sm font-normal text-gray-500">({myCompletedRFQs.length}개)</span>
+          </h2>
+
+          {myCompletedRFQs.map((rfq) => (
+            <Link key={rfq.id} href={`/supplier/rfqs/${rfq.id}`}>
+              <Card className="hover:shadow-md transition-all cursor-pointer bg-gray-50">
+                <CardContent className="py-4">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="default" className="text-sm px-3 py-1">
+                          마감
+                        </Badge>
+                        <Badge variant="info" className="text-sm px-3 py-1">{rfq.category}</Badge>
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-700 truncate">{rfq.title}</h3>
+                      <p className="text-sm text-gray-500">{rfq.buyer?.companyName}</p>
+                    </div>
+
+                    <Button size="sm" variant="outline">
+                      거래 내역 보기
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
