@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
-import { Users, Shield, Zap, Heart, ArrowRight, Menu, X, LayoutDashboard, LogOut } from 'lucide-react'
+import { Users, Shield, Zap, Heart, ArrowRight, Menu, X, LayoutDashboard, LogOut, CheckCircle } from 'lucide-react'
 
 // 로고 컴포넌트 (fallback 포함)
 function LogoWithFallback({ className = '' }: { className?: string }) {
@@ -159,47 +159,53 @@ export default function AboutPage() {
               </span>
             </h1>
             <p className="text-xl sm:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-              <span className="whitespace-nowrap">OnTheDeal은</span>
-              <br className="hidden sm:block" />
-              <span className="whitespace-nowrap">구매자는 거래처를 찾는 데 많은 시간을 쓰고,</span>
-              <br className="hidden sm:block" />
-              <span className="whitespace-nowrap">판매자는 기회를 기다릴 수밖에 없었던</span>
-              <br className="hidden sm:block" />
-              <span className="whitespace-nowrap">기존 B2B 거래 구조를 바꾸기 위해 만들어졌습니다.</span>
+              OnTheDeal은 구매자는 거래처를 찾는 데 많은 시간을 쓰고,
+              판매자는 기회를 기다릴 수밖에 없었던
+              기존 B2B 거래 구조를 바꾸기 위해 만들어졌습니다.
             </p>
           </div>
         </section>
 
-        {/* Mission Section */}
+        {/* Mission Section - 세로 배치 */}
         <section className="container mx-auto px-4 sm:px-6 py-16">
-          <div className="relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-[2rem] sm:rounded-[3rem]" />
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-72 h-72 bg-green-400/20 rounded-full blur-3xl" />
-
-            <div className="relative px-6 sm:px-12 py-16 sm:py-20 text-center text-white">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-8 whitespace-nowrap">Our Mission</h2>
-              <p className="text-xl sm:text-2xl text-white/90 leading-relaxed mb-12 max-w-3xl mx-auto">
-                <span className="whitespace-nowrap">발주를 중심으로 거래를 재구성해</span>
-                <br className="hidden sm:block" />
-                <span className="whitespace-nowrap">구매자에게는 선택이 모이는 환경을,</span>
-                <br className="hidden sm:block" />
-                <span className="whitespace-nowrap">판매자에게는 적극적으로 제안할 수 있는 기회를 만듭니다.</span>
+          <div className="max-w-4xl mx-auto flex flex-col gap-8">
+            {/* Mission Card */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-3xl p-8 sm:p-12 text-white">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+              <h2 className="text-3xl sm:text-4xl font-bold mb-6">Our Mission</h2>
+              <p className="text-lg sm:text-xl text-white/90 leading-relaxed mb-8">
+                발주를 중심으로 거래를 재구성해
+                구매자에게는 선택이 모이는 환경을,
+                판매자에게는 적극적으로 제안할 수 있는 기회를 만듭니다.
               </p>
+              <ul className="space-y-4">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6 text-white/80" />
+                  <span className="text-lg">발주를 올리면 다양한 업체의 제안이 모입니다</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6 text-white/80" />
+                  <span className="text-lg">판매자는 납품 가능한 발주에만 선택적으로 참여합니다</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6 text-white/80" />
+                  <span className="text-lg">구매자와 판매자가 만족하는 조건으로 거래가 이루어집니다</span>
+                </li>
+              </ul>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                {[
-                  { num: '1', text: '발주를 올리면\n다양한 업체의 제안이 모입니다' },
-                  { num: '2', text: '판매자는 납품 가능한 발주에만\n선택적으로 참여합니다' },
-                  { num: '3', text: '구매자와 판매자가 만족하는\n조건으로 거래가 이루어집니다' },
-                ].map((item, i) => (
-                  <div key={i} className="group bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:-translate-y-1">
-                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                      <span className="text-3xl font-bold">{item.num}</span>
-                    </div>
-                    <p className="text-lg sm:text-xl whitespace-pre-line">{item.text}</p>
-                  </div>
-                ))}
+            {/* Vision Card */}
+            <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-gray-100">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Our Vision</h2>
+              <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
+                식자재 거래의 새로운 기준을 만들어 갑니다.
+                기술과 데이터를 활용해 구매자에게는 더 좋은 조건을,
+                판매자에게는 더 많은 기회를 제공하는 플랫폼이 되겠습니다.
+              </p>
+              <div className="mt-8 p-6 bg-gray-50 rounded-2xl">
+                <p className="text-lg text-gray-700 font-medium">
+                  "쉽고 공정한 거래가 가능한 OnTheDeal"
+                </p>
               </div>
             </div>
           </div>
@@ -208,8 +214,8 @@ export default function AboutPage() {
         {/* Values Section */}
         <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-24">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 whitespace-nowrap">Our Values</h2>
-            <p className="text-xl text-gray-600 whitespace-nowrap">우리가 중요하게 생각하는 가치</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Our Values</h2>
+            <p className="text-xl text-gray-600">우리가 중요하게 생각하는 가치</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
@@ -228,7 +234,6 @@ export default function AboutPage() {
               }
               return (
                 <div key={i} className="group relative">
-                  <div className={`absolute inset-0 bg-gradient-to-r from-${item.color}-500 to-${item.color}-600 rounded-3xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity`} />
                   <div className="relative bg-white rounded-3xl p-8 border border-gray-100 hover:border-gray-200 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 text-center h-full">
                     <div className={`w-20 h-20 ${colorClasses[item.color as keyof typeof colorClasses]} rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300 group-hover:text-white group-hover:scale-110`}>
                       <Icon className="w-10 h-10" />
@@ -250,10 +255,10 @@ export default function AboutPage() {
             <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-green-500/20 rounded-full blur-3xl" />
 
             <div className="relative px-6 sm:px-12 py-12 sm:py-16 text-center">
-              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-6 whitespace-nowrap">
+              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-6">
                 쉽고 공정한 거래가 가능한 OnTheDeal
               </h2>
-              <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-xl mx-auto whitespace-nowrap">
+              <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-xl mx-auto">
                 회원가입은 무료입니다. 거래가 성사될 때만 수수료가 발생해요.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

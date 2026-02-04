@@ -180,183 +180,146 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <main className="relative z-10">
-        {/* Main Hero - Immersive Design */}
-        <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-          {/* Background Image with Overlay */}
-          <div className="absolute inset-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/homepageheroimg.png"
-              alt="신선한 고기"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
-            {/* Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-          </div>
+        {/* Main Hero - Orange Background with Right Image */}
+        <section className="relative overflow-hidden bg-primary-500">
+          <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              {/* Left - Content */}
+              <div className="text-white">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                  거래처 찾는 일은
+                  <br />
+                  발주서 작성 한 번으로
+                  <br />
+                  끝낼 수 있어요
+                </h1>
+                <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed">
+                  축산물을 시작으로 다양한 거래로 확장될 예정입니다.
+                </p>
 
-          {/* Animated Particles/Shapes */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 right-[10%] w-64 h-64 bg-primary-500/20 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-20 right-[30%] w-48 h-48 bg-green-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-            <div className="absolute top-1/3 left-[5%] w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse delay-500" />
-          </div>
-
-          {/* Content */}
-          <div className="relative container mx-auto px-4 sm:px-6 py-20">
-            <div className="max-w-3xl">
-              {/* Floating Badge */}
-              <div className="inline-flex items-center px-5 py-2.5 mb-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-sm font-semibold whitespace-nowrap">
-                식당 사장님을 위한 축산물 발주 플랫폼
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href={session ? (session.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer') : '/register?role=buyer'}>
+                    <Button size="xl" className="w-full sm:w-auto rounded-xl bg-white text-primary-600 hover:bg-gray-100 shadow-lg gap-2 text-lg px-8 font-bold">
+                      {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
+                      <ArrowRight className="w-5 h-5" />
+                    </Button>
+                  </Link>
+                  <Link href={session ? (session.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier') : '/register?role=supplier'}>
+                    <Button size="xl" variant="outline" className="w-full sm:w-auto rounded-xl border-2 border-white text-white hover:bg-white/10 gap-2 text-lg px-8 font-bold">
+                      {session?.user?.role === 'supplier' ? '판매자 대시보드' : '판매자로 시작하기'}
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
-              {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-[1.1] text-white">
-                식당 발주,
-                <br />
-                전화 말고
-                <br />
-                <span className="relative inline-block mt-2">
-                  <span className="bg-gradient-to-r from-primary-400 via-primary-300 to-green-400 bg-clip-text text-transparent">
-                    '발주 한 번'
-                  </span>
-                  <span className="text-white">으로</span>
-                </span>
-              </h1>
-
-              <p className="text-xl sm:text-2xl text-white/80 mb-10 max-w-xl leading-relaxed">
-                <span className="whitespace-nowrap">비교도 쉽고 발주도 빠르게.</span>
-                <br className="hidden sm:block" />
-                <span className="whitespace-nowrap">지금 바로 시작하세요.</span>
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <Link href={session ? (session.user?.role === 'buyer' ? '/buyer/rfqs' : session.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=buyer') : '/register?role=buyer'}>
-                  <Button size="xl" className="w-full sm:w-auto rounded-2xl bg-white text-gray-900 hover:bg-gray-100 shadow-2xl shadow-white/20 gap-2 text-lg px-8 font-bold">
-                    {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
-                    <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Link href={session ? (session.user?.role === 'supplier' ? '/supplier/rfqs' : session.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=supplier') : '/register?role=supplier'}>
-                  <Button size="xl" variant="outline" className="w-full sm:w-auto rounded-2xl border-2 border-white/50 text-white hover:bg-white/10 hover:border-white gap-2 text-lg px-8 font-bold backdrop-blur-sm">
-                    {session?.user?.role === 'supplier' ? '판매자 대시보드' : '판매자로 시작하기'}
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Stats Row */}
-              <div className="flex flex-wrap gap-6 sm:gap-10">
-                <div className="text-center">
-                  <p className="text-3xl sm:text-4xl font-bold text-white whitespace-nowrap">무료</p>
-                  <p className="text-sm text-white/60 mt-1 whitespace-nowrap">등록비·수수료</p>
+              {/* Right - Image */}
+              <div className="relative hidden lg:block">
+                {/* Gradient Border Container */}
+                <div className="relative p-1 rounded-3xl bg-gradient-to-br from-white via-white/50 to-primary-300 shadow-2xl">
+                  <div className="rounded-[22px] overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/homepageheroimg.png"
+                      alt="신선한 고기"
+                      className="w-full h-[400px] object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/hero-meat.jpg'
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-px h-12 bg-white/20 hidden sm:block" />
-                <div className="text-center">
-                  <p className="text-3xl sm:text-4xl font-bold text-green-400 whitespace-nowrap">0원</p>
-                  <p className="text-sm text-white/60 mt-1 whitespace-nowrap">광고비</p>
-                </div>
-                <div className="w-px h-12 bg-white/20 hidden sm:block" />
-                <div className="text-center">
-                  <p className="text-3xl sm:text-4xl font-bold text-primary-400 whitespace-nowrap">직거래</p>
-                  <p className="text-sm text-white/60 mt-1 whitespace-nowrap">거래 방식</p>
-                </div>
+                {/* Decorative elements */}
+                <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/20 rounded-full blur-2xl" />
+                <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
               </div>
             </div>
-          </div>
-
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/50 animate-bounce">
-            <span className="text-xs mb-2">스크롤</span>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
           </div>
         </section>
 
-        {/* Bento Grid Section - Buyer & Supplier */}
-        <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
-            {/* Buyer Card - Large */}
-            <div className="lg:col-span-3 group">
-              <div className="h-full bg-gradient-to-br from-primary-50 via-white to-blue-50 rounded-3xl p-6 sm:p-10 border-2 border-primary-100 hover:border-primary-300 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 rounded-full text-primary-700 text-sm font-medium mb-4 whitespace-nowrap">
-                      구매자
-                    </div>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">식당 사장님이라면?</h3>
-                    <p className="text-lg text-gray-600">전화 없이 축산물 공급 받기</p>
-                  </div>
-                  <div className="hidden sm:flex w-16 h-16 bg-primary-100 rounded-2xl items-center justify-center group-hover:scale-110 transition-transform">
-                    <Truck className="w-8 h-8 text-primary-600" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-                  {[
-                    '축산물 발주 등록비·수수료 무료',
-                    '여러 공급 업체 조건 간편 비교',
-                    '배송비 포함된 조건 간편 확인 가능',
-                    '이후 주문은 즉시 처리 가능',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-primary-100/50">
-                      <div className="w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-gray-700 text-sm sm:text-base">{item}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <Link href={session?.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer'}>
-                  <Button size="lg" className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/25 gap-2">
-                    {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
-                    <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </Link>
+        {/* How It Works - For Buyers & Suppliers */}
+        <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* For Buyers */}
+            <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">구매자</h3>
+                <p className="text-lg sm:text-xl text-gray-500">간편한 발주서 작성</p>
               </div>
+              <p className="text-lg sm:text-xl text-gray-700 mb-6 sm:mb-8 leading-relaxed">
+                사장님, 기존처럼 발주서 작성하세요.<br />
+                대신 <span className="font-bold text-primary-600">간편하게 등록</span>하고<br />
+                <span className="font-bold text-primary-600">다양한 조건을 한번에 비교</span>해보세요!
+              </p>
+              <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
+                <li className="flex items-start gap-3 sm:gap-4">
+                  <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서를 작성하세요</p>
+                    <p className="text-gray-600 text-sm sm:text-base">품목, 수량, 희망가격을 입력하면 끝</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 sm:gap-4">
+                  <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">2</span>
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">제안을 비교하세요</p>
+                    <p className="text-gray-600 text-sm sm:text-base">여러 판매자의 가격과 조건을 한눈에</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 sm:gap-4">
+                  <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">3</span>
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">안전하게 거래하세요</p>
+                    <p className="text-gray-600 text-sm sm:text-base">채팅으로 협의하고, 에스크로로 결제</p>
+                  </div>
+                </li>
+              </ol>
+              <Link href={session?.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer'}>
+                <Button size="lg" className="w-full text-lg sm:text-xl py-4 sm:py-5">
+                  {session?.user?.role === 'buyer' ? '내 발주 보기' : '발주서 작성하기'}
+                </Button>
+              </Link>
             </div>
 
-            {/* Supplier Card */}
-            <div className="lg:col-span-2 group">
-              <div className="h-full bg-gradient-to-br from-green-50 via-white to-emerald-50 rounded-3xl p-6 sm:p-8 border-2 border-green-100 hover:border-green-300 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10 hover:-translate-y-1">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4 whitespace-nowrap">
-                      판매자
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">축산물 판매업자라면?</h3>
-                    <p className="text-base text-gray-600">식당 발주 확인 후 제안</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 mb-6">
-                  {[
-                    '별도 광고비 없음',
-                    '여러 매장에 공급 가능',
-                    '발주 내용 알림 가능',
-                    '이후 주문 처리 가능',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Check className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-gray-700 text-sm">{item}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <Link href={session?.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier'}>
-                  <Button size="lg" className="w-full rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg shadow-green-500/25 gap-2">
-                    {session?.user?.role === 'supplier' ? '발주 확인하기' : '판매자로 시작하기'}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
+            {/* For Suppliers */}
+            <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">판매자</h3>
+                <p className="text-lg sm:text-xl text-gray-500">빠른 판매 결정</p>
               </div>
+              <p className="text-lg sm:text-xl text-gray-700 mb-6 sm:mb-8 leading-relaxed">
+                판매자님, 기다리지 마세요.<br />
+                <span className="font-bold text-green-600">납품 가능한 조건을 확인</span>하고<br />
+                <span className="font-bold text-green-600">바로 제안을 제출</span>하세요!
+              </p>
+              <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
+                <li className="flex items-start gap-3 sm:gap-4">
+                  <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주를 탐색하세요</p>
+                    <p className="text-gray-600 text-sm sm:text-base">내 상품에 맞는 발주를 찾아보세요</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 sm:gap-4">
+                  <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">2</span>
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">제안을 제출하세요</p>
+                    <p className="text-gray-600 text-sm sm:text-base">경쟁력 있는 가격으로 제안하세요</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 sm:gap-4">
+                  <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">3</span>
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">거래를 성사시키세요</p>
+                    <p className="text-gray-600 text-sm sm:text-base">협의 후 결제 확인, 배송, 정산까지</p>
+                  </div>
+                </li>
+              </ol>
+              <Link href={session?.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier'}>
+                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-lg sm:text-xl py-4 sm:py-5">
+                  {session?.user?.role === 'supplier' ? '발주 확인하기' : '판매자로 시작하기'}
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
@@ -367,7 +330,6 @@ export default function HomePage() {
             <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4 whitespace-nowrap">
               온더딜에서는 거래가 복잡하지 않아요
             </h2>
-            <p className="text-lg text-gray-500 whitespace-nowrap">온더딜이 거래의 모든 과정을 도와드립니다</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">

@@ -255,163 +255,199 @@ export default function ContactPage() {
         {/* Hero */}
         <section className="container mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center px-5 py-2.5 mb-8 bg-primary-50 border border-primary-100 rounded-full text-primary-700 text-sm font-semibold whitespace-nowrap">
+            <div className="inline-flex items-center px-5 py-2.5 mb-8 bg-primary-50 border border-primary-100 rounded-full text-primary-700 text-sm font-semibold">
               Contact Us
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
-              <span className="text-gray-900 whitespace-nowrap">무엇이든</span>
+              <span className="text-gray-900">무엇이든</span>
               <br />
-              <span className="bg-gradient-to-r from-primary-500 via-primary-600 to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
+              <span className="bg-gradient-to-r from-primary-500 via-primary-600 to-blue-500 bg-clip-text text-transparent">
                 물어보세요
               </span>
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600 whitespace-nowrap">궁금한 점이 있으시면 언제든 문의해 주세요</p>
+            <p className="text-xl sm:text-2xl text-gray-600">궁금한 점이 있으시면 언제든 문의해 주세요</p>
           </div>
         </section>
 
-        {/* Contact Info Cards */}
+        {/* Contact Info Cards - 세로 배치 (2x2 그리드) */}
         <section className="container mx-auto px-4 sm:px-6 pb-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto">
-            {[
-              { icon: Phone, color: 'primary', title: '전화 문의', value: settings?.contactPhone || '02-1234-5678', sub: `${settings?.businessDays || '평일'} ${settings?.businessHoursStart || '09:00'} - ${settings?.businessHoursEnd || '18:00'}` },
-              { icon: Mail, color: 'blue', title: '이메일', value: settings?.contactEmail || 'support@onthedeal.com', sub: '24시간 접수 가능' },
-              { icon: MapPin, color: 'green', title: '주소', value: settings?.businessAddress || settings?.address || '서울특별시 강남구', sub: '' },
-              { icon: Clock, color: 'purple', title: '운영 시간', value: `${settings?.businessHoursStart || '09:00'} - ${settings?.businessHoursEnd || '18:00'}`, sub: '주말/공휴일 휴무' },
-            ].map((item, i) => {
-              const Icon = item.icon
-              const colorClasses = {
-                primary: 'bg-primary-100 text-primary-600',
-                blue: 'bg-blue-100 text-blue-600',
-                green: 'bg-green-100 text-green-600',
-                purple: 'bg-purple-100 text-purple-600',
-              }
-              return (
-                <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className={`w-12 h-12 ${colorClasses[item.color as keyof typeof colorClasses]} rounded-xl flex items-center justify-center mb-4`}>
-                    <Icon className="w-6 h-6" />
+          <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-6 h-6 text-primary-600" />
                   </div>
-                  <h3 className="text-sm text-gray-500 mb-1 whitespace-nowrap">{item.title}</h3>
-                  <p className="text-sm sm:text-base font-bold text-gray-900 break-words">{item.value}</p>
-                  {item.sub && <p className="text-xs sm:text-sm text-gray-500 mt-1 whitespace-nowrap">{item.sub}</p>}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">전화 문의</h3>
+                    <p className="text-base text-primary-600 font-bold mt-1">{settings?.contactPhone || '02-1234-5678'}</p>
+                    <p className="text-sm text-gray-500 mt-1">{settings?.businessDays || '평일'} {settings?.businessHoursStart || '09:00'} - {settings?.businessHoursEnd || '18:00'}</p>
+                  </div>
                 </div>
-              )
-            })}
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">이메일 문의</h3>
+                    <p className="text-base text-blue-600 font-bold mt-1">{settings?.contactEmail || 'support@onthedeal.com'}</p>
+                    <p className="text-sm text-gray-500 mt-1">24시간 접수 가능</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">찾아오시는 길</h3>
+                    <p className="text-base text-gray-700 mt-1">{settings?.businessAddress || settings?.address || '서울특별시 강남구'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">운영 시간</h3>
+                    <p className="text-base text-gray-700 mt-1">{settings?.businessHoursStart || '09:00'} - {settings?.businessHoursEnd || '18:00'}</p>
+                    <p className="text-sm text-gray-500 mt-1">주말/공휴일 휴무</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
         {/* Contact Form */}
         <section className="container mx-auto px-4 sm:px-6 py-12">
           <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-gray-100">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center">
-                  <MessageSquare className="w-7 h-7 text-primary-600" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">문의 양식</h2>
-                  <p className="text-gray-500">아래 양식을 작성해 주시면 빠르게 답변드리겠습니다</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input
-                    label="이름"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="홍길동"
-                    required
-                  />
-                  <Input
-                    label="이메일"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your@email.com"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input
-                    label="연락처"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="010-1234-5678"
-                  />
-                  <Input
-                    label="문의 제목"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    placeholder="문의 제목을 입력하세요"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-base font-medium text-gray-700 mb-2">
-                    문의 내용
-                  </label>
-                  <textarea
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="문의 내용을 자세히 작성해 주세요"
-                    required
-                    rows={6}
-                    className="w-full px-5 py-4 text-base border-2 border-gray-200 rounded-2xl transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none hover:border-gray-300"
-                  />
-                </div>
-
-                {/* 개인정보 수집 동의 */}
-                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                  <div className="mb-4">
-                    <h4 className="text-base font-bold text-gray-900 mb-2">개인정보 수집 및 이용 동의</h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>수집 항목:</strong> 이름, 이메일, 연락처, 문의 내용</p>
-                      <p><strong>수집 목적:</strong> 문의 접수 및 답변, 서비스 개선</p>
-                      <p><strong>보유 기간:</strong> 문의 처리 완료 후 3년간 보관</p>
-                      <p className="text-gray-500 mt-2">
-                        * 개인정보 수집에 동의하지 않을 권리가 있으며, 동의 거부 시 문의 접수가 제한됩니다.
-                      </p>
-                    </div>
+            <Card className="shadow-2xl">
+              <CardContent className="py-10">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center">
+                    <MessageSquare className="w-7 h-7 text-primary-600" />
                   </div>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={privacyAgreed}
-                      onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                      className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
-                      개인정보 수집 및 이용에 동의합니다. <span className="text-red-500">*</span>
-                    </span>
-                  </label>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">문의 양식</h2>
+                    <p className="text-gray-500">아래 양식을 작성해 주시면 빠르게 답변드리겠습니다</p>
+                  </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  size="xl"
-                  className="w-full rounded-2xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/25"
-                  isLoading={loading}
-                  disabled={!privacyAgreed}
-                >
-                  <Send className="w-5 h-5 mr-2" />
-                  문의 접수하기
-                </Button>
-              </form>
-            </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="이름"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="홍길동"
+                      required
+                    />
+                    <Input
+                      label="이메일"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="your@email.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="연락처"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="010-1234-5678"
+                    />
+                    <Input
+                      label="문의 제목"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      placeholder="문의 제목을 입력하세요"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-base font-medium text-gray-700 mb-2">
+                      문의 내용
+                    </label>
+                    <textarea
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      placeholder="문의 내용을 자세히 작성해 주세요"
+                      required
+                      rows={6}
+                      className="w-full px-5 py-4 text-base border-2 border-gray-200 rounded-2xl transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none hover:border-gray-300"
+                    />
+                  </div>
+
+                  {/* 개인정보 수집 동의 */}
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <div className="mb-4">
+                      <h4 className="text-base font-bold text-gray-900 mb-2">개인정보 수집 및 이용 동의</h4>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p><strong>수집 항목:</strong> 이름, 이메일, 연락처, 문의 내용</p>
+                        <p><strong>수집 목적:</strong> 문의 접수 및 답변, 서비스 개선</p>
+                        <p><strong>보유 기간:</strong> 문의 처리 완료 후 3년간 보관</p>
+                        <p className="text-gray-500 mt-2">
+                          * 개인정보 수집에 동의하지 않을 권리가 있으며, 동의 거부 시 문의 접수가 제한됩니다.
+                        </p>
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={privacyAgreed}
+                        onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
+                        개인정보 수집 및 이용에 동의합니다. <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    size="xl"
+                    className="w-full rounded-2xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/25"
+                    isLoading={loading}
+                    disabled={!privacyAgreed}
+                  >
+                    <Send className="w-5 h-5 mr-2" />
+                    문의 접수하기
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
         {/* FAQ Section */}
         <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 mb-6 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-sm font-semibold whitespace-nowrap">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 mb-6 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-sm font-semibold">
               <HelpCircle className="w-4 h-4" />
               FAQ
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 whitespace-nowrap">자주 묻는 질문</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">자주 묻는 질문</h2>
           </div>
 
           <div className="max-w-3xl mx-auto space-y-4">
