@@ -47,10 +47,6 @@ const statusLabels: Record<string, { label: string; variant: 'default' | 'succes
 }
 
 const formatPrice = (price: number) => {
-  if (price >= 10000) {
-    const man = Math.floor(price / 10000)
-    return `${man}만원`
-  }
   return `${price.toLocaleString()}원`
 }
 

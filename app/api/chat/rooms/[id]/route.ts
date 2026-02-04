@@ -27,6 +27,10 @@ export async function GET(
             category: true,
             quantity: true,
             unit: true,
+            description: true,
+            deliveryDate: true,
+            deliveryAddress: true,
+            referenceImages: true,
           },
         },
         quote: {

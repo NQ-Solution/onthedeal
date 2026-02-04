@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Badge, Button, Input } from '@/components/ui'
-import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText, ChevronDown, ChevronUp, Eye } from 'lucide-react'
+import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText, ChevronDown, ChevronUp, Eye, Plus } from 'lucide-react'
 
 interface ChatRoom {
   id: string
@@ -15,9 +15,16 @@ interface ChatRoom {
     id: string
     title: string
     category: string
+    quantity?: number
+    unit?: string
+    description?: string
+    deliveryDate?: string
+    deliveryAddress?: string
+    referenceImages?: string[]
   } | null
   quote: {
     id: string
+    unitPrice?: number
     totalPrice: number
     deliveryDate: string
     status: string
@@ -98,6 +105,7 @@ const getStatusLabel = (status: string) => {
 
 export default function ChatPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const roomFromQuery = searchParams.get('room')
 
   const [rooms, setRooms] = useState<ChatRoom[]>([])
@@ -115,9 +123,17 @@ export default function ChatPage() {
   const [paymentMethod, setPaymentMethod] = useState<'bank' | 'card' | null>(null)
   const [imageViewerSrc, setImageViewerSrc] = useState<string | null>(null)
   const [showQuoteDetails, setShowQuoteDetails] = useState(false)
+  const [showRfqDetails, setShowRfqDetails] = useState(false)
+  // 금액 수정 관련 상태
+  const [showPriceEdit, setShowPriceEdit] = useState(false)
+  const [newTotalPrice, setNewTotalPrice] = useState<string>('')
+  const [isPriceUpdating, setIsPriceUpdating] = useState(false)
 
   useEffect(() => {
     fetchChatRooms()
+    // 채팅 목록도 5초마다 업데이트 (새 메시지 알림 확인)
+    const roomsInterval = setInterval(fetchChatRooms, 3000)
+    return () => clearInterval(roomsInterval)
   }, [])
 
   useEffect(() => {
@@ -131,9 +147,17 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // 실시간 업데이트: 1초 간격으로 폴링 (즉각적인 응답)
   useEffect(() => {
     if (!selectedRoomId) return
-    const interval = setInterval(() => fetchMessages(selectedRoomId), 5000)
+    // 초기 로드 즉시 실행
+    fetchRoomDetail(selectedRoomId)
+    fetchMessages(selectedRoomId)
+    // 1초마다 업데이트
+    const interval = setInterval(() => {
+      fetchMessages(selectedRoomId)
+      fetchRoomDetail(selectedRoomId) // 상태 변경도 빠르게 반영
+    }, 1000)
     return () => clearInterval(interval)
   }, [selectedRoomId])
 
@@ -342,6 +366,40 @@ export default function ChatPage() {
     }
   }
 
+  // 금액 수정 (협상용)
+  const handleUpdatePrice = async () => {
+    if (isPriceUpdating || !selectedRoom?.quote?.id) return
+    const priceNum = parseInt(newTotalPrice.replace(/,/g, ''), 10)
+    if (!priceNum || priceNum <= 0) {
+      alert('올바른 금액을 입력해주세요.')
+      return
+    }
+    if (!confirm(`금액을 ${priceNum.toLocaleString()}원으로 변경하시겠습니까?`)) return
+    setIsPriceUpdating(true)
+    try {
+      const res = await fetch(`/api/quotes/${selectedRoom.quote.id}/update-price`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newTotalPrice: priceNum }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert('금액이 수정되었습니다.')
+        setShowPriceEdit(false)
+        setNewTotalPrice('')
+        fetchRoomDetail(selectedRoomId!)
+        fetchMessages(selectedRoomId!)
+      } else {
+        alert(data.error || '금액 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error updating price:', error)
+      alert('금액 수정 중 오류가 발생했습니다.')
+    } finally {
+      setIsPriceUpdating(false)
+    }
+  }
+
   const activeRooms = rooms
     .filter(r => r.status !== 'expired')
     .sort((a, b) => {
@@ -468,17 +526,31 @@ export default function ChatPage() {
               </span>
             </div>
 
-            {/* 거래 요약 영역 - 항상 표시 */}
-            <div className="p-4 bg-gray-50 border-b">
+            {/* 거래 요약 영역 - 항상 표시 (최대 높이 제한으로 채팅 영역 확보) */}
+            <div className="p-4 bg-gray-50 border-b max-h-[40vh] overflow-y-auto">
               {/* 금액 + 납품일 */}
               {selectedRoom.quote && (
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-4">
                     <div>
                       <span className="text-xs text-gray-500">거래금액</span>
-                      <p className="font-bold text-xl text-primary-600">
-                        {selectedRoom.quote.totalPrice.toLocaleString()}원
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-xl text-primary-600">
+                          {selectedRoom.quote.totalPrice.toLocaleString()}원
+                        </p>
+                        {/* 협상 및 거래 진행 중일 때 금액 수정 버튼 표시 */}
+                        {(isActive || isDealConfirmed) && (
+                          <button
+                            onClick={() => {
+                              setNewTotalPrice(selectedRoom.quote!.totalPrice.toString())
+                              setShowPriceEdit(!showPriceEdit)
+                            }}
+                            className="text-xs text-primary-600 hover:text-primary-800 underline"
+                          >
+                            금액수정
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
@@ -492,8 +564,117 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {/* 제안 내용 확인 토글 (항상 표시, 단 isQuotePending이 아닐 때만) */}
-              {selectedRoom.quote && (selectedRoom.quote.note || (selectedRoom.quote.attachments && selectedRoom.quote.attachments.length > 0)) && !(isActive && isBuyer && isQuotePending) && (
+              {/* 금액 수정 입력 영역 */}
+              {showPriceEdit && selectedRoom.quote && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                  <p className="text-xs text-yellow-800 mb-2 font-medium">협상 금액 수정</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newTotalPrice}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '')
+                        setNewTotalPrice(val ? parseInt(val).toLocaleString() : '')
+                      }}
+                      placeholder="새 금액 입력"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-600">원</span>
+                    <Button
+                      size="sm"
+                      onClick={handleUpdatePrice}
+                      disabled={isPriceUpdating}
+                      className="text-xs"
+                    >
+                      {isPriceUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : '변경'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowPriceEdit(false)}
+                      className="text-xs"
+                    >
+                      취소
+                    </Button>
+                  </div>
+                  <p className="text-xs text-yellow-700 mt-2">
+                    * 금액 증가 시 추가 수수료가 차감될 수 있습니다
+                  </p>
+                </div>
+              )}
+
+              {/* 발주 상세보기 토글 */}
+              {selectedRoom.rfq && (
+                <div className="mb-3">
+                  <button
+                    onClick={() => setShowRfqDetails(!showRfqDetails)}
+                    className="flex items-center justify-between w-full bg-blue-50 hover:bg-blue-100 rounded-lg px-4 py-2.5 transition-colors"
+                  >
+                    <span className="flex items-center gap-2 text-sm font-medium text-blue-700">
+                      <FileText className="w-4 h-4" />
+                      발주 상세보기
+                    </span>
+                    {showRfqDetails ? (
+                      <ChevronUp className="w-4 h-4 text-blue-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-blue-500" />
+                    )}
+                  </button>
+
+                  {showRfqDetails && (
+                    <div className="mt-2 bg-white border rounded-lg p-4 space-y-3">
+                      {/* 발주 기본 정보 */}
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 p-2 rounded">
+                          <p className="text-gray-500 text-xs">수량</p>
+                          <p className="font-medium">{selectedRoom.rfq.quantity} {selectedRoom.rfq.unit}</p>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <p className="text-gray-500 text-xs">납품희망일</p>
+                          <p className="font-medium">{selectedRoom.rfq.deliveryDate ? new Date(selectedRoom.rfq.deliveryDate).toLocaleDateString('ko-KR') : '-'}</p>
+                        </div>
+                      </div>
+
+                      {/* 배송지 */}
+                      {selectedRoom.rfq.deliveryAddress && (
+                        <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                          <p className="text-gray-500 text-xs mb-1">배송지</p>
+                          <p>{selectedRoom.rfq.deliveryAddress}</p>
+                        </div>
+                      )}
+
+                      {/* 발주 설명 */}
+                      {selectedRoom.rfq.description && (
+                        <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                          <p className="text-gray-500 text-xs mb-1">발주 상세</p>
+                          <p className="whitespace-pre-line">{selectedRoom.rfq.description}</p>
+                        </div>
+                      )}
+
+                      {/* 발주 첨부 이미지 */}
+                      {selectedRoom.rfq.referenceImages && selectedRoom.rfq.referenceImages.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">발주 첨부이미지 ({selectedRoom.rfq.referenceImages.length}개) - 클릭하여 확대</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedRoom.rfq.referenceImages.map((img, idx) => (
+                              <img
+                                key={idx}
+                                src={img}
+                                alt={`발주 이미지 ${idx + 1}`}
+                                className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => setImageViewerSrc(img)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 제안 내용 확인 토글 (항상 표시) */}
+              {selectedRoom.quote && (
                 <div className="mb-3">
                   <button
                     onClick={() => setShowQuoteDetails(!showQuoteDetails)}
@@ -512,18 +693,32 @@ export default function ChatPage() {
 
                   {showQuoteDetails && (
                     <div className="mt-2 bg-white border rounded-lg p-4 space-y-3">
+                      {/* 제안 기본 정보 */}
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 p-2 rounded">
+                          <p className="text-gray-500 text-xs">단가</p>
+                          <p className="font-medium">{selectedRoom.quote.unitPrice?.toLocaleString() || '-'}원</p>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <p className="text-gray-500 text-xs">납품가능일</p>
+                          <p className="font-medium">{new Date(selectedRoom.quote.deliveryDate).toLocaleDateString('ko-KR')}</p>
+                        </div>
+                      </div>
+
                       {/* 제안 설명 */}
-                      {selectedRoom.quote.note && (
+                      {selectedRoom.quote.note ? (
                         <div className="bg-gray-50 p-3 rounded-lg text-sm">
                           <p className="text-gray-500 text-xs mb-1">제안 설명</p>
                           <p className="whitespace-pre-line">{selectedRoom.quote.note}</p>
                         </div>
+                      ) : (
+                        <p className="text-sm text-gray-400">제안 설명 없음</p>
                       )}
 
                       {/* 첨부파일 */}
-                      {selectedRoom.quote.attachments && selectedRoom.quote.attachments.length > 0 && (
+                      {selectedRoom.quote.attachments && selectedRoom.quote.attachments.length > 0 ? (
                         <div>
-                          <p className="text-xs text-gray-500 mb-2">첨부파일 (클릭하여 확대)</p>
+                          <p className="text-xs text-gray-500 mb-2">첨부파일 ({selectedRoom.quote.attachments.length}개) - 클릭하여 확대</p>
                           <div className="flex flex-wrap gap-2">
                             {selectedRoom.quote.attachments.map((file, idx) => {
                               const isImage = file.startsWith('data:image') || /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
@@ -550,6 +745,8 @@ export default function ChatPage() {
                             })}
                           </div>
                         </div>
+                      ) : (
+                        <p className="text-sm text-gray-400">첨부파일 없음</p>
                       )}
                     </div>
                   )}
@@ -807,11 +1004,32 @@ export default function ChatPage() {
               {/* 4. 거래 완료 */}
               {isDeliveryCompleted && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <p className="font-bold text-green-800 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    거래가 완료되었습니다
-                  </p>
-                  <p className="text-sm text-green-700 mt-1">감사합니다. 좋은 거래였습니다!</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-green-800 flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5" />
+                        거래가 완료되었습니다
+                      </p>
+                      <p className="text-sm text-green-700 mt-1">감사합니다. 좋은 거래였습니다!</p>
+                    </div>
+                    {isBuyer && (
+                      <Button
+                        onClick={() => router.push(`/buyer/rfqs/new?supplier=${selectedRoom.supplier?.id}&companyName=${encodeURIComponent(selectedRoom.supplier?.companyName || '')}`)}
+                        className="bg-primary-600 hover:bg-primary-700"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        이 업체에 새 발주
+                      </Button>
+                    )}
+                    {isSupplier && (
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push('/supplier/rfqs')}
+                      >
+                        새 발주 찾기
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -837,8 +1055,8 @@ export default function ChatPage() {
 
                   if (isSystem) {
                     return (
-                      <div key={message.id} className="flex justify-center">
-                        <div className="bg-white shadow-sm text-gray-600 text-xs px-4 py-2 rounded-full border">
+                      <div key={message.id} className="flex justify-center my-3">
+                        <div className="bg-gray-100 text-gray-600 text-sm px-4 py-2 rounded-full">
                           {message.content}
                         </div>
                       </div>
@@ -846,27 +1064,40 @@ export default function ChatPage() {
                   }
 
                   return (
-                    <div key={message.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] px-3 py-2 rounded-lg shadow-sm ${
-                        isMe ? 'bg-primary-500 text-white' : 'bg-white text-gray-900'
-                      }`}>
-                        {!isMe && (
-                          <p className="text-[10px] font-medium mb-0.5 opacity-70">{message.sender_name}</p>
-                        )}
-                        {message.image && (
-                          <img
-                            src={message.image}
-                            alt="첨부"
-                            className="max-w-full max-h-48 rounded mb-1 cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => setImageViewerSrc(message.image!)}
-                          />
-                        )}
-                        {message.content && message.content !== '[이미지]' && (
-                          <p className="text-sm whitespace-pre-wrap">{message.content.replace('[이미지]\n', '')}</p>
-                        )}
-                        <p className={`text-[10px] mt-0.5 ${isMe ? 'text-primary-200' : 'text-gray-400'}`}>
-                          {formatKoreanTime(message.created_at)}
-                        </p>
+                    <div key={message.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
+                      <div className={`flex ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end gap-2 max-w-[80%]`}>
+                        {/* 메시지 버블 */}
+                        <div className={`px-4 py-2.5 rounded-2xl shadow-sm ${
+                          isMe
+                            ? 'bg-primary-500 text-white rounded-br-md'
+                            : 'bg-white text-gray-900 border border-gray-100 rounded-bl-md'
+                        }`}>
+                          {!isMe && (
+                            <p className="text-xs font-semibold text-primary-600 mb-1">{message.sender_name}</p>
+                          )}
+                          {message.image && (
+                            <img
+                              src={message.image}
+                              alt="첨부"
+                              className="max-w-full max-h-48 rounded-lg mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => setImageViewerSrc(message.image!)}
+                            />
+                          )}
+                          {message.content && message.content !== '[이미지]' && (
+                            <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${isMe ? 'text-white' : 'text-gray-800'}`}>
+                              {message.content.replace('[이미지]\n', '')}
+                            </p>
+                          )}
+                        </div>
+                        {/* 시간 & 읽음 표시 (버블 바깥) */}
+                        <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} min-w-[45px]`}>
+                          <span className="text-[11px] text-gray-400">
+                            {formatKoreanTime(message.created_at)}
+                          </span>
+                          {isMe && message.is_read && (
+                            <span className="text-[11px] text-green-500 font-medium">읽음</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )
@@ -915,16 +1146,34 @@ export default function ChatPage() {
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           onClick={() => setImageViewerSrc(null)}
         >
-          <button
-            className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70"
-            onClick={() => setImageViewerSrc(null)}
-          >
-            <X className="w-6 h-6" />
-          </button>
+          {/* 상단 버튼들 */}
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            {/* 다운로드 버튼 */}
+            <a
+              href={imageViewerSrc}
+              download={`첨부파일_${Date.now()}.jpg`}
+              className="text-white bg-primary-500 hover:bg-primary-600 rounded-full p-2 flex items-center gap-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span className="text-sm hidden sm:inline">다운로드</span>
+            </a>
+            {/* 닫기 버튼 */}
+            <button
+              className="text-white bg-black/50 rounded-full p-2 hover:bg-black/70"
+              onClick={() => setImageViewerSrc(null)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
           <img
             src={imageViewerSrc}
             alt="확대 이미지"
-            className="max-w-full max-h-full object-contain rounded-lg"
+            className="max-w-full max-h-[85vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

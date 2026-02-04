@@ -12,9 +12,11 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Loader2
+  Loader2,
+  Coins,
+  XCircle
 } from 'lucide-react'
-import { Card, CardContent, Badge } from '@/components/ui'
+import { Card, CardContent, Badge, Button } from '@/components/ui'
 
 interface Stats {
   totalUsers: number
@@ -45,14 +47,39 @@ interface RecentActivity {
   createdAt: string
 }
 
+interface ChargeRequest {
+  id: string
+  supplierId: string
+  amount: number
+  status: string
+  paymentMethod: string | null
+  createdAt: string
+  supplier: {
+    id: string
+    email: string
+    companyName: string
+    contactName: string
+    credit: { balance: number } | null
+  } | null
+}
+
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<Stats | null>(null)
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([])
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
+  const [chargeRequests, setChargeRequests] = useState<ChargeRequest[]>([])
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
+    fetchChargeRequests()
+    // 10초마다 실시간 업데이트
+    const interval = setInterval(() => {
+      fetchData()
+      fetchChargeRequests()
+    }, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   const fetchData = async () => {
@@ -94,6 +121,18 @@ export default function AdminDashboardPage() {
     }
   }
 
+  const fetchChargeRequests = async () => {
+    try {
+      const res = await fetch('/api/admin/credits/requests')
+      if (res.ok) {
+        const data = await res.json()
+        setChargeRequests(data || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch charge requests:', error)
+    }
+  }
+
   const handleApprove = async (userId: string) => {
     try {
       const res = await fetch('/api/admin/users', {
@@ -106,6 +145,58 @@ export default function AdminDashboardPage() {
       }
     } catch (error) {
       console.error('Failed to approve user:', error)
+    }
+  }
+
+  const handleApproveCharge = async (requestId: string) => {
+    if (!confirm('이 충전 요청을 승인하시겠습니까?')) return
+
+    setProcessingRequestId(requestId)
+    try {
+      const res = await fetch('/api/admin/credits/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, action: 'approve' }),
+      })
+
+      if (res.ok) {
+        alert('충전이 승인되었습니다.')
+        fetchData()
+        fetchChargeRequests()
+      } else {
+        const data = await res.json()
+        alert(data.error || '승인에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('오류가 발생했습니다.')
+    } finally {
+      setProcessingRequestId(null)
+    }
+  }
+
+  const handleRejectCharge = async (requestId: string) => {
+    const note = prompt('반려 사유를 입력해주세요 (선택사항):')
+    if (note === null) return
+
+    setProcessingRequestId(requestId)
+    try {
+      const res = await fetch('/api/admin/credits/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, action: 'reject', note }),
+      })
+
+      if (res.ok) {
+        alert('요청이 반려되었습니다.')
+        fetchChargeRequests()
+      } else {
+        const data = await res.json()
+        alert(data.error || '반려에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('오류가 발생했습니다.')
+    } finally {
+      setProcessingRequestId(null)
     }
   }
 
@@ -211,25 +302,92 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* Alert Cards */}
-      {(stats?.pendingUsers || 0) > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-2 border-yellow-200 bg-yellow-50">
-            <CardContent className="py-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-yellow-200 rounded-xl flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-yellow-700" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">승인 대기</h3>
-                  <p className="text-sm text-yellow-700">{stats?.pendingUsers || 0}건의 회원가입 승인 대기 중</p>
-                </div>
+      {/* 대기 중인 충전 요청 */}
+      {chargeRequests.length > 0 && (
+        <Card className="shadow-lg border-2 border-orange-300 bg-orange-50">
+          <CardContent className="py-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-orange-200 rounded-xl flex items-center justify-center animate-pulse">
+                <Coins className="w-6 h-6 text-orange-700" />
               </div>
-              <Link href="/admin/users?filter=pending" className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-                바로가기 <ArrowRight className="w-4 h-4" />
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900">크레딧 충전 요청</h3>
+                <p className="text-sm text-orange-700">{chargeRequests.length}건의 충전 요청 대기 중</p>
+              </div>
+              <Link href="/admin/credits" className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+                전체 보기 <ArrowRight className="w-4 h-4" />
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="space-y-3">
+              {chargeRequests.slice(0, 3).map((req) => (
+                <div
+                  key={req.id}
+                  className="bg-white rounded-xl p-4 border-2 border-orange-200 flex items-center justify-between"
+                >
+                  <div>
+                    <p className="font-bold text-gray-900">{req.supplier?.companyName || '알 수 없음'}</p>
+                    <p className="text-sm text-gray-500">{formatDate(req.createdAt)}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl font-bold text-orange-600">
+                      {req.amount.toLocaleString()}원
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-300 text-red-600 hover:bg-red-50 px-2"
+                        onClick={() => handleRejectCharge(req.id)}
+                        disabled={processingRequestId === req.id}
+                      >
+                        {processingRequestId === req.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <XCircle className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 px-2"
+                        onClick={() => handleApproveCharge(req.id)}
+                        disabled={processingRequestId === req.id}
+                      >
+                        {processingRequestId === req.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Alert Cards */}
+      {((stats?.pendingUsers || 0) > 0 || (stats?.pendingInquiries || 0) > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {(stats?.pendingUsers || 0) > 0 && (
+            <Card className="border-2 border-yellow-200 bg-yellow-50">
+              <CardContent className="py-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-yellow-200 rounded-xl flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-yellow-700" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">승인 대기</h3>
+                    <p className="text-sm text-yellow-700">{stats?.pendingUsers || 0}건의 회원가입 승인 대기 중</p>
+                  </div>
+                </div>
+                <Link href="/admin/users?filter=pending" className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+                  바로가기 <ArrowRight className="w-4 h-4" />
+                </Link>
+              </CardContent>
+            </Card>
+          )}
 
           {(stats?.pendingInquiries || 0) > 0 && (
             <Card className="border-2 border-blue-200 bg-blue-50">

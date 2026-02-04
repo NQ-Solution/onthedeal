@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, MessageSquare, Check, X, Loader2, Building2, Calendar, MapPin } from 'lucide-react'
+import { ArrowLeft, MessageSquare, Check, X, Loader2, Building2, Calendar, MapPin, ZoomIn, Download, Image } from 'lucide-react'
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui'
 
 interface Quote {
@@ -38,6 +38,7 @@ interface RFQ {
   deliveryAddress: string
   status: string
   createdAt: string
+  referenceImages?: string[]
   quotes?: Quote[]
 }
 
@@ -56,14 +57,20 @@ const quoteStatusLabels: Record<string, { label: string; variant: 'default' | 's
 }
 
 const formatPrice = (price: number) => {
-  if (price >= 10000) {
-    return `${Math.floor(price / 10000)}만원`
-  }
   return `${price.toLocaleString()}원`
 }
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('ko-KR')
+}
+
+const handleDownloadImage = (imageUrl: string) => {
+  const link = document.createElement('a')
+  link.href = imageUrl
+  link.download = `image_${Date.now()}.${imageUrl.includes('png') ? 'png' : 'jpg'}`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 export default function BuyerRFQDetailPage() {
@@ -73,6 +80,7 @@ export default function BuyerRFQDetailPage() {
   const [rfq, setRfq] = useState<RFQ | null>(null)
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [processingQuoteId, setProcessingQuoteId] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   useEffect(() => {
     if (params.id) {
@@ -220,6 +228,29 @@ export default function BuyerRFQDetailPage() {
           <div>
             <p className="text-sm text-gray-500 mb-2">상세 설명</p>
             <p className="text-gray-700 bg-gray-50 p-4 rounded-xl whitespace-pre-wrap">{rfq.description}</p>
+            {rfq.referenceImages && rfq.referenceImages.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs text-gray-500 mb-2">첨부 이미지 (클릭하여 확대)</p>
+                <div className="flex flex-wrap gap-2">
+                  {rfq.referenceImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative group cursor-pointer"
+                      onClick={() => setSelectedImage(img)}
+                    >
+                      <img
+                        src={img}
+                        alt={`참고이미지 ${idx + 1}`}
+                        className="w-20 h-20 object-cover rounded-lg border transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <ZoomIn className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
             <div className="flex items-center gap-3">
@@ -341,6 +372,45 @@ export default function BuyerRFQDetailPage() {
           )}
         </div>
       </div>
+
+      {/* 이미지 뷰어 모달 */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full">
+            <img
+              src={selectedImage}
+              alt="확대 이미지"
+              className="max-w-full max-h-[85vh] object-contain mx-auto rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDownloadImage(selectedImage)
+                }}
+                className="p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+                title="다운로드"
+              >
+                <Download className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+                title="닫기"
+              >
+                <X className="w-5 h-5 text-gray-700" />
+              </button>
+            </div>
+            <p className="text-center text-white/80 text-sm mt-4">
+              클릭하여 닫기 · 다운로드 버튼으로 저장
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

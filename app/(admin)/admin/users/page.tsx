@@ -75,6 +75,9 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers()
+    // 10초마다 새 회원가입 확인 (실시간 업데이트)
+    const interval = setInterval(fetchUsers, 10000)
+    return () => clearInterval(interval)
   }, [statusFilter, roleFilter])
 
   const fetchUsers = async () => {
@@ -141,8 +144,109 @@ export default function AdminUsersPage() {
     )
   }
 
+  // 승인 대기 중인 회원만 필터
+  const pendingUsers = users.filter(u => u.approvalStatus === 'pending')
+
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-900">회원 관리</h1>
+      </div>
+
+      {/* 승인 대기 회원 섹션 */}
+      {pendingUsers.length > 0 && (
+        <Card className="shadow-lg border-2 border-yellow-300 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center animate-pulse">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
+              승인 대기 중인 회원
+              <Badge variant="warning" className="ml-2 text-lg px-3 py-1">{pendingUsers.length}명</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingUsers.map((user) => {
+                const role = roleLabels[user.role as keyof typeof roleLabels]
+                return (
+                  <div
+                    key={user.id}
+                    className="bg-white rounded-xl p-4 border-2 border-yellow-200 hover:border-yellow-300 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="font-bold text-lg text-gray-900">{user.companyName}</p>
+                          <Badge variant={role?.variant || 'default'}>{role?.label}</Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <p className="text-gray-600">
+                            <span className="text-gray-500">이메일:</span> {user.email}
+                          </p>
+                          <p className="text-gray-600">
+                            <span className="text-gray-500">담당자:</span> {user.contactName}
+                          </p>
+                          <p className="text-gray-600">
+                            <span className="text-gray-500">연락처:</span> {user.phone}
+                          </p>
+                          <p className="text-gray-600">
+                            <span className="text-gray-500">사업자번호:</span> {user.businessNumber || '-'}
+                          </p>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2">
+                          가입일: {formatDate(user.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        {/* 사업자등록증 미리보기 */}
+                        {user.businessLicenseImage ? (
+                          <Link href={`/admin/users/${user.id}`} className="flex-shrink-0">
+                            <img
+                              src={user.businessLicenseImage}
+                              alt="사업자등록증"
+                              className="w-24 h-32 object-cover rounded-lg border-2 border-gray-200 hover:border-primary-400 transition-colors cursor-pointer"
+                            />
+                            <p className="text-xs text-center text-gray-500 mt-1">클릭하여 확대</p>
+                          </Link>
+                        ) : (
+                          <div className="w-24 h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center flex-shrink-0">
+                            <p className="text-xs text-gray-400 text-center px-2">사업자등록증<br/>미등록</p>
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-2">
+                          <Link href={`/admin/users/${user.id}`}>
+                            <Button size="sm" variant="outline" className="w-full">
+                              <Eye className="w-4 h-4 mr-1" />
+                              상세보기
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 w-full"
+                            onClick={() => handleApprove(user.id)}
+                            disabled={actionLoading}
+                          >
+                            {actionLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Check className="w-4 h-4 mr-1" />
+                                승인
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="hover:shadow-lg transition-shadow">
@@ -251,13 +355,14 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">회사 정보</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">담당자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">역할</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">사업자번호</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">활동</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-4 py-4 text-center text-sm font-bold text-gray-700">사업자등록증</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">회사 정보</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">담당자</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">역할</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">사업자번호</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">상태</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">활동</th>
+                  <th className="px-4 py-4 text-center text-sm font-bold text-gray-700">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -266,32 +371,47 @@ export default function AdminUsersPage() {
                   const role = roleLabels[user.role as keyof typeof roleLabels]
                   return (
                     <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 text-center">
+                        {user.businessLicenseImage ? (
+                          <Link href={`/admin/users/${user.id}`}>
+                            <img
+                              src={user.businessLicenseImage}
+                              alt="사업자등록증"
+                              className="w-12 h-16 object-cover rounded border border-gray-200 hover:border-primary-400 transition-colors mx-auto"
+                            />
+                          </Link>
+                        ) : (
+                          <div className="w-12 h-16 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center mx-auto">
+                            <span className="text-xs text-gray-400">없음</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
                         <div>
                           <p className="font-bold text-gray-900">{user.companyName}</p>
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <div>
                           <p className="text-gray-900">{user.contactName}</p>
                           <p className="text-sm text-gray-500">{user.phone}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <Badge variant={role?.variant || 'default'}>{role?.label || user.role}</Badge>
                       </td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{user.businessNumber || '-'}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 text-gray-600 font-mono text-sm">{user.businessNumber || '-'}</td>
+                      <td className="px-4 py-3">
                         <Badge variant={status?.variant || 'default'}>{status?.label || user.approvalStatus}</Badge>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <div className="text-sm">
                           <p className="text-gray-600">RFQ: {user._count?.rfqs || 0}건</p>
                           <p className="text-gray-600">주문: {(user._count?.buyerOrders || 0) + (user._count?.supplierOrders || 0)}건</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-1">
                           <Link href={`/admin/users/${user.id}`}>
                             <Button

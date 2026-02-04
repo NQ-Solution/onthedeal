@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-// GET - 대기 중인 충전 요청 목록 조회
+// GET - 충전 요청 목록 조회
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -12,16 +12,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const requests = await prisma.creditCharge.findMany({
+    const { searchParams } = new URL(request.url)
+    const all = searchParams.get('all') === 'true'
+
+    // 대기 중인 요청
+    const pendingRequests = await prisma.creditCharge.findMany({
       where: { status: 'pending' },
       orderBy: { createdAt: 'desc' },
-    })
-
-    // Get supplier info for each request
-    const requestsWithSupplier = await Promise.all(
-      requests.map(async (req) => {
-        const supplier = await prisma.user.findUnique({
-          where: { id: req.supplierId },
+      include: {
+        supplier: {
           select: {
             id: true,
             email: true,
@@ -29,12 +28,34 @@ export async function GET(request: NextRequest) {
             contactName: true,
             credit: { select: { balance: true } },
           },
-        })
-        return { ...req, supplier }
-      })
-    )
+        },
+      },
+    })
 
-    return NextResponse.json(requestsWithSupplier)
+    // all=true인 경우 전체 요청 목록도 반환
+    if (all) {
+      const allRequests = await prisma.creditCharge.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        include: {
+          supplier: {
+            select: {
+              id: true,
+              email: true,
+              companyName: true,
+              contactName: true,
+            },
+          },
+        },
+      })
+
+      return NextResponse.json({
+        pending: pendingRequests,
+        all: allRequests,
+      })
+    }
+
+    return NextResponse.json(pendingRequests)
   } catch (error) {
     console.error('Admin credit requests error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

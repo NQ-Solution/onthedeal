@@ -74,6 +74,7 @@ model User {
   notifications         Notification[]
   credit                Credit?
   creditLogs            CreditLog[]
+  creditCharges         CreditCharge[]
   supplierAccount       SupplierAccount?
 
   @@index([role])
@@ -466,12 +467,15 @@ enum CreditLogType {
 model CreditCharge {
   id            String             @id @default(cuid())
   supplierId    String             @map("supplier_id")
+  supplier      User               @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   amount        Int
   status        CreditChargeStatus @default(pending)
   paymentMethod String?            @map("payment_method")
   createdAt     DateTime           @default(now()) @map("created_at")
   completedAt   DateTime?          @map("completed_at")
 
+  @@index([supplierId])
+  @@index([status])
   @@map("credit_charges")
 }
 

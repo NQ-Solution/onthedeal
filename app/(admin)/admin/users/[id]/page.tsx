@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -23,7 +23,9 @@ import {
   Package,
   Ban,
   RotateCcw,
-  Trash2
+  Trash2,
+  ZoomIn,
+  Download
 } from 'lucide-react'
 import { Button, Input, Card, CardHeader, CardTitle, CardContent, Badge, Textarea } from '@/components/ui'
 
@@ -73,8 +75,8 @@ const roleLabels = {
   admin: { label: '관리자', variant: 'error' as const, color: 'red' },
 }
 
-export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function UserDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
@@ -84,6 +86,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [showRejectForm, setShowRejectForm] = useState(false)
   const [showSuspendForm, setShowSuspendForm] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchUser()
@@ -223,6 +226,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const handleDownloadImage = (imageUrl: string) => {
+    const link = document.createElement('a')
+    link.href = imageUrl
+    link.download = `image_${Date.now()}.${imageUrl.includes('png') ? 'png' : 'jpg'}`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   if (loading) {
@@ -434,27 +446,46 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-orange-600" />
-                  첨부 이미지
+                  첨부 이미지 (클릭하여 확대)
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {user.profileImage && (
-                    <div>
+                    <div
+                      className="relative group cursor-pointer"
+                      onClick={() => setSelectedImage(user.profileImage!)}
+                    >
                       <p className="text-sm text-gray-500 mb-2">프로필 사진</p>
-                      <img src={user.profileImage} alt="프로필" className="w-full h-40 object-cover rounded-xl border-2 border-gray-200" />
+                      <img src={user.profileImage} alt="프로필" className="w-full h-40 object-cover rounded-xl border-2 border-gray-200 transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 mt-6 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <ZoomIn className="w-8 h-8 text-white" />
+                      </div>
                     </div>
                   )}
                   {user.businessLicenseImage && (
-                    <div>
+                    <div
+                      className="relative group cursor-pointer"
+                      onClick={() => setSelectedImage(user.businessLicenseImage!)}
+                    >
                       <p className="text-sm text-gray-500 mb-2">사업자등록증</p>
-                      <img src={user.businessLicenseImage} alt="사업자등록증" className="w-full h-40 object-cover rounded-xl border-2 border-gray-200" />
+                      <img src={user.businessLicenseImage} alt="사업자등록증" className="w-full h-40 object-cover rounded-xl border-2 border-gray-200 transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 mt-6 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <ZoomIn className="w-8 h-8 text-white" />
+                      </div>
                     </div>
                   )}
                   {user.storeImages && user.storeImages.map((img, i) => (
-                    <div key={i}>
+                    <div
+                      key={i}
+                      className="relative group cursor-pointer"
+                      onClick={() => setSelectedImage(img)}
+                    >
                       <p className="text-sm text-gray-500 mb-2">매장 사진 {i + 1}</p>
-                      <img src={img} alt={`매장 ${i + 1}`} className="w-full h-40 object-cover rounded-xl border-2 border-gray-200" />
+                      <img src={img} alt={`매장 ${i + 1}`} className="w-full h-40 object-cover rounded-xl border-2 border-gray-200 transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 mt-6 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <ZoomIn className="w-8 h-8 text-white" />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -666,6 +697,45 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </Card>
         </div>
       </div>
+
+      {/* 이미지 뷰어 모달 */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full">
+            <img
+              src={selectedImage}
+              alt="확대 이미지"
+              className="max-w-full max-h-[85vh] object-contain mx-auto rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDownloadImage(selectedImage)
+                }}
+                className="p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+                title="다운로드"
+              >
+                <Download className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+                title="닫기"
+              >
+                <X className="w-5 h-5 text-gray-700" />
+              </button>
+            </div>
+            <p className="text-center text-white/80 text-sm mt-4">
+              클릭하여 닫기 · 다운로드 버튼으로 저장
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

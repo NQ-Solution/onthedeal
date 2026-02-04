@@ -43,6 +43,9 @@ export function TopNav({ userRole, userName, userEmail, onLogout }: TopNavProps)
   useEffect(() => {
     if (userRole === 'supplier') {
       fetchCreditBalance()
+      // 5초마다 크레딧 잔액 업데이트
+      const interval = setInterval(fetchCreditBalance, 5000)
+      return () => clearInterval(interval)
     }
   }, [userRole])
 
@@ -59,9 +62,6 @@ export function TopNav({ userRole, userName, userEmail, onLogout }: TopNavProps)
   }
 
   const formatCredit = (amount: number) => {
-    if (amount >= 10000) {
-      return `${Math.floor(amount / 10000).toLocaleString()}만원`
-    }
     return `${amount.toLocaleString()}원`
   }
 

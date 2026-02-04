@@ -59,10 +59,12 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
   const menus = userRole === 'buyer' ? buyerMenus : supplierMenus
   const [creditBalance, setCreditBalance] = useState<number | null>(null)
 
-  // 공급자인 경우 크레딧 잔액 조회
+  // 공급자인 경우 크레딧 잔액 조회 (5초마다 업데이트)
   useEffect(() => {
     if (userRole === 'supplier') {
       fetchCreditBalance()
+      const interval = setInterval(fetchCreditBalance, 5000)
+      return () => clearInterval(interval)
     }
   }, [userRole])
 
@@ -79,9 +81,6 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
   }
 
   const formatCredit = (amount: number) => {
-    if (amount >= 10000) {
-      return `${Math.floor(amount / 10000).toLocaleString()}만원`
-    }
     return `${amount.toLocaleString()}원`
   }
 

@@ -151,6 +151,12 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
 
+        // 정적 파일 (이미지 등) 허용
+        const staticFileExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp', '.woff', '.woff2', '.ttf', '.eot']
+        if (staticFileExtensions.some(ext => pathname.endsWith(ext))) {
+          return true
+        }
+
         // 공개 페이지 허용
         if (
           pathname === '/' ||
@@ -179,5 +185,5 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.svg$|.*\\.ico$).*)'],
 }

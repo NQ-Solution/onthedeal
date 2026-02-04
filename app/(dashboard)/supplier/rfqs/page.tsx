@@ -46,6 +46,9 @@ export default function SupplierRFQsPage() {
 
   useEffect(() => {
     fetchData()
+    // 10초마다 새 발주 확인 (실시간 업데이트)
+    const interval = setInterval(fetchData, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   const fetchData = async () => {

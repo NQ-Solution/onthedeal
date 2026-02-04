@@ -70,9 +70,6 @@ const quoteStatusConfig: Record<string, { label: string; variant: 'default' | 's
 }
 
 const formatPrice = (price: number) => {
-  if (price >= 10000) {
-    return `${Math.floor(price / 10000)}만원`
-  }
   return `${price.toLocaleString()}원`
 }
 
@@ -144,17 +141,16 @@ export default function BuyerRFQsPage() {
     if (!confirm('이 제안을 수락하시겠습니까? 수락 후 채팅방에서 거래를 진행합니다.')) return
 
     try {
-      const res = await fetch(`/api/quotes/${quoteId}`, {
-        method: 'PATCH',
+      const res = await fetch(`/api/quotes/${quoteId}/accept`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'accept' })
       })
 
       if (res.ok) {
         const data = await res.json()
         alert('제안을 수락했습니다. 채팅방으로 이동합니다.')
-        if (data.chatRoomId) {
-          router.push(`/chat?room=${data.chatRoomId}`)
+        if (data.data?.chatRoom?.id) {
+          router.push(`/chat?room=${data.data.chatRoom.id}`)
         } else {
           router.push('/chat')
         }
@@ -280,7 +276,7 @@ export default function BuyerRFQsPage() {
                         className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors mt-2"
                       >
                         <span className="font-medium text-gray-700">
-                          받은 제안 {quoteCount}개 {lowestPrice > 0 && `· 최저가 ${formatPrice(lowestPrice)}`}
+                          받은 제안 <span className="font-bold text-primary-600">{quoteCount}개</span>
                         </span>
                         {isExpanded ? (
                           <ChevronUp className="w-5 h-5 text-gray-500" />
@@ -322,12 +318,7 @@ export default function BuyerRFQsPage() {
                                   <span className="text-xl font-bold text-primary-600">
                                     제안가 {formatPrice(quote.totalPrice)}
                                   </span>
-                                  {isLowest && (
-                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-medium">
-                                      최저가
-                                    </span>
-                                  )}
-                                  <Badge variant={quoteStatus.variant} className="text-xs px-2 py-0.5">
+                                                                    <Badge variant={quoteStatus.variant} className="text-xs px-2 py-0.5">
                                     <QuoteStatusIcon className="w-3 h-3 mr-1" />
                                     {quoteStatus.label}
                                   </Badge>

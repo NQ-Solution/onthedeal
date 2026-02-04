@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { siteConfig } from '@/lib/site-config'
 
 // 제안 목록 조회
 export async function GET(request: NextRequest) {
@@ -180,6 +181,7 @@ export async function POST(request: NextRequest) {
           totalPrice: totalPrice,
           deliveryDate: new Date(body.delivery_date),
           note: body.note || null,
+          attachments: body.attachments || [],
           status: 'pending',
           optionType: body.optionType || 'basic',
           commissionRate: 3.0, // 기본 수수료율 3%
@@ -206,8 +208,9 @@ export async function POST(request: NextRequest) {
       })
 
       // 4. 채팅방 생성 (제안과 동시에)
+      const chatExpiryDays = siteConfig.settings.chatExpiryDays || 3
       const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 3) // 3일 후 만료
+      expiresAt.setDate(expiresAt.getDate() + chatExpiryDays)
 
       const chatRoom = await tx.chatRoom.create({
         data: {

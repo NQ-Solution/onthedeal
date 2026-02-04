@@ -50,9 +50,6 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'succes
 }
 
 const formatPrice = (price: number) => {
-  if (price >= 10000) {
-    return `${Math.floor(price / 10000)}만원`
-  }
   return `${price.toLocaleString()}원`
 }
 
@@ -281,7 +278,7 @@ export default function BuyerQuotesPage() {
                           )}
                         </div>
                         <p className="text-sm text-gray-500">
-                          제안 {group.quotes.length}개 · 최저가 {formatPrice(lowestPrice)}
+                          제안 <span className="font-bold text-primary-600">{group.quotes.length}개</span> 도착
                         </p>
                       </div>
                     </div>
@@ -321,10 +318,7 @@ export default function BuyerQuotesPage() {
                               <div>
                                 <div className="flex items-center gap-2">
                                   <Building2 className="w-4 h-4 text-gray-400" />
-                                  <span className="font-medium text-gray-900">{quote.supplier?.companyName}</span>
-                                  {isLowest && (
-                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">최저가</span>
-                                  )}
+                                  <span className="font-bold text-gray-900">{quote.supplier?.companyName}</span>
                                 </div>
                                 <p className="text-sm text-gray-500 mt-1">
                                   납품 가능일: {formatDate(quote.deliveryDate)}
@@ -347,7 +341,7 @@ export default function BuyerQuotesPage() {
                                 </Button>
                               )}
                               <div className="text-right">
-                                <p className="text-xl font-bold text-primary-600">{formatPrice(quote.totalPrice)}</p>
+                                <p className="text-2xl font-bold text-primary-600">{formatPrice(quote.totalPrice)}</p>
                                 <p className="text-sm text-gray-500">단가 {formatPrice(quote.unitPrice)}</p>
                               </div>
                             </div>

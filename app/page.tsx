@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react'
+import { Menu, X, LayoutDashboard, LogOut, ArrowRight, Shield, Truck, Check } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { Footer } from '@/components/layout/Footer'
 
@@ -50,336 +50,473 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/30 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -left-20 w-60 h-60 bg-green-200/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-blue-200/20 rounded-full blur-2xl" />
+      </div>
+
       {/* Header */}
-      <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-100">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 sm:gap-3">
-            <LogoWithFallback className="w-10 h-10 sm:w-12 sm:h-12" />
-            <span className="font-bold text-xl sm:text-3xl text-gray-900">OnTheDeal</span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link href="/about" className="text-lg font-medium text-gray-600 hover:text-primary-600 transition-colors">
-              소개
+      <header className="relative z-50 backdrop-blur-md bg-white/80 border-b border-gray-100/50 sticky top-0">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex justify-between items-center">
+            <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+              <LogoWithFallback className="w-10 h-10 sm:w-12 sm:h-12 transition-transform group-hover:scale-110" />
+              <span className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">OnTheDeal</span>
             </Link>
-            <Link href="/contact" className="text-lg font-medium text-gray-600 hover:text-primary-600 transition-colors">
-              문의하기
-            </Link>
-          </nav>
 
-          {/* Desktop Buttons */}
-          <div className="hidden sm:flex gap-3 sm:gap-4">
-            {status === 'loading' ? (
-              <div className="w-24 h-10 bg-gray-100 rounded-lg animate-pulse"></div>
-            ) : session ? (
-              <>
-                <Link href={getDashboardPath()}>
-                  <Button variant="outline" size="md" className="sm:text-base gap-2">
-                    <LayoutDashboard className="w-4 h-4" />
-                    대시보드
-                  </Button>
-                </Link>
-                <Button
-                  variant="ghost"
-                  size="md"
-                  className="sm:text-base gap-2 text-gray-600 hover:text-red-600"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4" />
-                  로그아웃
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link href="/login">
-                  <Button variant="outline" size="md" className="sm:text-base">로그인</Button>
-                </Link>
-                <Link href="/register">
-                  <Button size="md" className="sm:text-base">회원가입</Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="sm:hidden p-2 rounded-lg hover:bg-gray-100"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-600" />
-            ) : (
-              <Menu className="w-6 h-6 text-gray-600" />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="sm:hidden mt-4 pb-4 border-t border-gray-100 pt-4">
-            <nav className="flex flex-col gap-3 mb-4">
-              <Link
-                href="/about"
-                className="text-lg font-medium text-gray-600 hover:text-primary-600 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
+              <Link href="/about" className="text-base font-medium text-gray-600 hover:text-primary-600 transition-all hover:-translate-y-0.5">
                 소개
               </Link>
-              <Link
-                href="/contact"
-                className="text-lg font-medium text-gray-600 hover:text-primary-600 py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link href="/contact" className="text-base font-medium text-gray-600 hover:text-primary-600 transition-all hover:-translate-y-0.5">
                 문의하기
               </Link>
             </nav>
-            <div className="flex flex-col gap-3">
-              {session ? (
+
+            {/* Desktop Buttons */}
+            <div className="hidden sm:flex gap-3">
+              {status === 'loading' ? (
+                <div className="w-24 h-10 bg-gray-100 rounded-xl animate-pulse"></div>
+              ) : session ? (
                 <>
-                  <Link href={getDashboardPath()} onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" size="lg" className="w-full gap-2">
-                      <LayoutDashboard className="w-5 h-5" />
+                  <Link href={getDashboardPath()}>
+                    <Button variant="outline" size="md" className="gap-2 rounded-xl border-2 hover:border-primary-300 hover:bg-primary-50">
+                      <LayoutDashboard className="w-4 h-4" />
                       대시보드
                     </Button>
                   </Link>
                   <Button
                     variant="ghost"
-                    size="lg"
-                    className="w-full gap-2 text-gray-600 hover:text-red-600"
-                    onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                    size="md"
+                    className="gap-2 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={handleLogout}
                   >
-                    <LogOut className="w-5 h-5" />
+                    <LogOut className="w-4 h-4" />
                     로그아웃
                   </Button>
                 </>
               ) : (
                 <>
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" size="lg" className="w-full">로그인</Button>
+                  <Link href="/login">
+                    <Button variant="ghost" size="md" className="text-gray-600 hover:text-primary-600">로그인</Button>
                   </Link>
-                  <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                    <Button size="lg" className="w-full">회원가입</Button>
+                  <Link href="/register">
+                    <Button size="md" className="rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/25">회원가입</Button>
                   </Link>
                 </>
               )}
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-gray-600" />
+              ) : (
+                <Menu className="w-6 h-6 text-gray-600" />
+              )}
+            </button>
           </div>
-        )}
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="sm:hidden mt-4 pb-4 border-t border-gray-100 pt-4 animate-in slide-in-from-top-2">
+              <nav className="flex flex-col gap-2 mb-4">
+                <Link
+                  href="/about"
+                  className="text-lg font-medium text-gray-600 hover:text-primary-600 py-3 px-4 rounded-xl hover:bg-gray-50"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  소개
+                </Link>
+                <Link
+                  href="/contact"
+                  className="text-lg font-medium text-gray-600 hover:text-primary-600 py-3 px-4 rounded-xl hover:bg-gray-50"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  문의하기
+                </Link>
+              </nav>
+              <div className="flex flex-col gap-3">
+                {session ? (
+                  <>
+                    <Link href={getDashboardPath()} onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" size="lg" className="w-full gap-2 rounded-xl">
+                        <LayoutDashboard className="w-5 h-5" />
+                        대시보드
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      className="w-full gap-2 text-gray-600 hover:text-red-600"
+                      onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                    >
+                      <LogOut className="w-5 h-5" />
+                      로그아웃
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" size="lg" className="w-full rounded-xl">로그인</Button>
+                    </Link>
+                    <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                      <Button size="lg" className="w-full rounded-xl">회원가입</Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* Main Hero */}
-        <div className="mb-10 sm:mb-16">
-          <div className="bg-primary-500 rounded-xl sm:rounded-2xl p-6 sm:p-10 lg:p-16 text-white">
-            <div className="max-w-2xl">
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight">
-                사장님, 거래처 찾는 일은<br />여기서 끝내세요
+      <main className="relative z-10">
+        {/* Main Hero - Immersive Design */}
+        <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/homepageheroimg.png"
+              alt="신선한 고기"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+            {/* Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+          </div>
+
+          {/* Animated Particles/Shapes */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 right-[10%] w-64 h-64 bg-primary-500/20 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-20 right-[30%] w-48 h-48 bg-green-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+            <div className="absolute top-1/3 left-[5%] w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse delay-500" />
+          </div>
+
+          {/* Content */}
+          <div className="relative container mx-auto px-4 sm:px-6 py-20">
+            <div className="max-w-3xl">
+              {/* Floating Badge */}
+              <div className="inline-flex items-center px-5 py-2.5 mb-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-sm font-semibold whitespace-nowrap">
+                식당 사장님을 위한 축산물 발주 플랫폼
+              </div>
+
+              {/* Main Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-[1.1] text-white">
+                식당 발주,
+                <br />
+                전화 말고
+                <br />
+                <span className="relative inline-block mt-2">
+                  <span className="bg-gradient-to-r from-primary-400 via-primary-300 to-green-400 bg-clip-text text-transparent">
+                    '발주 한 번'
+                  </span>
+                  <span className="text-white">으로</span>
+                </span>
               </h1>
-              <p className="text-base sm:text-xl lg:text-2xl text-white/90 mb-6 sm:mb-8 leading-relaxed">
-                간단한 발주서 하나면 제안이 모이고 거래가 끝납니다.
+
+              <p className="text-xl sm:text-2xl text-white/80 mb-10 max-w-xl leading-relaxed">
+                <span className="whitespace-nowrap">비교도 쉽고 발주도 빠르게.</span>
+                <br className="hidden sm:block" />
+                <span className="whitespace-nowrap">지금 바로 시작하세요.</span>
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Link href={session ? (session.user?.role === 'buyer' ? '/buyer/rfqs' : session.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=buyer') : '/register?role=buyer'} className="w-full sm:w-auto">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-white text-primary-600 hover:bg-gray-100">
-                    {session?.user?.role === 'buyer' ? '구매자 대시보드' : '구매자로 시작하기'}
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                <Link href={session ? (session.user?.role === 'buyer' ? '/buyer/rfqs' : session.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=buyer') : '/register?role=buyer'}>
+                  <Button size="xl" className="w-full sm:w-auto rounded-2xl bg-white text-gray-900 hover:bg-gray-100 shadow-2xl shadow-white/20 gap-2 text-lg px-8 font-bold">
+                    {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
+                    <ArrowRight className="w-5 h-5" />
                   </Button>
                 </Link>
-                <Link href={session ? (session.user?.role === 'supplier' ? '/supplier/rfqs' : session.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=supplier') : '/register?role=supplier'} className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/20">
+                <Link href={session ? (session.user?.role === 'supplier' ? '/supplier/rfqs' : session.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=supplier') : '/register?role=supplier'}>
+                  <Button size="xl" variant="outline" className="w-full sm:w-auto rounded-2xl border-2 border-white/50 text-white hover:bg-white/10 hover:border-white gap-2 text-lg px-8 font-bold backdrop-blur-sm">
                     {session?.user?.role === 'supplier' ? '판매자 대시보드' : '판매자로 시작하기'}
                   </Button>
                 </Link>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* How It Works - For Buyers & Suppliers */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-16">
-          {/* For Buyers */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
-            <div className="mb-4 sm:mb-6">
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">구매자</h3>
-              <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                필요한 발주 내용을 간편히 등록하면<br className="hidden sm:block" />
-                다양한 제안을 받을 수 있어요
-              </p>
-            </div>
-            <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8 text-base sm:text-lg">
-              <li className="flex items-start gap-3 sm:gap-4">
-                <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0">1</span>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서 작성</p>
-                  <p className="text-gray-600 text-sm sm:text-base">필요한 품목을 자유롭게 등록</p>
+              {/* Stats Row */}
+              <div className="flex flex-wrap gap-6 sm:gap-10">
+                <div className="text-center">
+                  <p className="text-3xl sm:text-4xl font-bold text-white whitespace-nowrap">무료</p>
+                  <p className="text-sm text-white/60 mt-1 whitespace-nowrap">등록비·수수료</p>
                 </div>
-              </li>
-              <li className="flex items-start gap-3 sm:gap-4">
-                <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0">2</span>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg sm:text-xl">조건 확인</p>
-                  <p className="text-gray-600 text-sm sm:text-base">여러 판매자의 조건이 한눈에</p>
+                <div className="w-px h-12 bg-white/20 hidden sm:block" />
+                <div className="text-center">
+                  <p className="text-3xl sm:text-4xl font-bold text-green-400 whitespace-nowrap">0원</p>
+                  <p className="text-sm text-white/60 mt-1 whitespace-nowrap">광고비</p>
                 </div>
-              </li>
-              <li className="flex items-start gap-3 sm:gap-4">
-                <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0">3</span>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg sm:text-xl">거래 확정</p>
-                  <p className="text-gray-600 text-sm sm:text-base">채팅으로 최종 협의 후 안심 결제</p>
+                <div className="w-px h-12 bg-white/20 hidden sm:block" />
+                <div className="text-center">
+                  <p className="text-3xl sm:text-4xl font-bold text-primary-400 whitespace-nowrap">직거래</p>
+                  <p className="text-sm text-white/60 mt-1 whitespace-nowrap">거래 방식</p>
                 </div>
-              </li>
-            </ol>
-            <Link href={session?.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer'}>
-              <Button size="lg" className="w-full text-base sm:text-xl py-4 sm:py-5">
-                {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
-              </Button>
-            </Link>
-          </div>
-
-          {/* For Suppliers */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
-            <div className="mb-4 sm:mb-6">
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">판매자</h3>
-              <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                구매자의 발주요청을 확인하고<br className="hidden sm:block" />
-                가능한 조건으로 제안하세요
-              </p>
-            </div>
-            <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8 text-base sm:text-lg">
-              <li className="flex items-start gap-3 sm:gap-4">
-                <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0">1</span>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서 검색</p>
-                  <p className="text-gray-600 text-sm sm:text-base">납품 가능한 발주를 찾아보세요</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 sm:gap-4">
-                <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0">2</span>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg sm:text-xl">조건 제안하기</p>
-                  <p className="text-gray-600 text-sm sm:text-base">품질, 가격, 납품조건 등을 제안하세요</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 sm:gap-4">
-                <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0">3</span>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg sm:text-xl">거래 확정</p>
-                  <p className="text-gray-600 text-sm sm:text-base">결제 완료 후 공식 거래 이력 축적</p>
-                </div>
-              </li>
-            </ol>
-            <Link href={session?.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier'}>
-              <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-base sm:text-xl py-4 sm:py-5">
-                {session?.user?.role === 'supplier' ? '발주 확인하기' : '판매자로 시작하기'}
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="mb-10 sm:mb-16">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">안전하고 편리한 거래</h2>
-            <p className="text-lg sm:text-xl text-gray-500">온더딜이 거래의 모든 과정을 도와드립니다</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="text-center p-6 sm:p-8">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                <span className="text-2xl sm:text-4xl font-bold text-primary-600">1</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">간편한 발주</h3>
-              <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                복잡한 과정 없이 필요한 것만 입력하면
-                다양한 제안을 받아볼 수 있어요
-              </p>
-            </div>
-            <div className="text-center p-6 sm:p-8">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                <span className="text-2xl sm:text-4xl font-bold text-blue-600">2</span>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">실시간 채팅</h3>
-              <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                가격, 품질, 배송 등 세부 조건을
-                직접 소통하며 조율하세요
-              </p>
-            </div>
-            <div className="text-center p-6 sm:p-8">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                <span className="text-2xl sm:text-4xl font-bold text-green-600">3</span>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">안전한 에스크로</h3>
-              <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                결제 대금은 상품 수령 확인 전까지
-                안전하게 보호됩니다
-              </p>
             </div>
           </div>
-        </div>
 
-        {/* Trust Section */}
-        <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-6 sm:p-10 mb-10 sm:mb-16">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">구매자와 판매자 모두를 보호합니다</h2>
+          {/* Scroll Indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/50 animate-bounce">
+            <span className="text-xs mb-2">스크롤</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl p-6 sm:p-8 border border-gray-200">
-              <h4 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">구매자 보호</h4>
-              <ul className="space-y-3 sm:space-y-4 text-base sm:text-lg">
-                <li className="flex items-center gap-3 text-gray-700">
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
-                  <span>상품 수령 확인 전까지 대금 보호</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-700">
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
-                  <span>검증된 판매자만 참여</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-700">
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
-                  <span>문제 발생 시 중재 지원</span>
-                </li>
-              </ul>
-            </div>
-            <div className="bg-white rounded-xl p-6 sm:p-8 border border-gray-200">
-              <h4 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">판매자 보호</h4>
-              <ul className="space-y-3 sm:space-y-4 text-base sm:text-lg">
-                <li className="flex items-center gap-3 text-gray-700">
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
-                  <span>결제 확인 후 배송 진행</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-700">
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
-                  <span>배송 완료 후 빠른 정산</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-700">
-                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm flex-shrink-0">✓</span>
-                  <span>신뢰할 수 있는 구매자 풀</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        </section>
 
-        {/* CTA Section */}
-        <div className="bg-primary-500 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">쉽고 공정한 거래가 가능한 OnTheDeal</h2>
-          <p className="text-base sm:text-xl text-white/90 mb-6 sm:mb-8 max-w-xl mx-auto">
-            입점비X, 광고비X, 무료 회원가입으로 시작하세요.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Link href={session ? getDashboardPath() : '/register'} className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto bg-white text-primary-600 hover:bg-gray-100 text-base sm:text-xl">
-                {session ? '대시보드로 이동' : '무료로 시작하기'}
-              </Button>
-            </Link>
-            <Link href="/about" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/10 text-base sm:text-xl">
-                자세히 알아보기
-              </Button>
-            </Link>
+        {/* Bento Grid Section - Buyer & Supplier */}
+        <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+            {/* Buyer Card - Large */}
+            <div className="lg:col-span-3 group">
+              <div className="h-full bg-gradient-to-br from-primary-50 via-white to-blue-50 rounded-3xl p-6 sm:p-10 border-2 border-primary-100 hover:border-primary-300 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 rounded-full text-primary-700 text-sm font-medium mb-4 whitespace-nowrap">
+                      구매자
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">식당 사장님이라면?</h3>
+                    <p className="text-lg text-gray-600">전화 없이 축산물 공급 받기</p>
+                  </div>
+                  <div className="hidden sm:flex w-16 h-16 bg-primary-100 rounded-2xl items-center justify-center group-hover:scale-110 transition-transform">
+                    <Truck className="w-8 h-8 text-primary-600" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                  {[
+                    '축산물 발주 등록비·수수료 무료',
+                    '여러 공급 업체 조건 간편 비교',
+                    '배송비 포함된 조건 간편 확인 가능',
+                    '이후 주문은 즉시 처리 가능',
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-primary-100/50">
+                      <div className="w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-gray-700 text-sm sm:text-base">{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Link href={session?.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer'}>
+                  <Button size="lg" className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/25 gap-2">
+                    {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Supplier Card */}
+            <div className="lg:col-span-2 group">
+              <div className="h-full bg-gradient-to-br from-green-50 via-white to-emerald-50 rounded-3xl p-6 sm:p-8 border-2 border-green-100 hover:border-green-300 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10 hover:-translate-y-1">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4 whitespace-nowrap">
+                      판매자
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">축산물 판매업자라면?</h3>
+                    <p className="text-base text-gray-600">식당 발주 확인 후 제안</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-6">
+                  {[
+                    '별도 광고비 없음',
+                    '여러 매장에 공급 가능',
+                    '발주 내용 알림 가능',
+                    '이후 주문 처리 가능',
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-gray-700 text-sm">{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Link href={session?.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier'}>
+                  <Button size="lg" className="w-full rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg shadow-green-500/25 gap-2">
+                    {session?.user?.role === 'supplier' ? '발주 확인하기' : '판매자로 시작하기'}
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        {/* Process Section - Unique Cards */}
+        <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4 whitespace-nowrap">
+              온더딜에서는 거래가 복잡하지 않아요
+            </h2>
+            <p className="text-lg text-gray-500 whitespace-nowrap">온더딜이 거래의 모든 과정을 도와드립니다</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+            {/* Step 1 */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 rounded-3xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity" />
+              <div className="relative bg-white rounded-3xl p-8 border border-gray-100 hover:border-primary-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">1</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">간편한 발주</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  복잡한 과정 없이 필요한 것만 입력하면 다양한 제안을 받아볼 수 있어요
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-3xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity" />
+              <div className="relative bg-white rounded-3xl p-8 border border-gray-100 hover:border-blue-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">2</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">실시간 채팅</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  가격, 품질, 배송 등 세부 조건을 직접 소통하며 조율하세요
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 rounded-3xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity" />
+              <div className="relative bg-white rounded-3xl p-8 border border-gray-100 hover:border-green-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">3</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">입금하고 납품 받으면 끝</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  복잡한 절차 없이 입금 후 납품 받으면 거래가 완료됩니다
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Section - Modern Cards */}
+        <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          <div className="relative">
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary-50 via-white to-green-50 rounded-[3rem] -z-10" />
+
+            <div className="py-12 sm:py-16 px-4 sm:px-10">
+              <div className="text-center mb-12 sm:mb-16">
+                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white rounded-full shadow-sm border border-gray-100 text-gray-700 text-sm font-semibold mb-6 whitespace-nowrap">
+                  <Shield className="w-4 h-4 text-primary-600" />
+                  안전한 거래 시스템
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 whitespace-nowrap">
+                  구매자와 판매자 모두를 보호합니다
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+                {/* Buyer Protection */}
+                <div className="bg-white rounded-3xl p-8 shadow-xl shadow-primary-500/5 border border-primary-100/50 hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-300">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-primary-600" />
+                    </div>
+                    <h4 className="text-xl font-bold text-gray-900 whitespace-nowrap">구매자 보호</h4>
+                  </div>
+                  <ul className="space-y-4">
+                    {[
+                      '상품 수령 확인 전까지 대금 보호',
+                      '검증된 판매자만 참여',
+                      '문제 발생 시 중재 지원',
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-gray-700">
+                        <div className="w-6 h-6 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Check className="w-4 h-4 text-primary-600" />
+                        </div>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Seller Protection */}
+                <div className="bg-white rounded-3xl p-8 shadow-xl shadow-green-500/5 border border-green-100/50 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-300">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-green-600" />
+                    </div>
+                    <h4 className="text-xl font-bold text-gray-900 whitespace-nowrap">판매자 보호</h4>
+                  </div>
+                  <ul className="space-y-4">
+                    {[
+                      '결제 확인 후 배송 진행',
+                      '배송 완료 후 빠른 정산',
+                      '신뢰할 수 있는 구매자 풀',
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-gray-700">
+                        <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Check className="w-4 h-4 text-green-600" />
+                        </div>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA Section */}
+        <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          <div className="relative overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-[2rem] sm:rounded-[3rem]" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-60 h-60 bg-green-400/20 rounded-full blur-3xl" />
+
+            {/* Content */}
+            <div className="relative px-6 sm:px-12 py-12 sm:py-16 text-center">
+              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-6 whitespace-nowrap">
+                쉽고 공정한 거래가 가능한 OnTheDeal
+              </h2>
+              <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-xl mx-auto whitespace-nowrap">
+                입점비X, 광고비X, 무료 회원가입으로 시작하세요.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href={session ? getDashboardPath() : '/register'}>
+                  <Button size="xl" className="w-full sm:w-auto bg-white text-primary-600 hover:bg-gray-100 rounded-2xl shadow-xl shadow-black/10 gap-2 text-lg px-8">
+                    {session ? '대시보드로 이동' : '무료로 시작하기'}
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link href="/about">
+                  <Button size="xl" variant="outline" className="w-full sm:w-auto border-2 border-white/50 text-white hover:bg-white/10 rounded-2xl gap-2 text-lg px-8">
+                    자세히 알아보기
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Send, AlertCircle, Loader2, Calendar, MapPin, Building2, Upload, FileText, CheckCircle, Image, X } from 'lucide-react'
+import { ArrowLeft, Send, AlertCircle, Loader2, Calendar, MapPin, Building2, Upload, FileText, CheckCircle, Image, X, Download, ZoomIn } from 'lucide-react'
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui'
 
 interface RFQ {
@@ -52,6 +52,7 @@ export default function SupplierRFQDetailPage() {
     description: '',
     deliveryDate: '',
   })
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   useEffect(() => {
     if (params.id) {
@@ -194,6 +195,16 @@ export default function SupplierRFQDetailPage() {
     })
   }
 
+  // 이미지 다운로드 함수
+  const handleDownloadImage = (imageUrl: string) => {
+    const link = document.createElement('a')
+    link.href = imageUrl
+    link.download = `image_${Date.now()}.${imageUrl.includes('png') ? 'png' : 'jpg'}`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -249,15 +260,23 @@ export default function SupplierRFQDetailPage() {
               </div>
               {rfq.referenceImages && rfq.referenceImages.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs text-gray-500 mb-2">첨부 이미지</p>
+                  <p className="text-xs text-gray-500 mb-2">첨부 이미지 (클릭하여 확대)</p>
                   <div className="flex flex-wrap gap-2">
                     {rfq.referenceImages.map((img, idx) => (
-                      <img
+                      <div
                         key={idx}
-                        src={img}
-                        alt={`참고이미지 ${idx + 1}`}
-                        className="w-20 h-20 object-cover rounded-lg border"
-                      />
+                        className="relative group cursor-pointer"
+                        onClick={() => setSelectedImage(img)}
+                      >
+                        <img
+                          src={img}
+                          alt={`참고이미지 ${idx + 1}`}
+                          className="w-20 h-20 object-cover rounded-lg border transition-transform group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <ZoomIn className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -529,6 +548,45 @@ export default function SupplierRFQDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 이미지 뷰어 모달 */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full">
+            <img
+              src={selectedImage}
+              alt="확대 이미지"
+              className="max-w-full max-h-[85vh] object-contain mx-auto rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDownloadImage(selectedImage)
+                }}
+                className="p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+                title="다운로드"
+              >
+                <Download className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+                title="닫기"
+              >
+                <X className="w-5 h-5 text-gray-700" />
+              </button>
+            </div>
+            <p className="text-center text-white/80 text-sm mt-4">
+              클릭하여 닫기 · 다운로드 버튼으로 저장
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
