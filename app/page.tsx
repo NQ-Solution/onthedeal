@@ -187,7 +187,7 @@ export default function HomePage() {
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
                 거래처 찾는 일은
                 <br />
-                <span className="text-yellow-300 underline decoration-4">발주서</span> 작성 한 번으로
+                {`'발주서'`} 작성 한 번으로
                 <br />
                 끝낼 수 있어요
               </h1>
@@ -220,12 +220,13 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
                 <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">식당 사장님이라면?</h3>
+                <p className="text-lg sm:text-xl text-gray-500">필요한 발주 내용을 간편히 등록하면 다양한 제안을 받을 수 있어요</p>
               </div>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl"><span className="text-primary-600 underline decoration-2">발주서</span> 작성</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">{`'발주서'`} 작성</p>
                     <p className="text-gray-600 text-sm sm:text-base">필요한 품목 자유롭게 등록</p>
                   </div>
                 </li>
@@ -255,13 +256,13 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
                 <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">축산물 판매자라면?</h3>
-                <p className="text-lg sm:text-xl text-gray-500">구매자의 <span className="text-green-600 font-bold underline decoration-2">발주</span>요청을 확인하고 가능한 조건으로 제안하세요</p>
+                <p className="text-lg sm:text-xl text-gray-500">{`구매자의 '발주'요청을 확인하고 가능한 조건으로 제안하세요`}</p>
               </div>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl"><span className="text-green-600 underline decoration-2">발주서</span> 검색</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">{`'발주서'`} 검색</p>
                     <p className="text-gray-600 text-sm sm:text-base">납품 가능한 발주를 찾아보세요</p>
                   </div>
                 </li>
