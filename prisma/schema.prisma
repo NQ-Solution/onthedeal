@@ -106,6 +106,10 @@ model RFQ {
   buyerId         String    @map("buyer_id")
   buyer           User      @relation("BuyerRFQs", fields: [buyerId], references: [id], onDelete: Cascade)
 
+  // 특정 공급자 타겟팅 (재발주용)
+  targetSupplierId String?   @map("target_supplier_id")
+  isTargeted       Boolean   @default(false) @map("is_targeted")  // 특정 공급자에게만 보이는 발주인지
+
   title           String
   category        String
   description     String

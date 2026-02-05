@@ -243,34 +243,28 @@ export default function HomePage() {
             {/* For Buyers */}
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">구매자</h3>
-                <p className="text-lg sm:text-xl text-gray-500">간편한 발주서 작성</p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">식당 사장님이라면</h3>
               </div>
-              <p className="text-lg sm:text-xl text-gray-700 mb-6 sm:mb-8 leading-relaxed">
-                사장님, 기존처럼 발주서 작성하세요.<br />
-                대신 <span className="font-bold text-primary-600">간편하게 등록</span>하고<br />
-                <span className="font-bold text-primary-600">다양한 조건을 한번에 비교</span>해보세요!
-              </p>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서를 작성하세요</p>
-                    <p className="text-gray-600 text-sm sm:text-base">품목, 수량, 희망가격을 입력하면 끝</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서 작성</p>
+                    <p className="text-gray-600 text-sm sm:text-base">필요한 품목 자유롭게 등록</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">2</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">제안을 비교하세요</p>
-                    <p className="text-gray-600 text-sm sm:text-base">여러 판매자의 가격과 조건을 한눈에</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">조건 확인</p>
+                    <p className="text-gray-600 text-sm sm:text-base">여러 판매자의 조건이 한눈에</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">3</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">안전하게 거래하세요</p>
-                    <p className="text-gray-600 text-sm sm:text-base">채팅으로 협의하고, 에스크로로 결제</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">거래 확정</p>
+                    <p className="text-gray-600 text-sm sm:text-base">채팅으로 최종 협의 후 안심 결제</p>
                   </div>
                 </li>
               </ol>
@@ -284,34 +278,29 @@ export default function HomePage() {
             {/* For Suppliers */}
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">판매자</h3>
-                <p className="text-lg sm:text-xl text-gray-500">빠른 판매 결정</p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">축산물 판매자라면</h3>
+                <p className="text-lg sm:text-xl text-gray-500">구매자의 발주요청을 확인하고 가능한 조건으로 제안하세요</p>
               </div>
-              <p className="text-lg sm:text-xl text-gray-700 mb-6 sm:mb-8 leading-relaxed">
-                판매자님, 기다리지 마세요.<br />
-                <span className="font-bold text-green-600">납품 가능한 조건을 확인</span>하고<br />
-                <span className="font-bold text-green-600">바로 제안을 제출</span>하세요!
-              </p>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주를 탐색하세요</p>
-                    <p className="text-gray-600 text-sm sm:text-base">내 상품에 맞는 발주를 찾아보세요</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서 검색</p>
+                    <p className="text-gray-600 text-sm sm:text-base">납품 가능한 발주를 찾아보세요</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">2</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">제안을 제출하세요</p>
-                    <p className="text-gray-600 text-sm sm:text-base">경쟁력 있는 가격으로 제안하세요</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">조건 제안하기</p>
+                    <p className="text-gray-600 text-sm sm:text-base">품질, 가격, 납품조건 등 제안하세요</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">3</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">거래를 성사시키세요</p>
-                    <p className="text-gray-600 text-sm sm:text-base">협의 후 결제 확인, 배송, 정산까지</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl">거래확정</p>
+                    <p className="text-gray-600 text-sm sm:text-base">결제 완료 후 거래 이력 축적</p>
                   </div>
                 </li>
               </ol>
@@ -368,9 +357,9 @@ export default function HomePage() {
                 <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">3</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">입금하고 납품 받으면 끝</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">안전한 에스크로</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  복잡한 절차 없이 입금 후 납품 받으면 거래가 완료됩니다
+                  결제 대금은 상품 수령 확인 전까지 안전하게 보호됩니다
                 </p>
               </div>
             </div>

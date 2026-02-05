@@ -1143,7 +1143,7 @@ export default function ChatPage() {
       {/* 이미지 뷰어 모달 */}
       {imageViewerSrc && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"
           onClick={() => setImageViewerSrc(null)}
         >
           {/* 상단 버튼들 */}

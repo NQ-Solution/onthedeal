@@ -21,9 +21,17 @@ export async function GET(request: NextRequest) {
       whereClause.buyerId = session.user.id
     }
 
-    // 공급자: 열린 RFQ만
-    if (role === 'supplier') {
+    // 공급자: 열린 RFQ만 (단, 타겟팅된 RFQ는 해당 공급자에게만 표시)
+    if (role === 'supplier' && session?.user?.id) {
       whereClause.status = 'open'
+      // 타겟팅되지 않은 발주 OR 자신에게 타겟팅된 발주만 표시
+      whereClause.OR = [
+        { isTargeted: false },
+        { targetSupplierId: session.user.id }
+      ]
+    } else if (role === 'supplier') {
+      whereClause.status = 'open'
+      whereClause.isTargeted = false
     }
 
     if (status && status !== 'all') {
@@ -98,6 +106,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // 타겟 공급자 정보 확인 (재발주인 경우)
+    const targetSupplierId = body.target_supplier_id || null
+    const isTargeted = !!targetSupplierId
+
     const rfq = await prisma.rFQ.create({
       data: {
         buyerId: session.user.id,
@@ -117,6 +129,9 @@ export async function POST(request: NextRequest) {
         deliveryDate: new Date(body.delivery_date),
         deliveryAddress: body.delivery_address,
         status: 'open',
+        // 타겟 공급자 (재발주용)
+        targetSupplierId: targetSupplierId,
+        isTargeted: isTargeted,
       },
     })
 
@@ -125,35 +140,55 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         type: 'system',
-        title: '발주 등록 완료',
-        message: `"${body.title}" 발주가 등록되었습니다. 공급자의 제안을 기다려주세요.`,
+        title: isTargeted ? '재발주 등록 완료' : '발주 등록 완료',
+        message: isTargeted
+          ? `"${body.title}" 재발주가 등록되었습니다. 해당 공급자의 제안을 기다려주세요.`
+          : `"${body.title}" 발주가 등록되었습니다. 공급자의 제안을 기다려주세요.`,
         link: `/buyer/rfqs/${rfq.id}`,
       },
     })
 
-    // 알림 생성 - 승인된 공급자들에게 (새 발주 알림)
-    const suppliers = await prisma.user.findMany({
-      where: {
-        role: 'supplier',
-        approvalStatus: 'approved',
-      },
-      select: { id: true },
-    })
-
-    if (suppliers.length > 0) {
+    // 알림 생성 - 공급자들에게 (새 발주 알림)
+    if (isTargeted && targetSupplierId) {
+      // 타겟팅된 재발주: 특정 공급자에게만 알림
       const budgetText = body.budget_min && body.budget_max
         ? `${Math.floor(body.budget_min / 10000)}만원 ~ ${Math.floor(body.budget_max / 10000)}만원`
         : '협의'
 
-      await prisma.notification.createMany({
-        data: suppliers.map((supplier) => ({
-          userId: supplier.id,
-          type: 'system' as const,
-          title: '새로운 발주가 등록되었습니다',
-          message: `"${body.title}" (${body.category || '육류'}) - 예산: ${budgetText}`,
+      await prisma.notification.create({
+        data: {
+          userId: targetSupplierId,
+          type: 'system',
+          title: '🔔 재발주 요청이 도착했습니다',
+          message: `이전 거래처에서 "${body.title}" 재발주를 요청했습니다. 예산: ${budgetText}`,
           link: `/supplier/rfqs/${rfq.id}`,
-        })),
+        },
       })
+    } else {
+      // 일반 발주: 모든 승인된 공급자에게 알림
+      const suppliers = await prisma.user.findMany({
+        where: {
+          role: 'supplier',
+          approvalStatus: 'approved',
+        },
+        select: { id: true },
+      })
+
+      if (suppliers.length > 0) {
+        const budgetText = body.budget_min && body.budget_max
+          ? `${Math.floor(body.budget_min / 10000)}만원 ~ ${Math.floor(body.budget_max / 10000)}만원`
+          : '협의'
+
+        await prisma.notification.createMany({
+          data: suppliers.map((supplier) => ({
+            userId: supplier.id,
+            type: 'system' as const,
+            title: '새로운 발주가 등록되었습니다',
+            message: `"${body.title}" (${body.category || '육류'}) - 예산: ${budgetText}`,
+            link: `/supplier/rfqs/${rfq.id}`,
+          })),
+        })
+      }
     }
 
     return NextResponse.json(rfq)

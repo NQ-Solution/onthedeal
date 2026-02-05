@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Upload, X, Image as ImageIcon } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { ArrowLeft, Upload, X, Image as ImageIcon, Building, RefreshCw } from 'lucide-react'
 import { Button, Input, Select, Textarea, Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
 
 // 거래 규모 옵션
@@ -23,6 +23,13 @@ const ORDER_FREQUENCY_OPTIONS = [
 
 export default function NewRFQPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // 재발주 파라미터 확인
+  const targetSupplierId = searchParams.get('supplier')
+  const targetSupplierName = searchParams.get('companyName')
+  const isReorder = !!targetSupplierId
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -78,13 +85,15 @@ export default function NewRFQPage() {
           reference_images: images,
           delivery_date: formData.deadline,
           delivery_address: formData.delivery_address,
+          // 재발주인 경우 타겟 공급자 지정
+          target_supplier_id: targetSupplierId || null,
         }),
       })
 
       const data = await res.json()
 
       if (res.ok) {
-        alert('발주가 등록되었습니다.')
+        alert(isReorder ? '재발주가 등록되었습니다. 해당 업체에 알림이 전송되었습니다.' : '발주가 등록되었습니다.')
         router.push('/buyer/rfqs')
       } else {
         console.error('발주 등록 실패:', data)
@@ -149,8 +158,31 @@ export default function NewRFQPage() {
           <ArrowLeft className="w-5 h-5 mr-2" />
           뒤로가기
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900">새 발주 등록</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {isReorder ? '재발주 등록' : '새 발주 등록'}
+        </h1>
       </div>
+
+      {/* 재발주 대상 업체 표시 */}
+      {isReorder && targetSupplierName && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <RefreshCw className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-blue-600 font-medium">재발주 대상 업체</p>
+              <p className="font-bold text-blue-800 flex items-center gap-2">
+                <Building className="w-4 h-4" />
+                {decodeURIComponent(targetSupplierName)}
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-blue-600 mt-2 ml-13">
+            이 발주는 위 업체에게만 전송됩니다.
+          </p>
+        </div>
+      )}
 
       {/* 카테고리 표시 */}
       <div className="bg-primary-50 border border-primary-200 rounded-xl p-4">
@@ -280,7 +312,7 @@ export default function NewRFQPage() {
                 취소
               </Button>
               <Button type="submit" size="lg" className="flex-1" isLoading={isSubmitting}>
-                발주 등록
+                {isReorder ? '재발주 등록' : '발주 등록'}
               </Button>
             </div>
           </form>
