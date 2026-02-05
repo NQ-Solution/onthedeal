@@ -71,7 +71,7 @@ const statusConfig = {
 
 const roleLabels = {
   buyer: { label: '구매자', variant: 'info' as const, color: 'blue' },
-  supplier: { label: '공급자', variant: 'success' as const, color: 'green' },
+  supplier: { label: '판매자', variant: 'success' as const, color: 'green' },
   admin: { label: '관리자', variant: 'error' as const, color: 'red' },
 }
 

@@ -60,7 +60,7 @@ const statusConfig = {
 
 const roleLabels = {
   buyer: { label: '구매자', variant: 'info' as const },
-  supplier: { label: '공급자', variant: 'success' as const },
+  supplier: { label: '판매자', variant: 'success' as const },
   admin: { label: '관리자', variant: 'error' as const },
 }
 
@@ -370,7 +370,11 @@ export default function AdminUsersPage() {
                   const status = statusConfig[user.approvalStatus as keyof typeof statusConfig]
                   const role = roleLabels[user.role as keyof typeof roleLabels]
                   return (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={user.id}
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/admin/users/${user.id}`}
+                    >
                       <td className="px-4 py-3 text-center">
                         {user.businessLicenseImage ? (
                           <Link href={`/admin/users/${user.id}`}>
@@ -411,7 +415,7 @@ export default function AdminUsersPage() {
                           <p className="text-gray-600">주문: {(user._count?.buyerOrders || 0) + (user._count?.supplierOrders || 0)}건</p>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1">
                           <Link href={`/admin/users/${user.id}`}>
                             <Button
