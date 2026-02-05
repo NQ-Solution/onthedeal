@@ -66,6 +66,11 @@ function RegisterForm() {
       return
     }
 
+    if (!formData.businessLicenseImage) {
+      setError('사업자등록증 이미지를 업로드해주세요')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -484,10 +489,10 @@ function RegisterForm() {
                     placeholder="프로필 사진 업로드"
                   />
                   <ImageUpload
-                    label="사업자등록증"
+                    label="사업자등록증 *"
                     value={formData.businessLicenseImage}
                     onChange={(value) => setFormData({ ...formData, businessLicenseImage: value as string })}
-                    placeholder="사업자등록증 업로드"
+                    placeholder="사업자등록증 업로드 (필수)"
                   />
                 </div>
 
@@ -547,6 +552,17 @@ function RegisterForm() {
                       <span className="font-medium text-gray-900 text-right">{formData.storeAddress}</span>
                     </div>
                   )}
+                  <div className="flex justify-between items-center py-2 border-t border-gray-200">
+                    <span className="text-gray-600">사업자등록증</span>
+                    {formData.businessLicenseImage ? (
+                      <span className="font-medium text-green-600 flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        업로드 완료
+                      </span>
+                    ) : (
+                      <span className="font-medium text-red-500">미업로드 (필수)</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>

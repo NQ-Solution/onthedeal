@@ -127,8 +127,14 @@ export default function ChatPage() {
   const [showRfqDetails, setShowRfqDetails] = useState(false)
   // 금액 수정 관련 상태
   const [showPriceEdit, setShowPriceEdit] = useState(false)
+  // 클라이언트 마운트 상태 (Portal hydration 문제 방지)
+  const [isMounted, setIsMounted] = useState(false)
   const [newTotalPrice, setNewTotalPrice] = useState<string>('')
   const [isPriceUpdating, setIsPriceUpdating] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     fetchChatRooms()
@@ -1141,8 +1147,8 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* 이미지 뷰어 모달 - Portal로 body에 직접 렌더링 */}
-      {imageViewerSrc && typeof document !== 'undefined' && createPortal(
+      {/* 이미지 뷰어 모달 - Portal로 body에 직접 렌더링 (isMounted로 hydration 문제 방지) */}
+      {imageViewerSrc && isMounted && createPortal(
         <div
           className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4"
           onClick={() => setImageViewerSrc(null)}
