@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Badge, Button, Input } from '@/components/ui'
 import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText, ChevronDown, ChevronUp, Eye, Plus } from 'lucide-react'
@@ -1140,10 +1141,10 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* 이미지 뷰어 모달 */}
-      {imageViewerSrc && (
+      {/* 이미지 뷰어 모달 - Portal로 body에 직접 렌더링 */}
+      {imageViewerSrc && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4"
           onClick={() => setImageViewerSrc(null)}
         >
           {/* 상단 버튼들 */}
@@ -1176,7 +1177,8 @@ export default function ChatPage() {
             className="max-w-full max-h-[85vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

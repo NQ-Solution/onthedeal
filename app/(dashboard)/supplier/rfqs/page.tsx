@@ -54,7 +54,7 @@ export default function SupplierRFQsPage() {
   const fetchData = async () => {
     try {
       const [rfqRes, quoteRes] = await Promise.all([
-        fetch('/api/rfqs'), // 모든 발주 가져오기
+        fetch('/api/rfqs?role=supplier'), // 공급자용 발주 (타겟팅된 발주 필터링 적용)
         fetch('/api/quotes?role=supplier')
       ])
 

@@ -38,6 +38,17 @@ export async function GET(
       return NextResponse.json({ error: 'RFQ를 찾을 수 없습니다' }, { status: 404 })
     }
 
+    // 타겟팅된 RFQ 접근 제어: 타겟 공급자 또는 구매자만 조회 가능
+    if (rfq.isTargeted && rfq.targetSupplierId) {
+      const isTargetSupplier = rfq.targetSupplierId === session.user.id
+      const isBuyer = rfq.buyerId === session.user.id
+      const isAdmin = session.user.role === 'admin'
+
+      if (!isTargetSupplier && !isBuyer && !isAdmin) {
+        return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 })
+      }
+    }
+
     // 조회수 증가 (본인 발주가 아닌 경우만)
     if (rfq.buyerId !== session.user.id) {
       await prisma.rFQ.update({
