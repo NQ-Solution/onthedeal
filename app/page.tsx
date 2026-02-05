@@ -180,58 +180,34 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <main className="relative z-10">
-        {/* Main Hero - Orange Background with Right Image */}
+        {/* Main Hero - Orange Background */}
         <section className="relative overflow-hidden bg-primary-500">
           <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-20">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-              {/* Left - Content */}
-              <div className="text-white">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-                  거래처 찾는 일은
-                  <br />
-                  발주서 작성 한 번으로
-                  <br />
-                  끝낼 수 있어요
-                </h1>
-                <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed">
-                  축산물을 시작으로 다양한 거래로 확장될 예정입니다.
-                </p>
+            <div className="text-center text-white">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                거래처 찾는 일은
+                <br />
+                <span className="text-yellow-300 underline decoration-4">발주서</span> 작성 한 번으로
+                <br />
+                끝낼 수 있어요
+              </h1>
+              <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed max-w-2xl mx-auto">
+                축산물을 시작으로 다양한 거래로 확장될 예정입니다.
+              </p>
 
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href={session ? (session.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer') : '/register?role=buyer'}>
-                    <Button size="xl" className="w-full sm:w-auto rounded-xl bg-white text-primary-600 hover:bg-gray-100 shadow-lg gap-2 text-lg px-8 font-bold">
-                      {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
-                      <ArrowRight className="w-5 h-5" />
-                    </Button>
-                  </Link>
-                  <Link href={session ? (session.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier') : '/register?role=supplier'}>
-                    <Button size="xl" variant="outline" className="w-full sm:w-auto rounded-xl border-2 border-white text-white hover:bg-white/10 gap-2 text-lg px-8 font-bold">
-                      {session?.user?.role === 'supplier' ? '판매자 대시보드' : '판매자로 시작하기'}
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right - Image */}
-              <div className="relative hidden lg:block">
-                {/* Gradient Border Container */}
-                <div className="relative p-1 rounded-3xl bg-gradient-to-br from-white via-white/50 to-primary-300 shadow-2xl">
-                  <div className="rounded-[22px] overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/homepageheroimg.png"
-                      alt="신선한 고기"
-                      className="w-full h-[400px] object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/hero-meat.jpg'
-                      }}
-                    />
-                  </div>
-                </div>
-                {/* Decorative elements */}
-                <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/20 rounded-full blur-2xl" />
-                <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href={session ? (session.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer') : '/register?role=buyer'}>
+                  <Button size="xl" className="w-full sm:w-auto rounded-xl bg-white text-primary-600 hover:bg-gray-100 shadow-lg gap-2 text-lg px-8 font-bold">
+                    {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link href={session ? (session.user?.role === 'supplier' ? '/supplier/rfqs' : '/register?role=supplier') : '/register?role=supplier'}>
+                  <Button size="xl" variant="outline" className="w-full sm:w-auto rounded-xl border-2 border-white text-white hover:bg-white/10 gap-2 text-lg px-8 font-bold">
+                    {session?.user?.role === 'supplier' ? '판매자 대시보드' : '판매자로 시작하기'}
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -243,13 +219,13 @@ export default function HomePage() {
             {/* For Buyers */}
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">식당 사장님이라면</h3>
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">식당 사장님이라면?</h3>
               </div>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서 작성</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl"><span className="text-primary-600 underline decoration-2">발주서</span> 작성</p>
                     <p className="text-gray-600 text-sm sm:text-base">필요한 품목 자유롭게 등록</p>
                   </div>
                 </li>
@@ -270,7 +246,7 @@ export default function HomePage() {
               </ol>
               <Link href={session?.user?.role === 'buyer' ? '/buyer/rfqs' : '/register?role=buyer'}>
                 <Button size="lg" className="w-full text-lg sm:text-xl py-4 sm:py-5">
-                  {session?.user?.role === 'buyer' ? '내 발주 보기' : '발주서 작성하기'}
+                  {session?.user?.role === 'buyer' ? '내 발주 보기' : '구매자로 시작하기'}
                 </Button>
               </Link>
             </div>
@@ -278,14 +254,14 @@ export default function HomePage() {
             {/* For Suppliers */}
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">축산물 판매자라면</h3>
-                <p className="text-lg sm:text-xl text-gray-500">구매자의 발주요청을 확인하고 가능한 조건으로 제안하세요</p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">축산물 판매자라면?</h3>
+                <p className="text-lg sm:text-xl text-gray-500">구매자의 <span className="text-green-600 font-bold underline decoration-2">발주</span>요청을 확인하고 가능한 조건으로 제안하세요</p>
               </div>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
                   <span className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">1</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg sm:text-xl">발주서 검색</p>
+                    <p className="font-bold text-gray-900 text-lg sm:text-xl"><span className="text-green-600 underline decoration-2">발주서</span> 검색</p>
                     <p className="text-gray-600 text-sm sm:text-base">납품 가능한 발주를 찾아보세요</p>
                   </div>
                 </li>
