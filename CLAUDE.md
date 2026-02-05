@@ -119,7 +119,7 @@ B2B 식자재 거래 플랫폼 - Next.js 14 + Prisma + PostgreSQL
 | 역할 | 이메일 | 비밀번호 |
 |------|--------|----------|
 | 구매자 | buyer@test.com | Test1234! |
-| 공급자 | supplier@test.com | Test1234! |
+| 판매자 | supplier@test.com | Test1234! |
 | 관리자 | odadmin@onthedeal.com | admin03532 |
 | 관리자 | nqadmin@onthedeal.com | admin03532 |
 
@@ -131,8 +131,21 @@ B2B 식자재 거래 플랫폼 - Next.js 14 + Prisma + PostgreSQL
 - 인증 필요한 API는 `getServerSession(authOptions)` 사용
 - 동적 렌더링 필요 시 `export const dynamic = 'force-dynamic'` 추가
 
-### 용어
-- RFQ 대신 "발주" 사용
+### 용어 규칙 (매우 중요)
+
+| 내부 코드/DB | UI 표시 (한국어) | 비고 |
+|-------------|-----------------|------|
+| `supplier` | **판매자** | "공급자" 사용 금지 |
+| `buyer` | 구매자 | |
+| `RFQ` / `rfq` | 발주 | "RFQ" 직접 표시 금지 |
+| `quote` | 제안 | |
+| `order` | 주문 | |
+| `chatRoom` | 채팅방 / 협상 | |
+
+**주의사항:**
+- 코드 내부(변수명, DB 필드)는 영어 그대로 유지 (`supplier`, `rfq` 등)
+- 사용자에게 보이는 UI 텍스트는 반드시 한국어 용어 사용
+- **"공급자"는 UI에서 절대 사용 금지** → 반드시 "판매자"로 표시
 - 한국어 UI 우선
 
 ---

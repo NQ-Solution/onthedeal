@@ -213,7 +213,7 @@ function RegisterForm() {
               </div>
               <p className={`text-xl font-bold ${
                 formData.role === 'supplier' ? 'text-green-600' : 'text-gray-600'
-              }`}>공급자</p>
+              }`}>판매자</p>
               <p className={`text-base mt-1 ${
                 formData.role === 'supplier' ? 'text-green-500' : 'text-gray-400'
               }`}>식자재 판매</p>
@@ -518,7 +518,7 @@ function RegisterForm() {
                         ? 'bg-primary-100 text-primary-600'
                         : 'bg-green-100 text-green-600'
                     }`}>
-                      {formData.role === 'buyer' ? '구매자' : '공급자'}
+                      {formData.role === 'buyer' ? '구매자' : '판매자'}
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-200">
