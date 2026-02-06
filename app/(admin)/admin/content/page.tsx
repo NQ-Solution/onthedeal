@@ -286,18 +286,18 @@ export default function AdminContentPage() {
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    페이지 내용 (HTML)
+                    페이지 내용
                   </label>
                   <Textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
                     rows={20}
-                    className="font-mono text-sm"
+                    className="text-sm"
                     placeholder="페이지 내용을 입력하세요..."
                   />
                 </div>
                 <p className="text-sm text-gray-500">
-                  * HTML 태그를 사용할 수 있습니다. 저장 후 실제 페이지에서 확인하세요.
+                  * 일반 텍스트로 작성하면 자동으로 단락이 구분됩니다. 빈 줄로 단락을 나눌 수 있습니다.
                 </p>
               </div>
             </CardContent>

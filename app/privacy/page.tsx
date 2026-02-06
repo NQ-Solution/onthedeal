@@ -4,7 +4,22 @@ import { Footer } from '@/components/layout/Footer'
 import { LogoImage } from '@/components/ui/Logo'
 import { Shield, ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/db'
-import { sanitizeContent } from '@/lib/sanitize'
+
+// CMS 업데이트 실시간 반영을 위해 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
+// 텍스트를 HTML로 변환 (줄바꿈 처리)
+function formatContent(content: string): string {
+  // HTML 태그가 이미 포함되어 있으면 그대로 반환
+  if (/<[a-z][\s\S]*>/i.test(content)) {
+    return content
+  }
+  // 일반 텍스트인 경우 줄바꿈을 <br>로 변환하고 단락 처리
+  return content
+    .split('\n\n')
+    .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .join('')
+}
 
 async function getPage() {
   try {
@@ -62,7 +77,7 @@ export default async function PrivacyPage() {
           ) : (
             <div
               className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-2xl prose-h2:mb-4 prose-h3:text-xl prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-ul:space-y-2"
-              dangerouslySetInnerHTML={{ __html: sanitizeContent(page.content) }}
+              dangerouslySetInnerHTML={{ __html: formatContent(page.content) }}
             />
           )}
         </div>

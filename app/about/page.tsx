@@ -259,7 +259,7 @@ export default function AboutPage() {
                 쉽고 공정한 거래가 가능한 OnTheDeal
               </h2>
               <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-xl mx-auto">
-                회원가입은 무료입니다. 거래가 성사될 때만 수수료가 발생해요.
+                지금 바로 무료로 회원가입하고 시작해보세요.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/register">
