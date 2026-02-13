@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-// GET - 현재 사용자 프로필 조회
+// GET - 현재 사용자 프로필 조회 (전체 필드)
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
@@ -20,9 +20,24 @@ export async function GET() {
         role: true,
         companyName: true,
         businessNumber: true,
+        representativeName: true,
+        businessType: true,
+        businessCategory: true,
         contactName: true,
         phone: true,
+        fax: true,
+        postalCode: true,
         storeAddress: true,
+        storeDetailAddress: true,
+        address: true,
+        website: true,
+        introduction: true,
+        bankName: true,
+        bankAccount: true,
+        bankHolder: true,
+        profileImage: true,
+        businessLicenseImage: true,
+        storeImages: true,
         approvalStatus: true,
         createdAt: true,
       },
@@ -39,7 +54,7 @@ export async function GET() {
   }
 }
 
-// PUT - 프로필 업데이트
+// PUT - 프로필 업데이트 (전체 필드)
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -49,35 +64,89 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { contactName, phone, companyName, businessNumber, storeAddress } = body
+    const {
+      contactName,
+      phone,
+      companyName,
+      businessNumber,
+      representativeName,
+      businessType,
+      businessCategory,
+      fax,
+      postalCode,
+      storeAddress,
+      storeDetailAddress,
+      address,
+      website,
+      introduction,
+      bankName,
+      bankAccount,
+      bankHolder,
+      profileImage,
+      businessLicenseImage,
+      storeImages,
+    } = body
 
-    // 입력값 검증
-    if (contactName && typeof contactName !== 'string') {
+    // 필수 필드 검증
+    if (contactName !== undefined && typeof contactName !== 'string') {
       return NextResponse.json({ error: '담당자명이 올바르지 않습니다' }, { status: 400 })
     }
 
-    if (phone && typeof phone !== 'string') {
+    if (phone !== undefined && typeof phone !== 'string') {
       return NextResponse.json({ error: '연락처가 올바르지 않습니다' }, { status: 400 })
     }
 
+    const updateData: Record<string, any> = {}
+
+    // undefined가 아닌 필드만 업데이트
+    if (contactName !== undefined) updateData.contactName = contactName
+    if (phone !== undefined) updateData.phone = phone
+    if (companyName !== undefined) updateData.companyName = companyName
+    if (businessNumber !== undefined) updateData.businessNumber = businessNumber
+    if (representativeName !== undefined) updateData.representativeName = representativeName
+    if (businessType !== undefined) updateData.businessType = businessType
+    if (businessCategory !== undefined) updateData.businessCategory = businessCategory
+    if (fax !== undefined) updateData.fax = fax
+    if (postalCode !== undefined) updateData.postalCode = postalCode
+    if (storeAddress !== undefined) updateData.storeAddress = storeAddress
+    if (storeDetailAddress !== undefined) updateData.storeDetailAddress = storeDetailAddress
+    if (address !== undefined) updateData.address = address
+    if (website !== undefined) updateData.website = website
+    if (introduction !== undefined) updateData.introduction = introduction
+    if (bankName !== undefined) updateData.bankName = bankName
+    if (bankAccount !== undefined) updateData.bankAccount = bankAccount
+    if (bankHolder !== undefined) updateData.bankHolder = bankHolder
+    if (profileImage !== undefined) updateData.profileImage = profileImage
+    if (businessLicenseImage !== undefined) updateData.businessLicenseImage = businessLicenseImage
+    if (storeImages !== undefined) updateData.storeImages = storeImages
+
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
-      data: {
-        ...(contactName !== undefined && { contactName }),
-        ...(phone !== undefined && { phone }),
-        ...(companyName !== undefined && { companyName }),
-        ...(businessNumber !== undefined && { businessNumber }),
-        ...(storeAddress !== undefined && { storeAddress }),
-      },
+      data: updateData,
       select: {
         id: true,
         email: true,
         role: true,
         companyName: true,
         businessNumber: true,
+        representativeName: true,
+        businessType: true,
+        businessCategory: true,
         contactName: true,
         phone: true,
+        fax: true,
+        postalCode: true,
         storeAddress: true,
+        storeDetailAddress: true,
+        address: true,
+        website: true,
+        introduction: true,
+        bankName: true,
+        bankAccount: true,
+        bankHolder: true,
+        profileImage: true,
+        businessLicenseImage: true,
+        storeImages: true,
         approvalStatus: true,
         createdAt: true,
       },

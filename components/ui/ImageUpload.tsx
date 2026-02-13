@@ -14,6 +14,8 @@ interface ImageUploadProps {
   placeholder?: string
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
 export function ImageUpload({
   label,
   value,
@@ -26,15 +28,25 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [dragActive, setDragActive] = useState(false)
+  const [sizeError, setSizeError] = useState('')
 
   // 현재 이미지들 배열로 변환
   const images = Array.isArray(value) ? value : value ? [value] : []
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return
+    setSizeError('')
 
     const newFiles = Array.from(files)
     const remainingSlots = multiple ? maxFiles - images.length : 1
+
+    // 파일 크기 검증 (5MB 제한)
+    const oversizedFile = newFiles.find(f => f.size > MAX_FILE_SIZE)
+    if (oversizedFile) {
+      setSizeError(`파일 크기는 5MB 이하만 가능합니다. (${oversizedFile.name}: ${(oversizedFile.size / 1024 / 1024).toFixed(1)}MB)`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
 
     // 파일을 Data URL로 변환 (실제 프로덕션에서는 클라우드 스토리지 사용)
     const filesToProcess = newFiles.slice(0, remainingSlots)
@@ -106,12 +118,15 @@ export function ImageUpload({
           <p className="text-base text-gray-500 mt-2">
             클릭하거나 파일을 드래그하세요
           </p>
-          {multiple && (
-            <p className="text-sm text-gray-400 mt-1">
-              최대 {maxFiles}개까지 업로드 가능 ({images.length}/{maxFiles})
-            </p>
-          )}
+          <p className="text-sm text-gray-400 mt-1">
+            최대 5MB{multiple ? ` / ${maxFiles}개까지 업로드 가능 (${images.length}/${maxFiles})` : ''}
+          </p>
         </div>
+      )}
+
+      {/* 파일 크기 에러 */}
+      {sizeError && (
+        <p className="text-sm text-red-500 mt-2">{sizeError}</p>
       )}
 
       {/* 이미지 미리보기 */}
@@ -155,6 +170,7 @@ export function ProfileImageUpload({
   size = 'lg',
 }: ProfileImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [sizeError, setSizeError] = useState('')
 
   const sizeClasses = {
     sm: 'w-20 h-20',
@@ -164,6 +180,13 @@ export function ProfileImageUpload({
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || !files[0]) return
+    setSizeError('')
+
+    if (files[0].size > MAX_FILE_SIZE) {
+      setSizeError(`파일 크기는 5MB 이하만 가능합니다. (${(files[0].size / 1024 / 1024).toFixed(1)}MB)`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
 
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -207,6 +230,9 @@ export function ProfileImageUpload({
         )}
       </div>
       <p className="text-sm text-gray-500 mt-2">클릭하여 변경</p>
+      {sizeError && (
+        <p className="text-sm text-red-500 mt-1">{sizeError}</p>
+      )}
     </div>
   )
 }

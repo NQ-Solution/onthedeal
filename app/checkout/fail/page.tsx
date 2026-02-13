@@ -64,8 +64,8 @@ function CheckoutFailContent() {
           <div className="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-6">
             <XCircle className="w-10 h-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">결제 실패</h1>
-          <p className="text-gray-600 mb-4">{getErrorDescription(errorCode)}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 break-keep">결제 실패</h1>
+          <p className="text-gray-600 mb-4 break-keep">{getErrorDescription(errorCode)}</p>
 
           {errorCode && (
             <p className="text-sm text-gray-400 mb-8">오류 코드: {errorCode}</p>
@@ -94,7 +94,7 @@ function CheckoutFailContent() {
           </div>
 
           <div className="mt-8 pt-6 border-t">
-            <p className="text-sm text-gray-500 mb-3">결제에 문제가 계속되나요?</p>
+            <p className="text-sm text-gray-500 mb-3 break-keep">결제에 문제가 계속되나요?</p>
             <Link href="/contact">
               <Button variant="ghost" size="sm" className="text-primary-600">
                 <MessageCircle className="w-4 h-4 mr-2" />

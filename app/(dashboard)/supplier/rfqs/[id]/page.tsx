@@ -103,9 +103,20 @@ export default function SupplierRFQDetailPage() {
     }
   }
 
-  // 크레딧 선차감 금액 계산 (제안가 기준 3%)
+  // 크레딧 선차감 금액 계산 (서버에서 정확한 수수료율 적용, 프론트 미리보기는 근사값)
   const totalPrice = quoteForm.totalPrice ? parseInt(quoteForm.totalPrice) : 0
-  const depositAmount = Math.round(totalPrice * 0.03)
+  const [commissionRatePreview, setCommissionRatePreview] = useState(0.03)
+
+  useEffect(() => {
+    fetch('/api/settings/commission-rate')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.firstRate) setCommissionRatePreview(data.firstRate / 100)
+      })
+      .catch(() => {})
+  }, [])
+
+  const depositAmount = Math.round(totalPrice * commissionRatePreview)
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -249,7 +260,7 @@ export default function SupplierRFQDetailPage() {
               <Badge variant="info">{rfq.category}</Badge>
             </div>
             {/* 1. 제목 */}
-            <CardTitle className="text-2xl">{rfq.title}</CardTitle>
+            <CardTitle className="text-2xl break-keep">{rfq.title}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             {/* 2. 발주상세 + 첨부파일 */}
@@ -365,7 +376,7 @@ export default function SupplierRFQDetailPage() {
                      myQuote.status === 'rejected' ? '제안이 거절되었습니다' :
                      '제안 검토 중'}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-1 break-keep">
                     {myQuote.status === 'accepted' ? '채팅방에서 거래를 진행하세요' :
                      myQuote.status === 'rejected' ? '다음 기회에 더 좋은 제안 부탁드립니다' :
                      '구매자가 제안을 검토하고 있습니다'}
@@ -412,8 +423,8 @@ export default function SupplierRFQDetailPage() {
             ) : rfq.status !== 'open' ? (
               <div className="text-center py-8">
                 <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">마감된 발주입니다</h3>
-                <p className="text-gray-500">더 이상 제안을 제출할 수 없습니다.</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 break-keep">마감된 발주입니다</h3>
+                <p className="text-gray-500 break-keep">더 이상 제안을 제출할 수 없습니다.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmitQuote} className="space-y-5">
@@ -422,7 +433,7 @@ export default function SupplierRFQDetailPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     거래명세서, 단가표 첨부
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">
+                  <p className="text-xs text-gray-500 mb-2 break-keep">
                     거래명세서 및 발주품목 단가표를 첨부해주세요 (파일형식: 이미지, PDF)
                   </p>
                   <input
@@ -503,7 +514,7 @@ export default function SupplierRFQDetailPage() {
                 {/* 5. 크레딧 설명 */}
                 <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-700">
                   <p className="font-medium mb-1">수수료 안내</p>
-                  <p>• 제안 제출 시 제안금액의 3% 크레딧이 선차감됩니다</p>
+                  <p>• 제안 제출 시 제안금액의 {(commissionRatePreview * 100).toFixed(0)}% 크레딧이 선차감됩니다</p>
                   <p>• 거래 미성사 시 크레딧이 전액 환불됩니다</p>
                   <p>• 제안 제출 후 구매자와 채팅이 가능합니다</p>
                 </div>

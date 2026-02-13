@@ -161,8 +161,8 @@ export default function AdminUsersPage() {
               <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center animate-pulse">
                 <Clock className="w-6 h-6 text-yellow-600" />
               </div>
-              승인 대기 중인 회원
-              <Badge variant="warning" className="ml-2 text-lg px-3 py-1">{pendingUsers.length}명</Badge>
+              <span className="whitespace-nowrap">승인 대기 중인 회원</span>
+              <Badge variant="warning" className="ml-2 text-lg px-3 py-1 whitespace-nowrap shrink-0">{pendingUsers.length}명</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -355,14 +355,14 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-4 py-4 text-center text-sm font-bold text-gray-700">사업자등록증</th>
-                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">회사 정보</th>
-                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">담당자</th>
-                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">역할</th>
-                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">사업자번호</th>
-                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700">활동</th>
-                  <th className="px-4 py-4 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-4 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">사업자등록증</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">회사 정보</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">담당자</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">역할</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">사업자번호</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">상태</th>
+                  <th className="px-4 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">활동</th>
+                  <th className="px-4 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

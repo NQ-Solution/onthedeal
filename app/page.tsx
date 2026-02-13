@@ -184,14 +184,14 @@ export default function HomePage() {
         <section className="relative overflow-hidden bg-primary-500">
           <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-20">
             <div className="text-center text-white">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight text-balance">
                 거래처 찾는 일은
                 <br />
                 {`'발주서'`} 작성 한 번으로
                 <br />
                 끝낼 수 있어요
               </h1>
-              <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed max-w-2xl mx-auto">
+              <p className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed max-w-2xl mx-auto text-pretty">
                 축산물을 시작으로 다양한 거래로 확장될 예정입니다.
               </p>
 
@@ -219,8 +219,8 @@ export default function HomePage() {
             {/* For Buyers */}
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">식당 사장님이라면?</h3>
-                <p className="text-lg sm:text-xl text-gray-500">필요한 발주 내용을 간편히 등록하면 다양한 제안을 받을 수 있어요</p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-balance">식당 사장님이라면?</h3>
+                <p className="text-lg sm:text-xl text-gray-500 text-pretty">필요한 발주 내용을 간편히 등록하면 다양한 제안을 받을 수 있어요</p>
               </div>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
@@ -255,8 +255,8 @@ export default function HomePage() {
             {/* For Suppliers */}
             <div className="bg-white rounded-2xl p-6 sm:p-10 border-2 border-gray-200">
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">축산물 판매자라면?</h3>
-                <p className="text-lg sm:text-xl text-gray-500">{`구매자의 '발주'요청을 확인하고 가능한 조건으로 제안하세요`}</p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-balance">축산물 판매자라면?</h3>
+                <p className="text-lg sm:text-xl text-gray-500 text-pretty">{`구매자의 '발주'요청을 확인하고 가능한 조건으로 제안하세요`}</p>
               </div>
               <ol className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                 <li className="flex items-start gap-3 sm:gap-4">
@@ -293,7 +293,7 @@ export default function HomePage() {
         {/* Process Section - Unique Cards */}
         <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4 whitespace-nowrap">
+            <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4 sm:whitespace-nowrap text-balance">
               온더딜에서는 거래가 복잡하지 않아요
             </h2>
           </div>
@@ -307,7 +307,7 @@ export default function HomePage() {
                   <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">1</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">간편한 발주</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 leading-relaxed text-pretty">
                   복잡한 과정 없이 필요한 것만 입력하면 다양한 제안을 받아볼 수 있어요
                 </p>
               </div>
@@ -321,7 +321,7 @@ export default function HomePage() {
                   <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">2</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">실시간 채팅</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 leading-relaxed text-pretty">
                   가격, 품질, 배송 등 세부 조건을 직접 소통하며 조율하세요
                 </p>
               </div>
@@ -335,7 +335,7 @@ export default function HomePage() {
                   <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">3</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4 whitespace-nowrap">안전한 에스크로</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 leading-relaxed text-pretty">
                   결제 대금은 상품 수령 확인 전까지 안전하게 보호됩니다
                 </p>
               </div>
@@ -355,7 +355,7 @@ export default function HomePage() {
                   <Shield className="w-4 h-4 text-primary-600" />
                   안전한 거래 시스템
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 whitespace-nowrap">
+                <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 sm:whitespace-nowrap text-balance">
                   구매자와 판매자 모두를 보호합니다
                 </h2>
               </div>
@@ -423,10 +423,10 @@ export default function HomePage() {
 
             {/* Content */}
             <div className="relative px-6 sm:px-12 py-12 sm:py-16 text-center">
-              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-6 whitespace-nowrap">
+              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-6 sm:whitespace-nowrap text-balance">
                 쉽고 공정한 거래가 가능한 OnTheDeal
               </h2>
-              <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-xl mx-auto whitespace-nowrap">
+              <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-xl mx-auto sm:whitespace-nowrap text-pretty">
                 입점비X, 광고비X, 무료 회원가입으로 시작하세요.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -139,8 +139,8 @@ function RegisterForm() {
         <div className="w-20 h-20 bg-primary-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <UserPlus className="w-10 h-10 text-primary-600" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">회원가입</h1>
-        <p className="text-xl text-gray-500">OnTheDeal과 함께 새로운 거래를 시작하세요</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-3 break-keep">회원가입</h1>
+        <p className="text-xl text-gray-500 break-keep">OnTheDeal과 함께 새로운 거래를 시작하세요</p>
       </div>
 
       {/* 진행 단계 표시 */}
@@ -167,9 +167,9 @@ function RegisterForm() {
         ))}
       </div>
       <div className="flex justify-center gap-6 lg:gap-10 text-base text-gray-600 mb-6">
-        <span className={`transition-colors ${step === 1 ? 'font-bold text-primary-600' : step > 1 ? 'text-primary-500' : ''}`}>기본정보</span>
-        <span className={`transition-colors ${step === 2 ? 'font-bold text-primary-600' : step > 2 ? 'text-primary-500' : ''}`}>사업자정보</span>
-        <span className={`transition-colors ${step === 3 ? 'font-bold text-primary-600' : ''}`}>추가정보</span>
+        <span className={`whitespace-nowrap transition-colors ${step === 1 ? 'font-bold text-primary-600' : step > 1 ? 'text-primary-500' : ''}`}>기본정보</span>
+        <span className={`whitespace-nowrap transition-colors ${step === 2 ? 'font-bold text-primary-600' : step > 2 ? 'text-primary-500' : ''}`}>사업자정보</span>
+        <span className={`whitespace-nowrap transition-colors ${step === 3 ? 'font-bold text-primary-600' : ''}`}>추가정보</span>
       </div>
 
       {/* Step 1: 역할 선택 & 기본 정보 */}
@@ -193,10 +193,10 @@ function RegisterForm() {
                   formData.role === 'buyer' ? 'text-primary-600' : 'text-gray-400'
                 }`} />
               </div>
-              <p className={`text-xl font-bold ${
+              <p className={`text-xl font-bold whitespace-nowrap ${
                 formData.role === 'buyer' ? 'text-primary-600' : 'text-gray-600'
               }`}>구매자</p>
-              <p className={`text-base mt-1 ${
+              <p className={`text-base mt-1 whitespace-nowrap ${
                 formData.role === 'buyer' ? 'text-primary-500' : 'text-gray-400'
               }`}>식자재 구매</p>
             </button>
@@ -216,10 +216,10 @@ function RegisterForm() {
                   formData.role === 'supplier' ? 'text-green-600' : 'text-gray-400'
                 }`} />
               </div>
-              <p className={`text-xl font-bold ${
+              <p className={`text-xl font-bold whitespace-nowrap ${
                 formData.role === 'supplier' ? 'text-green-600' : 'text-gray-600'
               }`}>판매자</p>
-              <p className={`text-base mt-1 ${
+              <p className={`text-base mt-1 whitespace-nowrap ${
                 formData.role === 'supplier' ? 'text-green-500' : 'text-gray-400'
               }`}>식자재 판매</p>
             </button>
@@ -231,11 +231,11 @@ function RegisterForm() {
                 <div className="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center">
                   <User className="w-6 h-6 text-primary-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">기본 정보</h2>
+                <h2 className="text-2xl font-bold text-gray-900 break-keep">기본 정보</h2>
               </div>
 
               {error && (
-                <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200">
+                <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200 break-keep">
                   {error}
                 </div>
               )}
@@ -271,12 +271,12 @@ function RegisterForm() {
               {/* 비밀번호 요구사항 표시 */}
               {formData.password && (
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                  <p className="text-sm font-medium text-gray-700 mb-2">비밀번호 요구사항:</p>
+                  <p className="text-sm font-medium text-gray-700 mb-2 break-keep">비밀번호 요구사항:</p>
                   <div className="flex items-center gap-2">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center ${passwordChecks.length ? 'bg-green-500' : 'bg-gray-300'}`}>
                       {passwordChecks.length && <CheckCircle className="w-3 h-3 text-white" />}
                     </div>
-                    <span className={`text-sm ${passwordChecks.length ? 'text-green-600' : 'text-gray-500'}`}>
+                    <span className={`text-sm whitespace-nowrap ${passwordChecks.length ? 'text-green-600' : 'text-gray-500'}`}>
                       8자 이상
                     </span>
                   </div>
@@ -284,7 +284,7 @@ function RegisterForm() {
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center ${passwordChecks.uppercase ? 'bg-green-500' : 'bg-gray-300'}`}>
                       {passwordChecks.uppercase && <CheckCircle className="w-3 h-3 text-white" />}
                     </div>
-                    <span className={`text-sm ${passwordChecks.uppercase ? 'text-green-600' : 'text-gray-500'}`}>
+                    <span className={`text-sm whitespace-nowrap ${passwordChecks.uppercase ? 'text-green-600' : 'text-gray-500'}`}>
                       대문자 포함 (A-Z)
                     </span>
                   </div>
@@ -292,7 +292,7 @@ function RegisterForm() {
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center ${passwordChecks.special ? 'bg-green-500' : 'bg-gray-300'}`}>
                       {passwordChecks.special && <CheckCircle className="w-3 h-3 text-white" />}
                     </div>
-                    <span className={`text-sm ${passwordChecks.special ? 'text-green-600' : 'text-gray-500'}`}>
+                    <span className={`text-sm whitespace-nowrap ${passwordChecks.special ? 'text-green-600' : 'text-gray-500'}`}>
                       특수문자 포함 (!@#$%^&* 등)
                     </span>
                   </div>
@@ -317,7 +317,7 @@ function RegisterForm() {
               <div className="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center">
                 <Building2 className="w-6 h-6 text-primary-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">사업자 정보</h2>
+              <h2 className="text-2xl font-bold text-gray-900 break-keep">사업자 정보</h2>
             </div>
 
             {error && (
@@ -398,7 +398,7 @@ function RegisterForm() {
                 <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
                   <MapPin className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">사업장 주소</h3>
+                <h3 className="text-xl font-bold text-gray-900 break-keep">사업장 주소</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -449,11 +449,11 @@ function RegisterForm() {
                 <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
                   <Camera className="w-6 h-6 text-purple-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">추가 정보 및 이미지</h2>
+                <h2 className="text-2xl font-bold text-gray-900 break-keep">추가 정보 및 이미지</h2>
               </div>
 
               {error && (
-                <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200">
+                <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200 break-keep">
                   {error}
                 </div>
               )}
@@ -478,7 +478,7 @@ function RegisterForm() {
                   <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
                     <FileText className="w-6 h-6 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">이미지 업로드</h3>
+                  <h3 className="text-xl font-bold text-gray-900 break-keep">이미지 업로드</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -513,11 +513,11 @@ function RegisterForm() {
                   <div className="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-primary-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">입력 정보 확인</h3>
+                  <h3 className="text-xl font-bold text-gray-900 break-keep">입력 정보 확인</h3>
                 </div>
                 <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">회원 유형</span>
+                    <span className="text-gray-600 whitespace-nowrap">회원 유형</span>
                     <span className={`font-bold px-4 py-1 rounded-full text-sm ${
                       formData.role === 'buyer'
                         ? 'bg-primary-100 text-primary-600'
@@ -535,7 +535,7 @@ function RegisterForm() {
                     <span className="font-medium text-gray-900">{formData.companyName}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-600">사업자등록번호</span>
+                    <span className="text-gray-600 whitespace-nowrap">사업자등록번호</span>
                     <span className="font-medium text-gray-900">{formData.businessNumber}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-200">
@@ -553,14 +553,14 @@ function RegisterForm() {
                     </div>
                   )}
                   <div className="flex justify-between items-center py-2 border-t border-gray-200">
-                    <span className="text-gray-600">사업자등록증</span>
+                    <span className="text-gray-600 whitespace-nowrap">사업자등록증</span>
                     {formData.businessLicenseImage ? (
                       <span className="font-medium text-green-600 flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-4 h-4 shrink-0" />
                         업로드 완료
                       </span>
                     ) : (
-                      <span className="font-medium text-red-500">미업로드 (필수)</span>
+                      <span className="font-medium text-red-500 whitespace-nowrap">미업로드 (필수)</span>
                     )}
                   </div>
                 </div>
@@ -587,9 +587,9 @@ function RegisterForm() {
                 </div>
               </div>
 
-              <p className="text-lg text-center text-gray-600">
+              <p className="text-lg text-center text-gray-600 break-keep">
                 이미 계정이 있으신가요?{' '}
-                <Link href="/login" className="text-primary-600 hover:underline font-bold">
+                <Link href="/login" className="text-primary-600 hover:underline font-bold whitespace-nowrap">
                   로그인
                 </Link>
               </p>

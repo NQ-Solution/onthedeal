@@ -184,8 +184,8 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">주문을 찾을 수 없습니다</h2>
-          <p className="text-gray-600 mb-4">{error || '요청하신 주문 정보가 존재하지 않습니다.'}</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 break-keep">주문을 찾을 수 없습니다</h2>
+          <p className="text-gray-600 mb-4 break-keep">{error || '요청하신 주문 정보가 존재하지 않습니다.'}</p>
           <Button onClick={() => router.back()}>돌아가기</Button>
         </div>
       </div>
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
             </Button>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">결제하기</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6 break-keep">결제하기</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 왼쪽: 결제 수단 선택 */}
@@ -223,16 +223,16 @@ export default function CheckoutPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">상품명</span>
-                    <span className="font-medium">{order.rfq.title}</span>
+                    <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">상품명</span>
+                    <span className="font-medium break-keep text-right">{order.rfq.title}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">공급자</span>
-                    <span>{order.supplier.companyName}</span>
+                    <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">공급자</span>
+                    <span className="break-keep text-right">{order.supplier.companyName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">납품예정일</span>
-                    <span>{order.quote.deliveryDate}</span>
+                    <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">납품예정일</span>
+                    <span className="whitespace-nowrap">{order.quote.deliveryDate}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -264,8 +264,8 @@ export default function CheckoutPage() {
                             }`} />
                           </div>
                           <div className="text-left">
-                            <p className="font-semibold text-gray-900">{method.label}</p>
-                            <p className="text-sm text-gray-500">{method.description}</p>
+                            <p className="font-semibold text-gray-900 whitespace-nowrap">{method.label}</p>
+                            <p className="text-sm text-gray-500 break-keep">{method.description}</p>
                           </div>
                         </button>
                       )
@@ -279,8 +279,8 @@ export default function CheckoutPage() {
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-red-800">결제 오류</p>
-                    <p className="text-sm text-red-600">{error}</p>
+                    <p className="font-medium text-red-800 break-keep">결제 오류</p>
+                    <p className="text-sm text-red-600 break-keep">{error}</p>
                   </div>
                 </div>
               )}
@@ -294,15 +294,15 @@ export default function CheckoutPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">상품 금액</span>
-                    <span>{order.productAmount.toLocaleString()}원</span>
+                    <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">상품 금액</span>
+                    <span className="whitespace-nowrap">{order.productAmount.toLocaleString()}원</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">수수료</span>
-                    <span className="text-green-600">0원 (무료)</span>
+                    <span className="text-gray-500 whitespace-nowrap shrink-0 mr-4">수수료</span>
+                    <span className="text-green-600 whitespace-nowrap">0원 (무료)</span>
                   </div>
                   <div className="border-t pt-4 flex justify-between">
-                    <span className="font-semibold text-gray-900">총 결제금액</span>
+                    <span className="font-semibold text-gray-900 whitespace-nowrap shrink-0 mr-4">총 결제금액</span>
                     <span className="font-bold text-xl text-primary-600">
                       {order.totalAmount.toLocaleString()}원
                     </span>
@@ -315,11 +315,11 @@ export default function CheckoutPage() {
                 <div className="flex items-start gap-3">
                   <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-700">
-                    <p className="font-medium mb-1">안전한 결제</p>
+                    <p className="font-medium mb-1 break-keep">안전한 결제</p>
                     <ul className="space-y-1 text-blue-600">
-                      <li>- 토스페이먼츠 보안 결제</li>
-                      <li>- 에스크로 안전 거래</li>
-                      <li>- 문제 발생 시 전액 환불</li>
+                      <li className="break-keep">- 토스페이먼츠 보안 결제</li>
+                      <li className="break-keep">- 에스크로 안전 거래</li>
+                      <li className="break-keep">- 문제 발생 시 전액 환불</li>
                     </ul>
                   </div>
                 </div>
@@ -344,7 +344,7 @@ export default function CheckoutPage() {
               </Button>
 
               {!sdkReady && (
-                <p className="text-sm text-center text-gray-500">
+                <p className="text-sm text-center text-gray-500 break-keep">
                   결제 시스템을 로드하는 중...
                 </p>
               )}

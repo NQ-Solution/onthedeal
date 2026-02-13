@@ -110,8 +110,8 @@ export default function SupplierRFQsPage() {
     <div className="space-y-6">
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">발주 탐색</h1>
-        <p className="text-lg text-gray-500 mt-1">새로운 거래 기회를 찾아보세요</p>
+        <h1 className="text-3xl font-bold text-gray-900 break-keep">발주 탐색</h1>
+        <p className="text-lg text-gray-500 mt-1 break-keep">새로운 거래 기회를 찾아보세요</p>
       </div>
 
       {/* 안내문구 + 검색/필터 통합 */}
@@ -119,7 +119,7 @@ export default function SupplierRFQsPage() {
         <CardContent className="py-4">
           <div className="flex items-center gap-3 mb-4">
             <AlertCircle className="w-5 h-5 text-primary-600 flex-shrink-0" />
-            <span className="text-sm text-primary-700">현재 육류 카테고리만 서비스 중입니다</span>
+            <span className="text-sm text-primary-700 break-keep">현재 육류 카테고리만 서비스 중입니다</span>
           </div>
 
           <div className="flex flex-col md:flex-row gap-3">
@@ -189,20 +189,20 @@ export default function SupplierRFQsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           {hasMyQuote ? (
-                            <Badge variant="warning" className="text-sm px-3 py-1">
+                            <Badge variant="warning" className="text-sm px-3 py-1 whitespace-nowrap shrink-0">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               제안완료
                             </Badge>
                           ) : (
-                            <Badge variant="success" className="text-sm px-3 py-1">
+                            <Badge variant="success" className="text-sm px-3 py-1 whitespace-nowrap shrink-0">
                               <Clock className="w-3 h-3 mr-1" />
                               제안가능
                             </Badge>
                           )}
-                          <Badge variant="info" className="text-sm px-3 py-1">{rfq.category}</Badge>
+                          <Badge variant="info" className="text-sm px-3 py-1 whitespace-nowrap shrink-0">{rfq.category}</Badge>
                         </div>
 
-                        <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">{rfq.title}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2 truncate break-keep">{rfq.title}</h3>
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
                           <span className="flex items-center gap-1">

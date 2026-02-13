@@ -51,8 +51,8 @@ export async function POST(
     }
 
     // 크레딧은 제안 제출 시 이미 선차감되었으므로, 여기서는 차감하지 않음
-    // 단, 선차감된 크레딧 로그 확인
-    const commissionRate = 0.03
+    // 제안 제출 시 저장된 수수료율 사용
+    const commissionRate = (quote.commissionRate ?? 3.0) / 100
     const commissionAmount = Math.round(quote.totalPrice * commissionRate)
 
     // 트랜잭션으로 처리
@@ -92,10 +92,9 @@ export async function POST(
 
       // 3-1. 거절된 제안의 공급자들에게 크레딧 환불 + 채팅방 만료 처리
       for (const rejectedQuote of rejectedQuotes) {
-        // 선차감된 금액 계산 (제안 제출 시 차감된 금액)
+        // 선차감된 금액 계산 (제안 제출 시 totalPrice 기준으로 차감되었으므로 동일하게 계산)
         const rfq = await tx.rFQ.findUnique({ where: { id: rejectedQuote.rfqId } })
-        const baseAmount = rfq?.budgetMin || rejectedQuote.totalPrice
-        const refundAmount = Math.round(baseAmount * 0.03)
+        const refundAmount = Math.round(rejectedQuote.totalPrice * ((rejectedQuote.commissionRate ?? 3.0) / 100))
 
         const credit = await tx.credit.findUnique({
           where: { supplierId: rejectedQuote.supplierId },
@@ -232,7 +231,7 @@ export async function POST(
         },
         commission: {
           amount: commissionAmount,
-          rate: '3%',
+          rate: `${(quote.commissionRate ?? 3.0)}%`,
           note: '제안 제출 시 이미 선차감됨',
         },
       },

@@ -63,6 +63,23 @@ export async function GET(
             bankHolder: true,
           },
         },
+        orders: {
+          select: {
+            id: true,
+            status: true,
+            productAmount: true,
+            commissionAmount: true,
+            totalAmount: true,
+            invoice: {
+              select: {
+                id: true,
+                invoiceNumber: true,
+                status: true,
+              },
+            },
+          },
+          take: 1,
+        },
       },
     })
 
@@ -74,6 +91,8 @@ export async function GET(
     if (chatRoom.buyerId !== session.user.id && chatRoom.supplierId !== session.user.id) {
       return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 })
     }
+
+    const order = chatRoom.orders?.[0] || null
 
     return NextResponse.json({
       id: chatRoom.id,
@@ -87,6 +106,14 @@ export async function GET(
       supplier: chatRoom.supplier,
       currentUserId: session.user.id,
       currentUserRole: session.user.role,
+      orderId: order?.id || null,
+      orderStatus: order?.status || null,
+      orderSummary: order ? {
+        productAmount: order.productAmount,
+        commissionAmount: order.commissionAmount,
+        totalAmount: order.totalAmount,
+      } : null,
+      invoice: order?.invoice || null,
     })
   } catch (error) {
     console.error('Error fetching chat room:', error)
@@ -113,7 +140,7 @@ export async function POST(
     const body = await request.json()
     const { action } = body
 
-    const validActions = ['confirm_deal', 'request_payment', 'confirm_payment', 'complete_delivery']
+    const validActions = ['confirm_deal', 'request_payment', 'confirm_payment', 'complete_delivery', 'start_shipping', 'confirm_receipt']
     if (!validActions.includes(action)) {
       return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
     }
@@ -167,6 +194,16 @@ export async function POST(
         }
         return handleConfirmPayment(chatRoom)
 
+      // 판매자: 배송 시작
+      case 'start_shipping':
+        if (!isSupplier) {
+          return NextResponse.json({ error: '판매자만 배송 시작을 처리할 수 있습니다' }, { status: 403 })
+        }
+        if (chatRoom.status !== 'payment_confirmed') {
+          return NextResponse.json({ error: '입금 확인 후에만 배송 시작이 가능합니다' }, { status: 400 })
+        }
+        return handleStartShipping(chatRoom)
+
       // 판매자: 납품 완료
       case 'complete_delivery':
         if (!isSupplier) {
@@ -177,6 +214,16 @@ export async function POST(
           return NextResponse.json({ error: '입금 확인 후에만 납품 완료가 가능합니다' }, { status: 400 })
         }
         return handleCompleteDelivery(chatRoom)
+
+      // 구매자: 수령 확인
+      case 'confirm_receipt':
+        if (!isBuyer) {
+          return NextResponse.json({ error: '구매자만 수령 확인을 할 수 있습니다' }, { status: 403 })
+        }
+        if (chatRoom.status !== 'delivery_completed') {
+          return NextResponse.json({ error: '납품 완료 후에만 수령 확인이 가능합니다' }, { status: 400 })
+        }
+        return handleConfirmReceipt(chatRoom)
 
       default:
         return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 })
@@ -224,8 +271,8 @@ async function handleConfirmDeal(chatRoom: any, userId: string, isBuyer: boolean
           status: 'preparing',
           productAmount: chatRoom.quote.totalPrice,
           totalAmount: chatRoom.quote.totalPrice,
-          commissionAmount: Math.round(chatRoom.quote.totalPrice * 0.03),
-          supplierFee: Math.round(chatRoom.quote.totalPrice * 0.03),
+          commissionAmount: Math.round(chatRoom.quote.totalPrice * ((chatRoom.quote.commissionRate ?? 3.0) / 100)),
+          supplierFee: Math.round(chatRoom.quote.totalPrice * ((chatRoom.quote.commissionRate ?? 3.0) / 100)),
           paymentMethod: 'direct',
         },
       })
@@ -282,8 +329,8 @@ async function handleRequestPayment(chatRoom: any) {
           status: 'payment_pending',
           productAmount: chatRoom.quote.totalPrice,
           totalAmount: chatRoom.quote.totalPrice,
-          commissionAmount: Math.round(chatRoom.quote.totalPrice * 0.03),
-          supplierFee: Math.round(chatRoom.quote.totalPrice * 0.03),
+          commissionAmount: Math.round(chatRoom.quote.totalPrice * ((chatRoom.quote.commissionRate ?? 3.0) / 100)),
+          supplierFee: Math.round(chatRoom.quote.totalPrice * ((chatRoom.quote.commissionRate ?? 3.0) / 100)),
           paymentMethod: 'direct',
         },
       })
@@ -337,7 +384,6 @@ async function handleConfirmPayment(chatRoom: any) {
       where: { id: chatRoom.id },
       data: {
         status: 'payment_confirmed',
-        dealConfirmedAt: new Date(),
       },
     })
 
@@ -393,10 +439,10 @@ async function handleCompleteDelivery(chatRoom: any) {
       },
     })
 
-    // 주문 상태 업데이트
+    // 주문 상태: delivered (수령 확인 대기)
     await tx.order.updateMany({
       where: { chatRoomId: chatRoom.id },
-      data: { status: 'completed' },
+      data: { status: 'delivered' },
     })
 
     // 시스템 메시지 생성
@@ -406,7 +452,7 @@ async function handleCompleteDelivery(chatRoom: any) {
         senderId: chatRoom.supplierId,
         senderType: 'system',
         senderName: '시스템',
-        content: `${chatRoom.supplier?.companyName}님이 납품을 완료했습니다. 거래가 완료되었습니다.`,
+        content: `${chatRoom.supplier?.companyName}님이 납품을 완료했습니다. 구매자의 수령 확인을 기다리고 있습니다.`,
       },
     })
 
@@ -416,7 +462,7 @@ async function handleCompleteDelivery(chatRoom: any) {
         userId: chatRoom.buyerId,
         type: 'delivery_completed',
         title: '납품 완료',
-        message: `"${chatRoom.rfq?.title}" 거래가 완료되었습니다.`,
+        message: `"${chatRoom.rfq?.title}" 납품이 완료되었습니다. 수령 확인을 해주세요.`,
         link: `/buyer/orders`,
       },
     })
@@ -426,6 +472,235 @@ async function handleCompleteDelivery(chatRoom: any) {
       data: {
         userId: chatRoom.supplierId,
         type: 'delivery_completed',
+        title: '납품 완료',
+        message: `"${chatRoom.rfq?.title}" 납품이 완료되었습니다. 구매자의 수령 확인을 기다리고 있습니다.`,
+        link: `/supplier/orders`,
+      },
+    })
+
+    return updatedRoom
+  })
+
+  return NextResponse.json({
+    success: true,
+    message: '납품이 완료되었습니다. 구매자의 수령 확인을 기다립니다.',
+    chatRoom: {
+      id: result.id,
+      status: result.status,
+    },
+  })
+}
+
+// 판매자: 배송 시작
+async function handleStartShipping(chatRoom: any) {
+  const result = await prisma.$transaction(async (tx) => {
+    // 주문 상태: preparing → shipping
+    await tx.order.updateMany({
+      where: { chatRoomId: chatRoom.id },
+      data: { status: 'shipping' },
+    })
+
+    // 시스템 메시지 생성
+    await tx.chatMessage.create({
+      data: {
+        chatRoomId: chatRoom.id,
+        senderId: chatRoom.supplierId,
+        senderType: 'system',
+        senderName: '시스템',
+        content: `배송이 시작되었습니다.`,
+      },
+    })
+
+    // 구매자에게 알림
+    await tx.notification.create({
+      data: {
+        userId: chatRoom.buyerId,
+        type: 'order_update',
+        title: '배송 시작',
+        message: `"${chatRoom.rfq?.title}" 배송이 시작되었습니다.`,
+        link: `/buyer/orders`,
+      },
+    })
+
+    return chatRoom
+  })
+
+  return NextResponse.json({
+    success: true,
+    message: '배송이 시작되었습니다.',
+    chatRoom: {
+      id: result.id,
+      status: result.status,
+    },
+  })
+}
+
+// 구매자: 수령 확인
+async function handleConfirmReceipt(chatRoom: any) {
+  const result = await prisma.$transaction(async (tx) => {
+    // 채팅방 상태: delivery_completed → closed
+    const updatedRoom = await tx.chatRoom.update({
+      where: { id: chatRoom.id },
+      data: {
+        status: 'closed',
+      },
+    })
+
+    // 주문 상태: delivered → confirmed
+    const orders = await tx.order.findMany({
+      where: { chatRoomId: chatRoom.id },
+      include: {
+        rfq: {
+          select: {
+            title: true,
+            category: true,
+            quantity: true,
+            unit: true,
+            items: true,
+          },
+        },
+        quote: {
+          select: {
+            unitPrice: true,
+            totalPrice: true,
+          },
+        },
+        invoice: true,
+      },
+    })
+
+    await tx.order.updateMany({
+      where: { chatRoomId: chatRoom.id },
+      data: { status: 'confirmed' },
+    })
+
+    // 시스템 메시지 생성
+    await tx.chatMessage.create({
+      data: {
+        chatRoomId: chatRoom.id,
+        senderId: chatRoom.buyerId,
+        senderType: 'system',
+        senderName: '시스템',
+        content: `${chatRoom.buyer?.companyName}님이 수령을 확인했습니다. 거래가 완료되었습니다.`,
+      },
+    })
+
+    // 명세표 자동 생성
+    for (const order of orders) {
+      if (order.invoice) continue
+
+      try {
+        const today = new Date()
+        const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
+        const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        const dayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+
+        const todayCount = await tx.invoice.count({
+          where: {
+            createdAt: { gte: dayStart, lt: dayEnd },
+          },
+        })
+        const seqNumber = String(todayCount + 1).padStart(4, '0')
+        const invoiceNumber = `INV-${dateStr}-${seqNumber}`
+
+        const previousOrderCount = await tx.order.count({
+          where: {
+            buyerId: order.buyerId,
+            supplierId: order.supplierId,
+            id: { not: order.id },
+            status: { in: ['confirmed', 'completed', 'delivered'] },
+          },
+        })
+        const isRepeatTrade = previousOrderCount > 0
+
+        const settings = await tx.siteSettings.findUnique({
+          where: { id: 'default' },
+        })
+        const commissionRate = isRepeatTrade
+          ? (settings?.repeatTradeCommissionRate ?? 1.0)
+          : (settings?.firstTradeCommissionRate ?? 3.0)
+
+        const productAmount = order.productAmount
+        const commissionAmount = order.commissionAmount || Math.round(productAmount * commissionRate / 100)
+        const totalAmount = order.totalAmount
+
+        const rfqItems = order.rfq.items as any[] | null
+        let items
+        if (rfqItems && Array.isArray(rfqItems) && rfqItems.length > 0) {
+          items = rfqItems.map((item: any) => ({
+            name: item.name || order.rfq.title,
+            unit: item.unit || order.rfq.unit,
+            quantity: item.quantity || order.rfq.quantity,
+            unitPrice: order.quote!.unitPrice,
+            amount: item.quantity ? item.quantity * order.quote!.unitPrice : order.quote!.totalPrice,
+          }))
+        } else {
+          items = [{
+            name: order.rfq.title,
+            unit: order.rfq.unit,
+            quantity: order.rfq.quantity,
+            unitPrice: order.quote!.unitPrice,
+            amount: order.quote!.totalPrice,
+          }]
+        }
+
+        const invoice = await tx.invoice.create({
+          data: {
+            invoiceNumber,
+            orderId: order.id,
+            buyerId: order.buyerId,
+            supplierId: order.supplierId,
+            items,
+            productAmount,
+            commissionRate,
+            commissionAmount,
+            totalAmount,
+            isRepeatTrade,
+            status: 'issued',
+          },
+        })
+
+        // 명세표 발행 알림 (구매자)
+        await tx.notification.create({
+          data: {
+            userId: order.buyerId,
+            type: 'invoice_issued',
+            title: '명세표 발행',
+            message: `"${chatRoom.rfq?.title}" 거래 명세표가 발행되었습니다.`,
+            link: `/invoices/${invoice.id}`,
+          },
+        })
+
+        // 명세표 발행 알림 (공급자)
+        await tx.notification.create({
+          data: {
+            userId: order.supplierId,
+            type: 'invoice_issued',
+            title: '명세표 발행',
+            message: `"${chatRoom.rfq?.title}" 거래 명세표가 발행되었습니다.`,
+            link: `/invoices/${invoice.id}`,
+          },
+        })
+      } catch (invoiceError) {
+        console.error('명세표 자동 발행 오류:', invoiceError)
+      }
+    }
+
+    // 양쪽에 거래 완료 알림
+    await tx.notification.create({
+      data: {
+        userId: chatRoom.buyerId,
+        type: 'deal_completed',
+        title: '거래 완료',
+        message: `"${chatRoom.rfq?.title}" 거래가 완료되었습니다.`,
+        link: `/buyer/orders`,
+      },
+    })
+
+    await tx.notification.create({
+      data: {
+        userId: chatRoom.supplierId,
+        type: 'deal_completed',
         title: '거래 완료',
         message: `"${chatRoom.rfq?.title}" 거래가 완료되었습니다.`,
         link: `/supplier/orders`,
@@ -437,7 +712,7 @@ async function handleCompleteDelivery(chatRoom: any) {
 
   return NextResponse.json({
     success: true,
-    message: '납품이 완료되었습니다.',
+    message: '수령 확인이 완료되었습니다. 거래가 완료되었습니다.',
     chatRoom: {
       id: result.id,
       status: result.status,

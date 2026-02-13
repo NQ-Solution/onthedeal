@@ -62,6 +62,13 @@ export async function PUT(request: NextRequest) {
         businessHoursStart: body.businessHoursStart,
         businessHoursEnd: body.businessHoursEnd,
         businessDays: body.businessDays,
+        // 수수료 설정
+        ...(body.firstTradeCommissionRate !== undefined && { firstTradeCommissionRate: body.firstTradeCommissionRate }),
+        ...(body.repeatTradeCommissionRate !== undefined && { repeatTradeCommissionRate: body.repeatTradeCommissionRate }),
+        ...(body.buyerCardPaymentRate !== undefined && { buyerCardPaymentRate: body.buyerCardPaymentRate }),
+        ...(body.buyerBankTransferRate !== undefined && { buyerBankTransferRate: body.buyerBankTransferRate }),
+        ...(body.chatExpiryDays !== undefined && { chatExpiryDays: body.chatExpiryDays }),
+        ...(body.maxProposalsPerHour !== undefined && { maxProposalsPerHour: body.maxProposalsPerHour }),
       },
       create: {
         id: 'default',
@@ -82,6 +89,13 @@ export async function PUT(request: NextRequest) {
         businessHoursStart: body.businessHoursStart,
         businessHoursEnd: body.businessHoursEnd,
         businessDays: body.businessDays,
+        // 수수료 설정
+        firstTradeCommissionRate: body.firstTradeCommissionRate ?? 3.0,
+        repeatTradeCommissionRate: body.repeatTradeCommissionRate ?? 1.0,
+        buyerCardPaymentRate: body.buyerCardPaymentRate ?? 3.0,
+        buyerBankTransferRate: body.buyerBankTransferRate ?? 0.0,
+        chatExpiryDays: body.chatExpiryDays ?? 3,
+        maxProposalsPerHour: body.maxProposalsPerHour ?? 0,
       }
     })
 

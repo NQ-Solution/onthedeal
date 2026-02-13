@@ -76,6 +76,8 @@ model User {
   creditLogs            CreditLog[]
   creditCharges         CreditCharge[]
   supplierAccount       SupplierAccount?
+  buyerInvoices         Invoice[]          @relation("BuyerInvoices")
+  supplierInvoices      Invoice[]          @relation("SupplierInvoices")
 
   @@index([role])
   @@index([approvalStatus])
@@ -143,6 +145,7 @@ model RFQ {
   @@index([status])
   @@index([category])
   @@index([createdAt])
+  @@index([targetSupplierId])
   @@map("rfqs")
 }
 
@@ -272,6 +275,8 @@ model ChatMessage {
   @@index([chatRoomId])
   @@index([senderId])
   @@index([createdAt])
+  @@index([chatRoomId, createdAt])
+  @@index([chatRoomId, isRead])
   @@map("chat_messages")
 }
 
@@ -307,11 +312,17 @@ model Order {
 
   // Relations
   logs            OrderLog[]
+  invoice         Invoice?
 
   @@index([buyerId])
   @@index([supplierId])
   @@index([status])
   @@index([createdAt])
+  @@index([chatRoomId])
+  @@index([rfqId])
+  @@index([quoteId])
+  @@index([buyerId, status])
+  @@index([supplierId, status])
   @@map("orders")
 }
 
@@ -346,6 +357,8 @@ model OrderLog {
   note      String?
   createdAt DateTime @default(now()) @map("created_at")
 
+  @@index([orderId])
+  @@index([orderId, createdAt])
   @@map("order_logs")
 }
 
@@ -371,6 +384,8 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
   @@map("notifications")
 }
 
@@ -378,12 +393,15 @@ enum NotificationType {
   new_quote
   new_message
   deal_confirmed
+  deal_completed
   order_update
   chat_expiring
   chat_expired
   payment_request
   payment_confirmed
   delivery_completed
+  invoice_issued
+  announcement
   system
 }
 
@@ -565,8 +583,86 @@ model SiteSettings {
   businessHoursEnd   String? @map("business_hours_end")
   businessDays       String? @map("business_days")
 
+  // 수수료 설정
+  firstTradeCommissionRate  Float    @default(3.0)    // 첫 거래 수수료율 (%)
+  repeatTradeCommissionRate Float    @default(1.0)    // 연속 거래 수수료율 (%)
+  buyerCardPaymentRate      Float    @default(3.0)    // 구매자 카드결제 수수료율 (%)
+  buyerBankTransferRate     Float    @default(0.0)    // 구매자 계좌이체 수수료율 (%)
+  chatExpiryDays            Int      @default(3)      // 채팅방 만료일
+  maxProposalsPerHour       Int      @default(0)      // 시간당 최대 제안수 (0=무제한)
+
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
+}
+
+// ============================================
+// 거래명세표 (Invoices)
+// ============================================
+
+model Invoice {
+  id              String    @id @default(cuid())
+  invoiceNumber   String    @unique              // 명세표 번호 (INV-YYYYMMDD-XXXX)
+  orderId         String    @unique
+  order           Order     @relation(fields: [orderId], references: [id])
+  buyerId         String
+  buyer           User      @relation("BuyerInvoices", fields: [buyerId], references: [id])
+  supplierId      String
+  supplier        User      @relation("SupplierInvoices", fields: [supplierId], references: [id])
+  items           Json                            // 품목 상세
+  productAmount   Int                             // 상품 금액
+  commissionRate  Float                           // 적용된 수수료율 (%)
+  commissionAmount Int                            // 수수료 금액
+  totalAmount     Int                             // 총 금액
+  isRepeatTrade   Boolean   @default(false)       // 연속거래 여부
+  status          String    @default("issued")    // issued, confirmed, cancelled
+  issuedAt        DateTime  @default(now())
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([buyerId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([issuedAt])
+  @@index([buyerId, status])
+  @@index([supplierId, status])
+}
+
+// ============================================
+// 공지사항 (Announcements)
+// ============================================
+
+model Announcement {
+  id          String             @id @default(cuid())
+  title       String
+  content     String             @db.Text
+  category    AnnouncementCategory @default(general)
+  isPinned    Boolean            @default(false) @map("is_pinned")
+  isPublished Boolean            @default(false) @map("is_published")
+  authorId    String             @map("author_id")
+  viewCount   Int                @default(0) @map("view_count")
+
+  publishedAt DateTime?          @map("published_at")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  @@index([isPublished])
+  @@index([isPinned])
+  @@index([category])
+  @@index([createdAt])
+  @@index([isPublished, createdAt])
+  @@index([isPublished, isPinned])
+  @@map("announcements")
+}
+
+enum AnnouncementCategory {
+  general     // 일반
+  update      // 업데이트
+  maintenance // 점검
+  event       // 이벤트
+  policy      // 정책
 }

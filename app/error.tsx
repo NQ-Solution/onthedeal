@@ -54,10 +54,10 @@ export default function Error({
         </div>
 
         {/* 메시지 */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4 break-keep">
           일시적인 오류가 발생했습니다
         </h1>
-        <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+        <p className="text-xl text-gray-600 mb-10 leading-relaxed break-keep">
           죄송합니다. 예상치 못한 문제가 발생했습니다.<br />
           잠시 후 다시 시도해주세요.
         </p>
@@ -66,13 +66,13 @@ export default function Error({
         <div className="space-y-4 mb-10">
           <button
             onClick={reset}
-            className="w-full py-5 px-8 bg-primary-500 text-white text-xl font-bold rounded-xl hover:bg-primary-600 transition-colors"
+            className="w-full py-5 px-8 bg-primary-500 text-white text-xl font-bold rounded-xl hover:bg-primary-600 transition-colors whitespace-nowrap"
           >
             다시 시도하기
           </button>
           <Link
             href="/"
-            className="block w-full py-5 px-8 bg-white border-2 border-gray-200 text-gray-700 text-xl font-bold rounded-xl hover:bg-gray-50 transition-colors"
+            className="block w-full py-5 px-8 bg-white border-2 border-gray-200 text-gray-700 text-xl font-bold rounded-xl hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
             홈으로 돌아가기
           </Link>
@@ -80,7 +80,7 @@ export default function Error({
 
         {/* 문의 안내 */}
         <div className="bg-gray-50 rounded-2xl p-8">
-          <p className="text-lg text-gray-600 mb-4">
+          <p className="text-lg text-gray-600 mb-4 break-keep">
             문제가 계속되면 연락주세요
           </p>
           <div className="grid grid-cols-2 gap-4">
@@ -88,15 +88,15 @@ export default function Error({
               href="tel:02-1234-5678"
               className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 transition-colors"
             >
-              <p className="text-gray-500 text-sm mb-1">전화번호</p>
-              <p className="text-lg font-bold text-gray-900">02-1234-5678</p>
+              <p className="text-gray-500 text-sm mb-1 whitespace-nowrap">전화번호</p>
+              <p className="text-lg font-bold text-gray-900 whitespace-nowrap">02-1234-5678</p>
             </a>
             <Link
               href="/contact"
               className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 transition-colors"
             >
-              <p className="text-gray-500 text-sm mb-1">온라인 문의</p>
-              <p className="text-lg font-bold text-primary-600">문의하기</p>
+              <p className="text-gray-500 text-sm mb-1 whitespace-nowrap">온라인 문의</p>
+              <p className="text-lg font-bold text-primary-600 whitespace-nowrap">문의하기</p>
             </Link>
           </div>
         </div>

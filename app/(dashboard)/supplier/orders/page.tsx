@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, TrendingUp, PackageCheck, HandCoins, Info, Loader2 } from 'lucide-react'
+import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, TrendingUp, PackageCheck, HandCoins, Info, Loader2, FileText } from 'lucide-react'
+import Link from 'next/link'
 import { Button, Input, Select, Card, CardContent, Badge } from '@/components/ui'
 
 interface Order {
@@ -33,6 +34,10 @@ interface Order {
     contactName: string
     phone: string
   }
+  invoice?: {
+    id: string
+    invoiceNumber: string
+  } | null
 }
 
 const statusLabels: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info'; icon: any }> = {
@@ -79,7 +84,7 @@ export default function SupplierOrdersPage() {
   }
 
   const ordersWithDetails = orders.map(order => {
-    const supplierFee = order.supplierFee || Math.round(order.productAmount * 0.03)
+    const supplierFee = order.supplierFee ?? order.commissionAmount ?? 0
     const netAmount = order.productAmount - supplierFee
     return {
       ...order,
@@ -93,6 +98,33 @@ export default function SupplierOrdersPage() {
     const matchesStatus = !statusFilter || order.status === statusFilter
     return matchesSearch && matchesStatus
   })
+
+  const [invoiceLoading, setInvoiceLoading] = useState<string | null>(null)
+
+  const handleGenerateInvoice = async (orderId: string) => {
+    setInvoiceLoading(orderId)
+    try {
+      const res = await fetch('/api/invoices/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      if (res.ok) {
+        alert('명세표가 발행되었습니다.')
+        fetchOrders()
+      } else if (res.status === 409) {
+        alert('이미 명세표가 발행되었습니다.')
+        fetchOrders()
+      } else {
+        const data = await res.json()
+        alert(data.error || '명세표 발행에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('명세표 발행에 실패했습니다.')
+    } finally {
+      setInvoiceLoading(null)
+    }
+  }
 
   const handleShip = async (orderId: string) => {
     try {
@@ -127,8 +159,8 @@ export default function SupplierOrdersPage() {
     <div className="space-y-8">
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">주문 관리</h1>
-        <p className="text-lg text-gray-500 mt-1">주문을 관리하고 배송을 진행하세요</p>
+        <h1 className="text-3xl font-bold text-gray-900 break-keep">주문 관리</h1>
+        <p className="text-lg text-gray-500 mt-1 break-keep">주문을 관리하고 배송을 진행하세요</p>
       </div>
 
       {/* 통계 카드 */}
@@ -137,7 +169,7 @@ export default function SupplierOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">배송준비</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">배송준비</p>
                 <p className="text-4xl font-bold text-blue-600 mt-2">{preparingCount}</p>
               </div>
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -151,7 +183,7 @@ export default function SupplierOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">배송중</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">배송중</p>
                 <p className="text-4xl font-bold text-yellow-600 mt-2">{shippingCount}</p>
               </div>
               <div className="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center">
@@ -165,7 +197,7 @@ export default function SupplierOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">완료</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">완료</p>
                 <p className="text-4xl font-bold text-green-600 mt-2">{completedCount}</p>
               </div>
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
@@ -179,7 +211,7 @@ export default function SupplierOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">총 정산액</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">총 정산액</p>
                 <p className="text-4xl font-bold text-primary-600 mt-2">{formatPrice(totalRevenue)}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -244,24 +276,24 @@ export default function SupplierOrdersPage() {
                       {/* 좌측: 주문 정보 */}
                       <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
-                          <Badge variant={status.variant} className="text-base px-4 py-2">
+                          <Badge variant={status.variant} className="text-base px-4 py-2 whitespace-nowrap shrink-0">
                             <StatusIcon className="w-4 h-4 mr-2" />
                             {status.label}
                           </Badge>
                           <span className="text-lg text-gray-500">#{order.id.slice(0, 8)}</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900">{order.rfq?.title}</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 break-keep">{order.rfq?.title}</h3>
                         <div className="flex items-center gap-3 text-lg text-gray-600">
                           <Building2 className="w-5 h-5" />
                           <span>구매자: {order.buyer?.companyName}</span>
                         </div>
                         <div className="flex items-center gap-6 text-base text-gray-500">
-                          <span className="flex items-center gap-2">
-                            <Truck className="w-5 h-5" />
+                          <span className="flex items-center gap-2 whitespace-nowrap">
+                            <Truck className="w-5 h-5 shrink-0" />
                             납품예정: {formatDate(order.rfq?.deliveryDate)}
                           </span>
-                          <span className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5" />
+                          <span className="flex items-center gap-2 whitespace-nowrap">
+                            <Calendar className="w-5 h-5 shrink-0" />
                             주문일: {formatDate(order.createdAt)}
                           </span>
                         </div>
@@ -271,15 +303,15 @@ export default function SupplierOrdersPage() {
                       <div className="lg:w-80">
                         <div className="bg-gray-50 rounded-2xl p-5 space-y-3">
                           <div className="flex justify-between text-lg text-gray-700">
-                            <span>거래 금액</span>
+                            <span className="whitespace-nowrap">거래 금액</span>
                             <span className="font-medium">{formatPrice(order.productAmount)}</span>
                           </div>
                           <div className="flex justify-between text-base text-gray-500">
-                            <span>수수료 (3%, 크레딧 차감)</span>
+                            <span className="whitespace-nowrap">수수료 (크레딧 차감)</span>
                             <span>{order.commission.toLocaleString()}원</span>
                           </div>
                           <div className="flex justify-between text-2xl font-bold text-green-600 pt-3 border-t-2 border-gray-200">
-                            <span>정산 예정액</span>
+                            <span className="whitespace-nowrap">정산 예정액</span>
                             <span>{formatPrice(order.net_amount)}</span>
                           </div>
                         </div>
@@ -311,6 +343,30 @@ export default function SupplierOrdersPage() {
                             </p>
                           </div>
                         )}
+                        {['confirmed', 'completed', 'delivered'].includes(order.status) && !order.invoice && (
+                          <Button
+                            size="lg"
+                            variant="outline"
+                            className="w-full mt-4"
+                            onClick={() => handleGenerateInvoice(order.id)}
+                            disabled={invoiceLoading === order.id}
+                          >
+                            {invoiceLoading === order.id ? (
+                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            ) : (
+                              <FileText className="w-5 h-5 mr-2" />
+                            )}
+                            명세표 발행
+                          </Button>
+                        )}
+                        {order.invoice && (
+                          <Link href={`/invoices/${order.invoice.id}`}>
+                            <Button size="lg" variant="outline" className="w-full mt-4">
+                              <FileText className="w-5 h-5 mr-2" />
+                              명세표 보기
+                            </Button>
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -327,11 +383,11 @@ export default function SupplierOrdersPage() {
           <div className="flex items-start gap-4">
             <Info className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="text-xl font-bold text-blue-900">정산 안내</h3>
-              <p className="text-lg text-blue-700 mt-2">
-                제안 제출 시 선차감된 크레딧(3%)이 거래 성사 시 수수료로 확정됩니다.
+              <h3 className="text-xl font-bold text-blue-900 break-keep">정산 안내</h3>
+              <p className="text-lg text-blue-700 mt-2 break-keep">
+                제안 제출 시 선차감된 크레딧이 거래 성사 시 수수료로 확정됩니다.
               </p>
-              <p className="text-base text-blue-600 mt-1">
+              <p className="text-base text-blue-600 mt-1 break-keep">
                 미선정 시 크레딧이 환불되며, 구매자 수령 확인 후 영업일 2~3일 내 정산됩니다.
               </p>
             </div>

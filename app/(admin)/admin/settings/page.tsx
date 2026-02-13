@@ -32,6 +32,14 @@ interface SiteSettings {
   businessHoursStart: string
   businessHoursEnd: string
   businessDays: string
+
+  // 수수료 설정
+  firstTradeCommissionRate: number
+  repeatTradeCommissionRate: number
+  buyerCardPaymentRate: number
+  buyerBankTransferRate: number
+  chatExpiryDays: number
+  maxProposalsPerHour: number
 }
 
 export default function AdminSettingsPage() {
@@ -59,10 +67,15 @@ export default function AdminSettingsPage() {
     businessHoursStart: '09:00',
     businessHoursEnd: '18:00',
     businessDays: '월-금',
-  })
 
-  // 수수료 설정 (별도 관리)
-  const [feeSettings, setFeeSettings] = useState<FeeSettings>(DEFAULT_FEE_SETTINGS)
+    // 수수료 설정
+    firstTradeCommissionRate: DEFAULT_FEE_SETTINGS.firstTradeCommissionRate,
+    repeatTradeCommissionRate: DEFAULT_FEE_SETTINGS.repeatTradeCommissionRate,
+    buyerCardPaymentRate: DEFAULT_FEE_SETTINGS.buyerCardPaymentRate,
+    buyerBankTransferRate: DEFAULT_FEE_SETTINGS.buyerBankTransferRate,
+    chatExpiryDays: DEFAULT_FEE_SETTINGS.chatExpiryDays,
+    maxProposalsPerHour: DEFAULT_FEE_SETTINGS.maxProposalsPerHour,
+  })
 
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -95,6 +108,13 @@ export default function AdminSettingsPage() {
             businessHoursStart: data.businessHoursStart || prev.businessHoursStart,
             businessHoursEnd: data.businessHoursEnd || prev.businessHoursEnd,
             businessDays: data.businessDays || prev.businessDays,
+            // 수수료 설정
+            firstTradeCommissionRate: data.firstTradeCommissionRate ?? prev.firstTradeCommissionRate,
+            repeatTradeCommissionRate: data.repeatTradeCommissionRate ?? prev.repeatTradeCommissionRate,
+            buyerCardPaymentRate: data.buyerCardPaymentRate ?? prev.buyerCardPaymentRate,
+            buyerBankTransferRate: data.buyerBankTransferRate ?? prev.buyerBankTransferRate,
+            chatExpiryDays: data.chatExpiryDays ?? prev.chatExpiryDays,
+            maxProposalsPerHour: data.maxProposalsPerHour ?? prev.maxProposalsPerHour,
           }))
         }
       } catch (error) {
@@ -129,15 +149,8 @@ export default function AdminSettingsPage() {
     setSettings(prev => ({ ...prev, [key]: value }))
   }
 
-  const handleFeeChange = (category: keyof FeeSettings, key: string, value: number) => {
-    setFeeSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...(prev[category] as any),
-        [key]: value,
-      },
-      updatedAt: new Date().toISOString(),
-    }))
+  const handleNumberChange = (key: keyof SiteSettings, value: number) => {
+    setSettings(prev => ({ ...prev, [key]: value }))
   }
 
   return (
@@ -146,7 +159,7 @@ export default function AdminSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">사이트 설정</h2>
-          <p className="text-gray-500">플랫폼 전반의 설정을 관리합니다</p>
+          <p className="text-gray-500 break-keep">플랫폼 전반의 설정을 관리합니다</p>
         </div>
         <Button
           size="lg"
@@ -340,8 +353,8 @@ export default function AdminSettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
-                  <p className="font-medium text-gray-900">이메일 알림</p>
-                  <p className="text-sm text-gray-500">새로운 활동에 대한 이메일 알림</p>
+                  <p className="font-medium text-gray-900 whitespace-nowrap">이메일 알림</p>
+                  <p className="text-sm text-gray-500 break-keep">새로운 활동에 대한 이메일 알림</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -355,8 +368,8 @@ export default function AdminSettingsPage() {
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
-                  <p className="font-medium text-gray-900">SMS 알림</p>
-                  <p className="text-sm text-gray-500">중요한 알림에 대한 SMS 발송</p>
+                  <p className="font-medium text-gray-900 whitespace-nowrap">SMS 알림</p>
+                  <p className="text-sm text-gray-500 break-keep">중요한 알림에 대한 SMS 발송</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -446,13 +459,13 @@ export default function AdminSettingsPage() {
         <div className="space-y-6">
           {/* 수수료 요약 */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <Card className="bg-gradient-to-br from-primary-500 to-primary-600 text-white">
               <CardContent className="py-6">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="w-8 h-8 opacity-80" />
+                  <Star className="w-8 h-8 opacity-80" />
                   <div>
-                    <p className="text-blue-100">카드 결제 수수료</p>
-                    <p className="text-3xl font-bold">{feeSettings.buyer.cardPaymentRate}%</p>
+                    <p className="text-primary-100 whitespace-nowrap">첫 거래 수수료</p>
+                    <p className="text-3xl font-bold">{settings.firstTradeCommissionRate}%</p>
                   </div>
                 </div>
               </CardContent>
@@ -460,21 +473,21 @@ export default function AdminSettingsPage() {
             <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
               <CardContent className="py-6">
                 <div className="flex items-center gap-3">
-                  <Building className="w-8 h-8 opacity-80" />
+                  <Zap className="w-8 h-8 opacity-80" />
                   <div>
-                    <p className="text-green-100">계좌이체 수수료</p>
-                    <p className="text-3xl font-bold">{feeSettings.buyer.bankTransferRate}%</p>
+                    <p className="text-green-100 whitespace-nowrap">연속 거래 수수료</p>
+                    <p className="text-3xl font-bold">{settings.repeatTradeCommissionRate}%</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-primary-500 to-primary-600 text-white">
+            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
               <CardContent className="py-6">
                 <div className="flex items-center gap-3">
-                  <Star className="w-8 h-8 opacity-80" />
+                  <CreditCard className="w-8 h-8 opacity-80" />
                   <div>
-                    <p className="text-primary-100">기본 제안 수수료</p>
-                    <p className="text-3xl font-bold">{feeSettings.supplier.basic}%</p>
+                    <p className="text-blue-100 whitespace-nowrap">카드결제 수수료</p>
+                    <p className="text-3xl font-bold">{settings.buyerCardPaymentRate}%</p>
                   </div>
                 </div>
               </CardContent>
@@ -482,10 +495,10 @@ export default function AdminSettingsPage() {
             <Card className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
               <CardContent className="py-6">
                 <div className="flex items-center gap-3">
-                  <Zap className="w-8 h-8 opacity-80" />
+                  <Building className="w-8 h-8 opacity-80" />
                   <div>
-                    <p className="text-yellow-100">프리미엄 수수료</p>
-                    <p className="text-3xl font-bold">{feeSettings.supplier.premium}%</p>
+                    <p className="text-yellow-100 whitespace-nowrap">계좌이체 수수료</p>
+                    <p className="text-3xl font-bold">{settings.buyerBankTransferRate}%</p>
                   </div>
                 </div>
               </CardContent>
@@ -493,12 +506,78 @@ export default function AdminSettingsPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 공급자 수수료 (거래 수수료) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Percent className="w-5 h-5 text-primary-600" />
+                  거래 수수료 (공급자)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-primary-50 rounded-xl border border-primary-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
+                      <Star className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 whitespace-nowrap">첫 거래 수수료율</p>
+                      <p className="text-sm text-gray-500 break-keep">해당 구매자와 첫 거래 시 적용</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      value={settings.firstTradeCommissionRate}
+                      onChange={(e) => handleNumberChange('firstTradeCommissionRate', Number(e.target.value))}
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      className="w-24"
+                    />
+                    <span className="text-gray-500 font-medium">%</span>
+                    <span className="text-sm text-gray-400 ml-auto">
+                      예: 100만원 거래 → {(1000000 * settings.firstTradeCommissionRate / 100).toLocaleString()}원
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 whitespace-nowrap">연속 거래 수수료율</p>
+                      <p className="text-sm text-gray-500 break-keep">같은 구매자와 재거래 시 할인 적용</p>
+                    </div>
+                    <Badge variant="success" className="ml-auto">할인</Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      value={settings.repeatTradeCommissionRate}
+                      onChange={(e) => handleNumberChange('repeatTradeCommissionRate', Number(e.target.value))}
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      className="w-24"
+                    />
+                    <span className="text-gray-500 font-medium">%</span>
+                    <span className="text-sm text-gray-400 ml-auto">
+                      예: 100만원 거래 → {(1000000 * settings.repeatTradeCommissionRate / 100).toLocaleString()}원
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* 구매자 수수료 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-600" />
-                  구매자 수수료
+                  결제 수수료 (구매자)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -508,16 +587,15 @@ export default function AdminSettingsPage() {
                       <CreditCard className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">카드 결제</p>
-                      <p className="text-sm text-gray-500">PG사 수수료 포함</p>
+                      <p className="font-bold text-gray-900 whitespace-nowrap">카드결제 수수료율</p>
+                      <p className="text-sm text-gray-500 break-keep">PG사 수수료 포함</p>
                     </div>
-                    <Badge variant="warning" className="ml-auto">준비 중</Badge>
                   </div>
                   <div className="flex items-center gap-3">
                     <Input
                       type="number"
-                      value={feeSettings.buyer.cardPaymentRate}
-                      onChange={(e) => handleFeeChange('buyer', 'cardPaymentRate', Number(e.target.value))}
+                      value={settings.buyerCardPaymentRate}
+                      onChange={(e) => handleNumberChange('buyerCardPaymentRate', Number(e.target.value))}
                       min={0}
                       max={100}
                       step={0.1}
@@ -525,7 +603,7 @@ export default function AdminSettingsPage() {
                     />
                     <span className="text-gray-500 font-medium">%</span>
                     <span className="text-sm text-gray-400 ml-auto">
-                      예: 100만원 → {(1000000 * (1 + feeSettings.buyer.cardPaymentRate / 100)).toLocaleString()}원
+                      예: 100만원 → {(1000000 * (1 + settings.buyerCardPaymentRate / 100)).toLocaleString()}원
                     </span>
                   </div>
                 </div>
@@ -536,16 +614,16 @@ export default function AdminSettingsPage() {
                       <Building className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">계좌 이체</p>
-                      <p className="text-sm text-gray-500">직접 송금</p>
+                      <p className="font-bold text-gray-900 whitespace-nowrap">계좌이체 수수료율</p>
+                      <p className="text-sm text-gray-500 break-keep">직접 송금</p>
                     </div>
                     <Badge variant="success" className="ml-auto">활성</Badge>
                   </div>
                   <div className="flex items-center gap-3">
                     <Input
                       type="number"
-                      value={feeSettings.buyer.bankTransferRate}
-                      onChange={(e) => handleFeeChange('buyer', 'bankTransferRate', Number(e.target.value))}
+                      value={settings.buyerBankTransferRate}
+                      onChange={(e) => handleNumberChange('buyerBankTransferRate', Number(e.target.value))}
                       min={0}
                       max={100}
                       step={0.1}
@@ -553,85 +631,19 @@ export default function AdminSettingsPage() {
                     />
                     <span className="text-gray-500 font-medium">%</span>
                     <span className="text-sm text-gray-400 ml-auto">
-                      예: 100만원 → {(1000000 * (1 + feeSettings.buyer.bankTransferRate / 100)).toLocaleString()}원
+                      예: 100만원 → {(1000000 * (1 + settings.buyerBankTransferRate / 100)).toLocaleString()}원
                     </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* 공급자 수수료 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Percent className="w-5 h-5 text-primary-600" />
-                  공급자 수수료 (제안 옵션)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="p-4 bg-primary-50 rounded-xl border border-primary-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-                      <Star className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900">기본 제안</p>
-                      <p className="text-sm text-gray-500">일반 노출</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Input
-                      type="number"
-                      value={feeSettings.supplier.basic}
-                      onChange={(e) => handleFeeChange('supplier', 'basic', Number(e.target.value))}
-                      min={0}
-                      max={100}
-                      step={0.1}
-                      className="w-24"
-                    />
-                    <span className="text-gray-500 font-medium">%</span>
-                    <span className="text-sm text-gray-400 ml-auto">
-                      예: 100만원 거래 → {(1000000 * feeSettings.supplier.basic / 100).toLocaleString()}원 차감
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center">
-                      <Zap className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900">상위 노출 (프리미엄)</p>
-                      <p className="text-sm text-gray-500">구매자 채팅창 우선 표시</p>
-                    </div>
-                    <Badge variant="warning" className="ml-auto">추천</Badge>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Input
-                      type="number"
-                      value={feeSettings.supplier.premium}
-                      onChange={(e) => handleFeeChange('supplier', 'premium', Number(e.target.value))}
-                      min={0}
-                      max={100}
-                      step={0.1}
-                      className="w-24"
-                    />
-                    <span className="text-gray-500 font-medium">%</span>
-                    <span className="text-sm text-gray-400 ml-auto">
-                      예: 100만원 거래 → {(1000000 * feeSettings.supplier.premium / 100).toLocaleString()}원 차감
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 채팅 설정 */}
+            {/* 채팅 및 운영 설정 */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-purple-600" />
-                  채팅 설정
+                  채팅 및 운영 설정
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -642,15 +654,15 @@ export default function AdminSettingsPage() {
                         <Clock className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">채팅 만료일</p>
-                        <p className="text-sm text-gray-500">거래 미확정 시 자동 삭제</p>
+                        <p className="font-bold text-gray-900 whitespace-nowrap">채팅방 만료일</p>
+                        <p className="text-sm text-gray-500 break-keep">거래 미확정 시 자동 만료</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Input
                         type="number"
-                        value={feeSettings.chat.expiryDays}
-                        onChange={(e) => handleFeeChange('chat', 'expiryDays', Number(e.target.value))}
+                        value={settings.chatExpiryDays}
+                        onChange={(e) => handleNumberChange('chatExpiryDays', Number(e.target.value))}
                         min={1}
                         max={30}
                         className="w-24"
@@ -665,18 +677,18 @@ export default function AdminSettingsPage() {
                         <Shield className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">시간당 제안 제한</p>
-                        <p className="text-sm text-gray-500">0 = 무제한 (초기 오픈)</p>
+                        <p className="font-bold text-gray-900 whitespace-nowrap">시간당 최대 제안수</p>
+                        <p className="text-sm text-gray-500 break-keep">0 = 무제한 (초기 오픈)</p>
                       </div>
-                      {feeSettings.chat.maxProposalsPerHour === 0 && (
+                      {settings.maxProposalsPerHour === 0 && (
                         <Badge variant="info" className="ml-auto">무제한</Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-3">
                       <Input
                         type="number"
-                        value={feeSettings.chat.maxProposalsPerHour}
-                        onChange={(e) => handleFeeChange('chat', 'maxProposalsPerHour', Number(e.target.value))}
+                        value={settings.maxProposalsPerHour}
+                        onChange={(e) => handleNumberChange('maxProposalsPerHour', Number(e.target.value))}
                         min={0}
                         max={100}
                         className="w-24"
@@ -687,11 +699,6 @@ export default function AdminSettingsPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-          {/* 마지막 업데이트 */}
-          <div className="text-center text-sm text-gray-400">
-            마지막 수정: {new Date(feeSettings.updatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
           </div>
         </div>
       )}

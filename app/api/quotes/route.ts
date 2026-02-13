@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { siteConfig } from '@/lib/site-config'
+import { getCommissionRate } from '@/lib/fee-utils'
 
 // 제안 목록 조회
 export async function GET(request: NextRequest) {
@@ -154,8 +154,11 @@ export async function POST(request: NextRequest) {
 
     const totalPrice = body.unit_price * rfq.quantity
 
-    // 크레딧 선차감 금액 계산 (제안 총금액의 3%)
-    const creditDeduction = Math.round(totalPrice * 0.03)
+    // 크레딧 선차감 금액 계산 (DB 수수료율 적용)
+    const buyerId = rfq.buyerId
+    const supplierId = session.user.id
+    const rate = await getCommissionRate(buyerId, supplierId)
+    const creditDeduction = Math.round(totalPrice * rate)
 
     // 공급자 크레딧 확인
     const credit = await prisma.credit.findUnique({
@@ -184,7 +187,7 @@ export async function POST(request: NextRequest) {
           attachments: body.attachments || [],
           status: 'pending',
           optionType: body.optionType || 'basic',
-          commissionRate: 3.0, // 기본 수수료율 3%
+          commissionRate: rate * 100, // DB 기반 수수료율 (%)
         },
       })
 
@@ -208,7 +211,8 @@ export async function POST(request: NextRequest) {
       })
 
       // 4. 채팅방 생성 (제안과 동시에)
-      const chatExpiryDays = siteConfig.settings.chatExpiryDays || 3
+      const siteSettings = await tx.siteSettings.findUnique({ where: { id: 'default' } })
+      const chatExpiryDays = siteSettings?.chatExpiryDays ?? 3
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + chatExpiryDays)
 

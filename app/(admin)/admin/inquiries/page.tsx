@@ -131,7 +131,7 @@ export default function AdminInquiriesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">전체 문의</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">전체 문의</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -144,7 +144,7 @@ export default function AdminInquiriesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-yellow-700">대기중</p>
+                <p className="text-sm text-yellow-700 whitespace-nowrap">대기중</p>
                 <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.pending || 0}</p>
               </div>
               <div className="w-14 h-14 bg-yellow-200 rounded-2xl flex items-center justify-center">
@@ -170,7 +170,7 @@ export default function AdminInquiriesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">답변완료</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">답변완료</p>
                 <p className="text-3xl font-bold text-green-600 mt-1">{stats?.resolved || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
@@ -223,12 +223,12 @@ export default function AdminInquiriesPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">문의자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">제목</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">내용</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">등록일</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">문의자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">제목</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">내용</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">상태</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">등록일</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

@@ -438,12 +438,12 @@ export default function AdminCreditsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">회사명</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">이메일</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold text-gray-700">요청 금액</th>
-                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">요청일</th>
-                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 whitespace-nowrap">회사명</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 whitespace-nowrap">이메일</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold text-gray-700 whitespace-nowrap">요청 금액</th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 whitespace-nowrap">상태</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 whitespace-nowrap">요청일</th>
+                  <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 whitespace-nowrap">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -530,11 +530,11 @@ export default function AdminCreditsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">회사명</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">이메일</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">담당자</th>
-                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-700">크레딧 잔액</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">충전</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">회사명</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">이메일</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">담당자</th>
+                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 whitespace-nowrap">크레딧 잔액</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">충전</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

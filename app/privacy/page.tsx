@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/Footer'
 import { LogoImage } from '@/components/ui/Logo'
 import { Shield, ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/db'
+import { sanitizeContent } from '@/lib/sanitize'
 
 // CMS 업데이트 실시간 반영을 위해 동적 렌더링 강제
 export const dynamic = 'force-dynamic'
@@ -64,8 +65,8 @@ export default async function PrivacyPage() {
           <div className="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <Shield className="w-10 h-10 text-green-600" />
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">{page?.title || '개인정보처리방침'}</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4 text-balance">{page?.title || '개인정보처리방침'}</h1>
+          <p className="text-xl text-gray-600 text-pretty">
             최종 수정일: {page ? new Date(page.updatedAt).toLocaleDateString('ko-KR') : '2026년 1월 1일'}
           </p>
         </div>
@@ -77,7 +78,7 @@ export default async function PrivacyPage() {
           ) : (
             <div
               className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-2xl prose-h2:mb-4 prose-h3:text-xl prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-ul:space-y-2"
-              dangerouslySetInnerHTML={{ __html: formatContent(page.content) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeContent(formatContent(page.content)) }}
             />
           )}
         </div>
@@ -103,7 +104,7 @@ function DefaultPrivacyContent() {
   return (
     <div className="space-y-10">
       <section>
-        <p className="text-lg text-gray-700 leading-relaxed">
+        <p className="text-lg text-gray-700 leading-relaxed text-pretty">
           온더딜(OnTheDeal, 이하 "회사")은 이용자의 개인정보를 중요시하며, 「개인정보 보호법」 등 관련 법령을 준수하고 있습니다.
         </p>
       </section>

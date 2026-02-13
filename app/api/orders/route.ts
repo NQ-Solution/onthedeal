@@ -59,6 +59,12 @@ export async function GET(request: NextRequest) {
             bankHolder: true,
           },
         },
+        invoice: {
+          select: {
+            id: true,
+            invoiceNumber: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -93,7 +99,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 수수료 계산 (제안 제출 시 이미 선차감됨 - 여기서 추가 차감 없음)
-    const commissionRate = 0.03
+    // 제안에 저장된 수수료율 사용
+    const commissionRate = (quote.commissionRate ?? 3.0) / 100
     const commissionAmount = Math.round(quote.totalPrice * commissionRate)
 
     // 주문 생성 (크레딧은 제안 제출 시 이미 선차감되었으므로 여기서 차감하지 않음)

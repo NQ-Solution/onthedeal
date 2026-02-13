@@ -176,8 +176,8 @@ export default function BuyerRFQsPage() {
       {/* 페이지 헤더 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">내 발주</h1>
-          <p className="text-base text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 break-keep">내 발주</h1>
+          <p className="text-base text-gray-500 mt-1 break-keep">
             발주를 등록하면 판매자의 제안이 시작됩니다.
           </p>
         </div>
@@ -225,11 +225,11 @@ export default function BuyerRFQsPage() {
                     {/* 발주 헤더 */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant={status.variant} className="text-sm px-3 py-1">
+                        <Badge variant={status.variant} className="text-sm px-3 py-1 whitespace-nowrap shrink-0">
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {status.label}
                         </Badge>
-                        <Badge variant="info" className="text-sm px-3 py-1">{rfq.category}</Badge>
+                        <Badge variant="info" className="text-sm px-3 py-1 whitespace-nowrap shrink-0">{rfq.category}</Badge>
                       </div>
                       {quoteCount > 0 && (
                         <span className="text-sm font-bold text-primary-600 bg-primary-100 px-3 py-1 rounded-full">
@@ -239,7 +239,7 @@ export default function BuyerRFQsPage() {
                     </div>
 
                     {/* 발주 제목 */}
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{rfq.title}</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 break-keep">{rfq.title}</h3>
 
                     {/* 발주 정보 */}
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 mb-3">
@@ -257,12 +257,12 @@ export default function BuyerRFQsPage() {
                     {(rfq.orderFrequency || rfq.orderSizeRange) && (
                       <div className="flex flex-wrap gap-2 text-sm mb-3">
                         {rfq.orderSizeRange && (
-                          <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
+                          <span className="bg-green-50 text-green-700 px-2 py-1 rounded whitespace-nowrap">
                             평균발주: {rfq.orderSizeRange}
                           </span>
                         )}
                         {rfq.orderFrequency && (
-                          <span className="bg-primary-50 text-primary-700 px-2 py-1 rounded">
+                          <span className="bg-primary-50 text-primary-700 px-2 py-1 rounded whitespace-nowrap">
                             발주주기: {rfq.orderFrequency}
                           </span>
                         )}
@@ -288,7 +288,7 @@ export default function BuyerRFQsPage() {
 
                     {/* 제안이 없는 경우 */}
                     {quoteCount === 0 && (
-                      <div className="py-3 px-4 bg-gray-50 rounded-lg mt-2 text-center text-gray-500">
+                      <div className="py-3 px-4 bg-gray-50 rounded-lg mt-2 text-center text-gray-500 break-keep">
                         아직 받은 제안이 없습니다. 판매자들의 제안을 기다려주세요.
                       </div>
                     )}

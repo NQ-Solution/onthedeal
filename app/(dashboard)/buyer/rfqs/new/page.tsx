@@ -178,7 +178,7 @@ export default function NewRFQPage() {
               </p>
             </div>
           </div>
-          <p className="text-sm text-blue-600 mt-2 ml-13">
+          <p className="text-sm text-blue-600 mt-2 ml-13 break-keep">
             이 발주는 위 업체에게만 전송됩니다.
           </p>
         </div>

@@ -328,9 +328,9 @@ export default function AdminContentPage() {
         <CardContent className="py-6">
           <h3 className="font-bold text-blue-800 mb-2">콘텐츠 관리 안내</h3>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• 이용약관, 개인정보처리방침 등 법적 문서는 변경 시 사용자에게 공지가 필요합니다.</li>
-            <li>• '초안' 상태의 페이지는 사용자에게 표시되지 않습니다.</li>
-            <li>• 페이지 URL 경로는 변경할 수 없습니다. 새 페이지가 필요한 경우 개발팀에 문의하세요.</li>
+            <li className="break-keep">• 이용약관, 개인정보처리방침 등 법적 문서는 변경 시 사용자에게 공지가 필요합니다.</li>
+            <li className="break-keep">• '초안' 상태의 페이지는 사용자에게 표시되지 않습니다.</li>
+            <li className="break-keep">• 페이지 URL 경로는 변경할 수 없습니다. 새 페이지가 필요한 경우 개발팀에 문의하세요.</li>
           </ul>
         </CardContent>
       </Card>

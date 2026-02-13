@@ -150,8 +150,8 @@ export default function BuyerQuotesPage() {
     <div className="space-y-8">
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">받은 제안</h1>
-        <p className="text-lg text-gray-500 mt-1">발주별로 제안을 비교하고 최적의 거래처를 선택하세요</p>
+        <h1 className="text-3xl font-bold text-gray-900 break-keep">받은 제안</h1>
+        <p className="text-lg text-gray-500 mt-1 break-keep">발주별로 제안을 비교하고 최적의 거래처를 선택하세요</p>
       </div>
 
       {/* 통계 카드 */}
@@ -160,7 +160,7 @@ export default function BuyerQuotesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">제안 받은 발주</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">제안 받은 발주</p>
                 <p className="text-3xl font-bold text-blue-600 mt-1">{rfqCount}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -174,7 +174,7 @@ export default function BuyerQuotesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">대기중 제안</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">대기중 제안</p>
                 <p className="text-3xl font-bold text-yellow-600 mt-1">{pendingCount}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -188,7 +188,7 @@ export default function BuyerQuotesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">수락됨</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">수락됨</p>
                 <p className="text-3xl font-bold text-green-600 mt-1">{acceptedCount}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
@@ -202,7 +202,7 @@ export default function BuyerQuotesPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">총 제안</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">총 제안</p>
                 <p className="text-3xl font-bold text-primary-600 mt-1">{quotes.length}개</p>
               </div>
               <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
@@ -250,7 +250,7 @@ export default function BuyerQuotesPage() {
             <CardContent className="py-16 text-center">
               <Receipt className="w-16 h-16 mx-auto text-gray-300 mb-4" />
               <p className="text-xl text-gray-500">받은 제안이 없습니다</p>
-              <p className="text-gray-400 mt-2">발주를 등록하면 공급자들의 제안을 받을 수 있습니다</p>
+              <p className="text-gray-400 mt-2 break-keep">발주를 등록하면 공급자들의 제안을 받을 수 있습니다</p>
             </CardContent>
           </Card>
         ) : (
@@ -270,9 +270,9 @@ export default function BuyerQuotesPage() {
                     <div className="flex items-center gap-4">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-bold text-gray-900">{group.rfqTitle}</h3>
+                          <h3 className="text-lg font-bold text-gray-900 break-keep">{group.rfqTitle}</h3>
                           {pendingInGroup > 0 && (
-                            <Badge variant="warning" className="text-xs">
+                            <Badge variant="warning" className="text-xs whitespace-nowrap shrink-0">
                               {pendingInGroup}개 대기중
                             </Badge>
                           )}
@@ -311,7 +311,7 @@ export default function BuyerQuotesPage() {
                         <div key={quote.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <Badge variant={status.variant} className="text-sm px-3 py-1">
+                              <Badge variant={status.variant} className="text-sm px-3 py-1 whitespace-nowrap shrink-0">
                                 <StatusIcon className="w-3 h-3 mr-1" />
                                 {status.label}
                               </Badge>
@@ -320,7 +320,7 @@ export default function BuyerQuotesPage() {
                                   <Building2 className="w-4 h-4 text-gray-400" />
                                   <span className="font-bold text-gray-900">{quote.supplier?.companyName}</span>
                                 </div>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-sm text-gray-500 mt-1 whitespace-nowrap">
                                   납품 가능일: {formatDate(quote.deliveryDate)}
                                 </p>
                               </div>

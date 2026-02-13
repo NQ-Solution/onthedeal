@@ -48,7 +48,7 @@ const faqItems = [
   },
   {
     question: '수수료는 어떻게 되나요?',
-    answer: '거래 성사 시에만 거래 금액의 3%가 수수료로 부과됩니다. 거래 불성사 시에는 수수료가 없습니다.',
+    answer: '거래 성사 시에만 소정의 수수료가 부과됩니다. 거래 불성사 시에는 수수료가 없습니다. 자세한 수수료율은 관리자 설정에 따릅니다.',
   },
   {
     question: '결제는 어떻게 진행되나요?',
@@ -139,8 +139,8 @@ export default function ContactPage() {
             <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-8">
               <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">문의가 접수되었습니다</h2>
-            <p className="text-xl text-gray-600 mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4 text-balance">문의가 접수되었습니다</h2>
+            <p className="text-xl text-gray-600 mb-8 text-pretty">
               빠른 시일 내에 답변 드리겠습니다.<br />
               감사합니다.
             </p>
@@ -258,14 +258,14 @@ export default function ContactPage() {
             <div className="inline-flex items-center px-5 py-2.5 mb-8 bg-primary-50 border border-primary-100 rounded-full text-primary-700 text-sm font-semibold">
               Contact Us
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 leading-tight text-balance">
               <span className="text-gray-900">무엇이든</span>
               <br />
               <span className="bg-gradient-to-r from-primary-500 via-primary-600 to-blue-500 bg-clip-text text-transparent">
                 물어보세요
               </span>
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600">궁금한 점이 있으시면 언제든 문의해 주세요</p>
+            <p className="text-xl sm:text-2xl text-gray-600 text-pretty">궁금한 점이 있으시면 언제든 문의해 주세요</p>
           </div>
         </section>
 
@@ -447,7 +447,7 @@ export default function ContactPage() {
               <HelpCircle className="w-4 h-4" />
               FAQ
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">자주 묻는 질문</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-balance">자주 묻는 질문</h2>
           </div>
 
           <div className="max-w-3xl mx-auto space-y-4">

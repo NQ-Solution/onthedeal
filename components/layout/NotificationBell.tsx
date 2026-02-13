@@ -149,7 +149,7 @@ export function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-base text-primary-600 hover:underline font-medium"
+                className="text-base text-primary-600 hover:underline font-medium whitespace-nowrap"
               >
                 모두 읽음
               </button>
@@ -165,7 +165,7 @@ export function NotificationBell() {
             ) : notifications.length === 0 ? (
               <div className="py-12 text-center">
                 <Bell className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-lg text-gray-500">새로운 알림이 없습니다</p>
+                <p className="text-lg text-gray-500 break-keep">새로운 알림이 없습니다</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -188,7 +188,7 @@ export function NotificationBell() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className={`text-base font-semibold text-gray-900 ${
+                          <p className={`text-base font-semibold text-gray-900 break-keep ${
                             !notification.is_read ? 'font-bold' : ''
                           }`}>
                             {notification.title}
@@ -217,7 +217,7 @@ export function NotificationBell() {
               <Link
                 href="/notifications"
                 onClick={() => setIsOpen(false)}
-                className="text-base text-primary-600 hover:underline font-medium"
+                className="text-base text-primary-600 hover:underline font-medium whitespace-nowrap"
               >
                 모든 알림 보기
               </Link>

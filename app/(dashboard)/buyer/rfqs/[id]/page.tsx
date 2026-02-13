@@ -216,7 +216,7 @@ export default function BuyerRFQDetailPage() {
                 </Badge>
                 <Badge variant="info">{rfq.category}</Badge>
               </div>
-              <CardTitle className="text-2xl">{rfq.title}</CardTitle>
+              <CardTitle className="text-2xl break-keep">{rfq.title}</CardTitle>
             </div>
             <div className="text-right text-sm text-gray-500">
               <p>등록일: {formatDate(rfq.createdAt)}</p>
@@ -293,7 +293,7 @@ export default function BuyerRFQDetailPage() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-3 flex-1">
                         <div className="flex items-center gap-3">
-                          <Badge variant={quoteStatus.variant} className="text-base px-4 py-2">
+                          <Badge variant={quoteStatus.variant} className="text-base px-4 py-2 whitespace-nowrap shrink-0">
                             {quoteStatus.label}
                           </Badge>
                           <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function BuyerRFQDetailPage() {
                               {formatPrice(quote.totalPrice)}
                             </span>
                           </div>
-                          <div className="text-gray-600">
+                          <div className="text-gray-600 whitespace-nowrap">
                             납품가능: {formatDate(quote.deliveryDate)}
                           </div>
                         </div>

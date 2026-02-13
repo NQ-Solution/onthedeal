@@ -192,13 +192,13 @@ export default function AdminQuotesPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">RFQ</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">공급자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">구매자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">금액</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">납품일</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">RFQ</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">공급자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">구매자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">금액</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">납품일</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">상태</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

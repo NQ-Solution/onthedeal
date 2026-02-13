@@ -171,7 +171,7 @@ export default function SupplierCreditsPage() {
         <CardContent className="pt-8 pb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-primary-100 text-lg">보유 크레딧</p>
+              <p className="text-primary-100 text-lg whitespace-nowrap">보유 크레딧</p>
               <div className="flex items-baseline gap-2 mt-2">
                 <p className="text-5xl font-bold">{creditBalance.toLocaleString()}</p>
                 <span className="text-2xl text-primary-100">원</span>
@@ -203,7 +203,7 @@ export default function SupplierCreditsPage() {
                 <Building2 className="w-5 h-5 text-blue-600" />
                 <p className="text-blue-800 font-bold">계좌이체로 충전</p>
               </div>
-              <p className="text-blue-700 text-sm">
+              <p className="text-blue-700 text-sm break-keep">
                 PG 결제 연동 준비 중입니다. 아래 계좌로 입금 후 크레딧이 충전됩니다.
               </p>
             </div>
@@ -260,13 +260,13 @@ export default function SupplierCreditsPage() {
                 {displayAmount >= MIN_CHARGE_AMOUNT && (
                   <div className="bg-primary-50 rounded-2xl p-5 border-2 border-primary-200">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg text-gray-700">충전 금액</span>
+                      <span className="text-lg text-gray-700 whitespace-nowrap">충전 금액</span>
                       <span className="text-2xl font-bold text-primary-600">
                         {displayAmount.toLocaleString()}원
                       </span>
                     </div>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-primary-200">
-                      <span className="text-lg text-gray-700">충전 크레딧</span>
+                      <span className="text-lg text-gray-700 whitespace-nowrap">충전 크레딧</span>
                       <span className="text-2xl font-bold text-primary-600">
                         +{displayAmount.toLocaleString()} 크레딧
                       </span>
@@ -335,9 +335,8 @@ export default function SupplierCreditsPage() {
                   </div>
 
                   <div className="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                    <p className="text-sm text-yellow-800">
-                      <strong>안내:</strong> 위 정보로 입금해 주시면, 확인 후 바로 크레딧이 충전됩니다.
-                      영업시간 내 평균 30분 이내 처리됩니다.
+                    <p className="text-sm text-yellow-800 break-keep">
+                      <strong>안내:</strong> 위 정보로 입금해 주시면, 확인 후 바로 크레딧이 충전됩니다. 영업시간 내 평균 30분 이내 처리됩니다.
                     </p>
                   </div>
                 </div>
@@ -448,7 +447,7 @@ export default function SupplierCreditsPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary-500 mt-1">•</span>
-                  <span>제안 시 거래금액의 <strong>3%</strong>가 크레딧으로 차감됩니다</span>
+                  <span>제안 시 거래금액의 <strong>소정의 수수료</strong>가 크레딧으로 차감됩니다</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-500 mt-1">•</span>
@@ -467,7 +466,7 @@ export default function SupplierCreditsPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500 mt-1">•</span>
-                  <span>성사된 거래에만 <strong>3%</strong>의 크레딧이 차감됩니다</span>
+                  <span>성사된 거래에만 소정의 크레딧이 차감됩니다</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500 mt-1">•</span>

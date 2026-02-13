@@ -151,14 +151,14 @@ export default function AboutPage() {
             <div className="inline-flex items-center px-5 py-2.5 mb-8 bg-primary-50 border border-primary-100 rounded-full text-primary-700 text-sm font-semibold whitespace-nowrap">
               About OnTheDeal
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 leading-tight text-balance">
               <span className="text-gray-900 whitespace-nowrap">B2B 거래의</span>
               <br />
               <span className="bg-gradient-to-r from-primary-500 via-primary-600 to-green-500 bg-clip-text text-transparent whitespace-nowrap">
                 새로운 기준
               </span>
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto text-pretty">
               OnTheDeal은 구매자는 거래처를 찾는 데 많은 시간을 쓰고,
               판매자는 기회를 기다릴 수밖에 없었던
               기존 B2B 거래 구조를 바꾸기 위해 만들어졌습니다.
@@ -173,7 +173,7 @@ export default function AboutPage() {
             <div className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-3xl p-8 sm:p-12 text-white">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
               <h2 className="text-3xl sm:text-4xl font-bold mb-6">Our Mission</h2>
-              <p className="text-lg sm:text-xl text-white/90 leading-relaxed mb-8">
+              <p className="text-lg sm:text-xl text-white/90 leading-relaxed mb-8 text-pretty">
                 발주를 중심으로 거래를 재구성해
                 구매자에게는 선택이 모이는 환경을,
                 판매자에게는 적극적으로 제안할 수 있는 기회를 만듭니다.
@@ -197,7 +197,7 @@ export default function AboutPage() {
             {/* Vision Card */}
             <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-gray-100">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Our Vision</h2>
-              <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
+              <p className="text-lg sm:text-xl text-gray-600 leading-relaxed text-pretty">
                 식자재 거래의 새로운 기준을 만들어 갑니다.
                 기술과 데이터를 활용해 구매자에게는 더 좋은 조건을,
                 판매자에게는 더 많은 기회를 제공하는 플랫폼이 되겠습니다.
@@ -214,8 +214,8 @@ export default function AboutPage() {
         {/* Values Section */}
         <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-24">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Our Values</h2>
-            <p className="text-xl text-gray-600">우리가 중요하게 생각하는 가치</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 text-balance">Our Values</h2>
+            <p className="text-xl text-gray-600 text-pretty">우리가 중요하게 생각하는 가치</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
@@ -255,10 +255,10 @@ export default function AboutPage() {
             <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-green-500/20 rounded-full blur-3xl" />
 
             <div className="relative px-6 sm:px-12 py-12 sm:py-16 text-center">
-              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-6 text-balance">
                 쉽고 공정한 거래가 가능한 OnTheDeal
               </h2>
-              <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-xl mx-auto">
+              <p className="text-lg sm:text-xl text-white/80 mb-8 max-w-xl mx-auto text-pretty">
                 지금 바로 무료로 회원가입하고 시작해보세요.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

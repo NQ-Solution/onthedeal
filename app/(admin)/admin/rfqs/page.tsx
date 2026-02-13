@@ -240,13 +240,13 @@ export default function AdminRFQsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">발주 정보</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">구매자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">카테고리</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">예산</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">제안</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">발주 정보</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">구매자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">카테고리</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">예산</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">상태</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">제안</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

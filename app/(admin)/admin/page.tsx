@@ -230,7 +230,7 @@ export default function AdminDashboardPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">전체 회원</p>
+                <p className="text-sm text-gray-500 font-medium whitespace-nowrap">전체 회원</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.totalUsers.toLocaleString() || 0}</p>
                 <p className="text-sm text-green-600 flex items-center gap-1 mt-2">
                   <TrendingUp className="w-4 h-4" />
@@ -249,7 +249,7 @@ export default function AdminDashboardPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">활성 발주</p>
+                <p className="text-sm text-gray-500 font-medium whitespace-nowrap">활성 발주</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.openRFQs || 0}</p>
                 <p className="text-sm text-primary-600 flex items-center gap-1 mt-2">
                   <FileText className="w-4 h-4" />
@@ -268,7 +268,7 @@ export default function AdminDashboardPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">완료된 주문</p>
+                <p className="text-sm text-gray-500 font-medium whitespace-nowrap">완료된 주문</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.completedOrders || 0}</p>
                 <p className="text-sm text-green-600 flex items-center gap-1 mt-2">
                   <CheckCircle className="w-4 h-4" />
@@ -287,7 +287,7 @@ export default function AdminDashboardPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 font-medium">승인 대기</p>
+                <p className="text-sm text-gray-500 font-medium whitespace-nowrap">승인 대기</p>
                 <p className="text-3xl font-bold text-yellow-600 mt-1">{stats?.pendingUsers || 0}</p>
                 <p className="text-sm text-yellow-600 flex items-center gap-1 mt-2">
                   <Clock className="w-4 h-4" />
@@ -311,8 +311,8 @@ export default function AdminDashboardPage() {
                 <Coins className="w-6 h-6 text-orange-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900">크레딧 충전 요청</h3>
-                <p className="text-sm text-orange-700">{chargeRequests.length}건의 충전 요청 대기 중</p>
+                <h3 className="text-lg font-bold text-gray-900 whitespace-nowrap">크레딧 충전 요청</h3>
+                <p className="text-sm text-orange-700 break-keep">{chargeRequests.length}건의 충전 요청 대기 중</p>
               </div>
               <Link href="/admin/credits" className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
                 전체 보기 <ArrowRight className="w-4 h-4" />
@@ -378,8 +378,8 @@ export default function AdminDashboardPage() {
                     <Clock className="w-6 h-6 text-yellow-700" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">승인 대기</h3>
-                    <p className="text-sm text-yellow-700">{stats?.pendingUsers || 0}건의 회원가입 승인 대기 중</p>
+                    <h3 className="text-lg font-bold text-gray-900 whitespace-nowrap">승인 대기</h3>
+                    <p className="text-sm text-yellow-700 break-keep">{stats?.pendingUsers || 0}건의 회원가입 승인 대기 중</p>
                   </div>
                 </div>
                 <Link href="/admin/users?filter=pending" className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
@@ -397,8 +397,8 @@ export default function AdminDashboardPage() {
                     <AlertCircle className="w-6 h-6 text-blue-700" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">미답변 문의</h3>
-                    <p className="text-sm text-blue-700">{stats?.pendingInquiries || 0}건의 문의가 답변 대기 중</p>
+                    <h3 className="text-lg font-bold text-gray-900 whitespace-nowrap">미답변 문의</h3>
+                    <p className="text-sm text-blue-700 break-keep">{stats?.pendingInquiries || 0}건의 문의가 답변 대기 중</p>
                   </div>
                 </div>
                 <Link href="/admin/inquiries" className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">

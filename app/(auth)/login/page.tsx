@@ -65,15 +65,15 @@ function LoginForm() {
         <div className="w-20 h-20 bg-primary-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <LogIn className="w-10 h-10 text-primary-600" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">로그인</h1>
-        <p className="text-xl text-gray-500">OnTheDeal에 오신 것을 환영합니다</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-3 break-keep">로그인</h1>
+        <p className="text-xl text-gray-500 break-keep">OnTheDeal에 오신 것을 환영합니다</p>
       </div>
 
       <Card className="shadow-2xl border-2 rounded-3xl overflow-hidden">
         <form onSubmit={handleSubmit}>
           <CardContent className="pt-8 space-y-6">
             {expired === 'true' && (
-              <div className="p-5 bg-yellow-50 text-yellow-700 text-lg rounded-2xl border-2 border-yellow-200">
+              <div className="p-5 bg-yellow-50 text-yellow-700 text-lg rounded-2xl border-2 border-yellow-200 break-keep">
                 세션이 만료되었습니다. 다시 로그인해주세요.
               </div>
             )}
@@ -82,11 +82,11 @@ function LoginForm() {
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <ArrowRight className="w-5 h-5 text-green-600" />
                 </div>
-                <span>회원가입이 완료되었습니다. 관리자 승인 후 로그인이 가능합니다.</span>
+                <span className="break-keep">회원가입이 완료되었습니다. 관리자 승인 후 로그인이 가능합니다.</span>
               </div>
             )}
             {error && (
-              <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200">
+              <div className="p-5 bg-red-50 text-red-700 text-lg rounded-2xl border-2 border-red-200 break-keep">
                 {error}
               </div>
             )}
@@ -124,7 +124,7 @@ function LoginForm() {
             </div>
 
             <div className="flex justify-end">
-              <Link href="/forgot-password" className="text-lg text-primary-600 hover:underline font-medium">
+              <Link href="/contact" className="text-lg text-primary-600 hover:underline font-medium whitespace-nowrap">
                 비밀번호를 잊으셨나요?
               </Link>
             </div>
@@ -144,9 +144,9 @@ function LoginForm() {
               </div>
             </div>
 
-            <p className="text-lg text-center text-gray-600">
+            <p className="text-lg text-center text-gray-600 break-keep">
               계정이 없으신가요?{' '}
-              <Link href="/register" className="text-primary-600 hover:underline font-bold">
+              <Link href="/register" className="text-primary-600 hover:underline font-bold whitespace-nowrap">
                 회원가입
               </Link>
             </p>
@@ -156,11 +156,11 @@ function LoginForm() {
 
       {/* 서비스 소개 링크 */}
       <div className="text-center bg-gray-50 rounded-2xl p-6">
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-600 break-keep">
           OnTheDeal이 처음이신가요?{' '}
-          <Link href="/" className="text-primary-600 hover:underline font-bold inline-flex items-center gap-1">
+          <Link href="/" className="text-primary-600 hover:underline font-bold inline-flex items-center gap-1 whitespace-nowrap">
             서비스 소개 보기
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </Link>
         </p>
       </div>

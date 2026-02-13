@@ -58,7 +58,7 @@ export async function PATCH(
 
     // 금액이 증가한 경우 추가 크레딧 차감 (공급자에게)
     if (priceDifference > 0) {
-      additionalCredit = Math.round(priceDifference * 0.03)
+      additionalCredit = Math.round(priceDifference * ((quote.commissionRate ?? 3.0) / 100))
 
       // 공급자 크레딧 확인
       const credit = await prisma.credit.findUnique({

@@ -143,13 +143,13 @@ export default function NotificationsPage() {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">알림</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 break-keep">알림</h1>
           {unreadCount > 0 && (
-            <p className="text-gray-500 mt-1">읽지 않은 알림 {unreadCount}개</p>
+            <p className="text-gray-500 mt-1 whitespace-nowrap">읽지 않은 알림 {unreadCount}개</p>
           )}
         </div>
         {unreadCount > 0 && (
-          <Button variant="outline" onClick={markAllAsRead}>
+          <Button variant="outline" onClick={markAllAsRead} className="whitespace-nowrap shrink-0">
             모두 읽음 처리
           </Button>
         )}
@@ -194,7 +194,7 @@ export default function NotificationsPage() {
                           <span className="w-2 h-2 bg-primary-500 rounded-full" />
                         )}
                       </div>
-                      <p className="text-gray-600 mt-1">
+                      <p className="text-gray-600 mt-1 break-keep">
                         {notification.message}
                       </p>
                     </Link>

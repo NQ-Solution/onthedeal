@@ -47,9 +47,8 @@ export async function GET(request: NextRequest) {
 
       // pending 상태의 제안만 환불 처리
       if (quote.status === 'pending') {
-        // 선차감된 금액 계산
-        const baseAmount = quote.rfq.budgetMin || quote.totalPrice
-        const refundAmount = Math.round(baseAmount * 0.03)
+        // 선차감된 금액 계산 (제안 제출 시 totalPrice 기준으로 차감되었으므로 동일하게 계산)
+        const refundAmount = Math.round(quote.totalPrice * ((quote.commissionRate ?? 3.0) / 100))
 
         await prisma.$transaction(async (tx) => {
           // 1. 채팅방 상태 업데이트

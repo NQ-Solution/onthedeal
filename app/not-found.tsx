@@ -45,29 +45,29 @@ export default function NotFound() {
           <div className="text-9xl font-bold text-primary-500 mb-6">404</div>
 
           {/* Title */}
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 break-keep">
             페이지를 찾을 수 없습니다
           </h1>
 
           {/* Description */}
-          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+          <p className="text-xl text-gray-600 mb-10 leading-relaxed break-keep">
             요청하신 페이지가 없거나 현재 준비 중입니다.<br />
             아래 연락처로 문의해주시면 도움을 드리겠습니다.
           </p>
 
           {/* Contact Info - 심플한 디자인 */}
           <div className="bg-gray-50 rounded-2xl p-8 mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 break-keep">
               문의 연락처
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-lg mx-auto">
               <a href="tel:02-1234-5678" className="block p-5 bg-white rounded-xl border border-gray-200 hover:border-primary-300 transition-colors">
-                <p className="text-gray-500 mb-1">전화번호</p>
-                <p className="text-2xl font-bold text-gray-900">02-1234-5678</p>
+                <p className="text-gray-500 mb-1 whitespace-nowrap">전화번호</p>
+                <p className="text-2xl font-bold text-gray-900 whitespace-nowrap">02-1234-5678</p>
               </a>
               <a href="mailto:support@onthedeal.com" className="block p-5 bg-white rounded-xl border border-gray-200 hover:border-primary-300 transition-colors">
-                <p className="text-gray-500 mb-1">이메일</p>
-                <p className="text-xl font-bold text-gray-900">support@onthedeal.com</p>
+                <p className="text-gray-500 mb-1 whitespace-nowrap">이메일</p>
+                <p className="text-xl font-bold text-gray-900 break-all">support@onthedeal.com</p>
               </a>
             </div>
           </div>

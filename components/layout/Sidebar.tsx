@@ -10,6 +10,9 @@ import {
   MessageSquare,
   User,
   Search,
+  ShoppingBag,
+  Package,
+  Megaphone,
 } from 'lucide-react'
 
 // 로고 컴포넌트 (fallback 포함)
@@ -45,12 +48,18 @@ const buyerMenus = [
   { href: '/buyer/rfqs', label: '내 발주', icon: FileText },
   { href: '/buyer/rfqs/new', label: '새 발주 등록', icon: PlusCircle },
   { href: '/chat', label: '채팅', icon: MessageSquare },
+  { href: '/buyer/orders', label: '주문 내역', icon: ShoppingBag },
+  { href: '/buyer/invoices', label: '명세표', icon: FileText },
+  { href: '/announcements', label: '공지사항', icon: Megaphone },
   { href: '/profile', label: '내 정보', icon: User },
 ]
 
 const supplierMenus = [
   { href: '/supplier/rfqs', label: '발주 찾기', icon: Search },
   { href: '/chat', label: '채팅', icon: MessageSquare },
+  { href: '/supplier/orders', label: '주문 관리', icon: Package },
+  { href: '/supplier/invoices', label: '명세표', icon: FileText },
+  { href: '/announcements', label: '공지사항', icon: Megaphone },
   { href: '/profile', label: '내 정보', icon: User },
 ]
 
@@ -119,7 +128,7 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
 
         {/* 유저 타입 표시 */}
         <div className="px-4 lg:px-6 py-4 lg:py-5 border-b border-primary-400/30">
-          <div className={`inline-flex items-center px-4 lg:px-5 py-2 lg:py-3 rounded-xl text-base lg:text-lg font-bold ${
+          <div className={`inline-flex items-center whitespace-nowrap px-4 lg:px-5 py-2 lg:py-3 rounded-xl text-base lg:text-lg font-bold ${
             userRole === 'buyer'
               ? 'bg-white text-primary-600'
               : 'bg-white text-green-600'
@@ -137,10 +146,10 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-white/80 text-sm lg:text-base">
-                <Wallet className="w-4 h-4 lg:w-5 lg:h-5" />
-                <span>크레딧 잔액</span>
+                <Wallet className="w-4 h-4 lg:w-5 lg:h-5 shrink-0" />
+                <span className="whitespace-nowrap">크레딧 잔액</span>
               </div>
-              <span className="text-white font-bold text-lg lg:text-xl">
+              <span className="text-white font-bold text-lg lg:text-xl whitespace-nowrap">
                 {creditBalance !== null ? formatCredit(creditBalance) : '-'}
               </span>
             </div>
@@ -165,8 +174,8 @@ export function Sidebar({ userRole = 'buyer', isOpen = true, onClose }: SidebarP
                         : 'text-white/90 hover:bg-white/20 hover:text-white'
                     }`}
                   >
-                    <Icon className="w-6 h-6 lg:w-7 lg:h-7" />
-                    <span>{menu.label}</span>
+                    <Icon className="w-6 h-6 lg:w-7 lg:h-7 shrink-0" />
+                    <span className="whitespace-nowrap">{menu.label}</span>
                   </Link>
                 </li>
               )

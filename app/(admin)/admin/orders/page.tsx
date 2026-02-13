@@ -155,7 +155,7 @@ export default function AdminOrdersPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">수수료 수익</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">수수료 수익</p>
                 <p className="text-3xl font-bold text-primary-600 mt-1">{totalRevenue.toLocaleString()}원</p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -210,13 +210,13 @@ export default function AdminOrdersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">주문 정보</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">구매자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">공급자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">금액</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">수수료</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">주문 정보</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">구매자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">공급자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">금액</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">수수료</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">상태</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

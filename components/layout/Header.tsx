@@ -26,7 +26,7 @@ export function Header({ user, onLogout, onRoleSwitch, currentRole }: HeaderProp
   return (
     <header className="h-20 bg-white border-b-2 border-gray-200 px-8 flex items-center justify-between shadow-sm">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-bold text-gray-900">
+        <h1 className="text-xl font-bold text-gray-900 whitespace-nowrap">
           {user?.company_name || '대시보드'}
         </h1>
         {/* 개발 모드 표시 */}
@@ -38,8 +38,8 @@ export function Header({ user, onLogout, onRoleSwitch, currentRole }: HeaderProp
       <div className="flex items-center gap-6">
         {/* 역할 전환 버튼 */}
         <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-xl">
-          <span className="text-base text-gray-500">현재:</span>
-          <span className={`text-lg font-bold ${currentRole === 'buyer' ? 'text-primary-600' : 'text-green-600'}`}>
+          <span className="text-base text-gray-500 whitespace-nowrap">현재:</span>
+          <span className={`text-lg font-bold whitespace-nowrap ${currentRole === 'buyer' ? 'text-primary-600' : 'text-green-600'}`}>
             {currentRole === 'buyer' ? '구매자' : '공급자'}
           </span>
           <button

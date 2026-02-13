@@ -21,8 +21,8 @@ function LoadingState() {
       <Card className="w-full max-w-md mx-4">
         <CardContent className="py-16 text-center">
           <Loader2 className="w-16 h-16 mx-auto text-primary-500 animate-spin mb-6" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">결제 처리 중...</h1>
-          <p className="text-gray-600">잠시만 기다려주세요</p>
+          <h1 className="text-xl font-bold text-gray-900 mb-2 break-keep">결제 처리 중...</h1>
+          <p className="text-gray-600 break-keep">잠시만 기다려주세요</p>
         </CardContent>
       </Card>
     </div>
@@ -85,8 +85,8 @@ function CheckoutSuccessContent() {
         <Card className="w-full max-w-md mx-4">
           <CardContent className="py-16 text-center">
             <Loader2 className="w-16 h-16 mx-auto text-primary-500 animate-spin mb-6" />
-            <h1 className="text-xl font-bold text-gray-900 mb-2">결제 승인 중...</h1>
-            <p className="text-gray-600">잠시만 기다려주세요</p>
+            <h1 className="text-xl font-bold text-gray-900 mb-2 break-keep">결제 승인 중...</h1>
+            <p className="text-gray-600 break-keep">잠시만 기다려주세요</p>
           </CardContent>
         </Card>
       </div>
@@ -101,8 +101,8 @@ function CheckoutSuccessContent() {
             <div className="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-6">
               <AlertCircle className="w-10 h-10 text-red-500" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">결제 승인 실패</h1>
-            <p className="text-gray-600 mb-8">{error}</p>
+            <h1 className="text-xl font-bold text-gray-900 mb-2 break-keep">결제 승인 실패</h1>
+            <p className="text-gray-600 mb-8 break-keep">{error}</p>
             <div className="space-y-3">
               <Link href="/buyer/orders">
                 <Button className="w-full">
@@ -130,28 +130,28 @@ function CheckoutSuccessContent() {
           <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">결제 완료</h1>
-          <p className="text-gray-600 mb-8">결제가 정상적으로 완료되었습니다</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 break-keep">결제 완료</h1>
+          <p className="text-gray-600 mb-8 break-keep">결제가 정상적으로 완료되었습니다</p>
 
           {paymentResult && (
             <div className="bg-gray-50 rounded-xl p-6 mb-8 text-left">
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">주문번호</span>
+                  <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">주문번호</span>
                   <span className="font-mono text-sm">{paymentResult.orderId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">결제금액</span>
-                  <span className="font-semibold text-primary-600">
+                  <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">결제금액</span>
+                  <span className="font-semibold text-primary-600 whitespace-nowrap">
                     {paymentResult.amount.toLocaleString()}원
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">결제수단</span>
-                  <span>{paymentResult.method}</span>
+                  <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">결제수단</span>
+                  <span className="whitespace-nowrap">{paymentResult.method}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">결제시간</span>
+                  <span className="text-gray-600 whitespace-nowrap shrink-0 mr-4">결제시간</span>
                   <span className="text-sm">
                     {new Date(paymentResult.approvedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                   </span>
@@ -171,21 +171,21 @@ function CheckoutSuccessContent() {
           )}
 
           <div className="space-y-3">
-            <Link href={`/buyer/orders/${paymentResult?.orderId}`}>
+            <Link href="/buyer/orders">
               <Button className="w-full">
                 <FileText className="w-4 h-4 mr-2" />
-                주문 상세 보기
+                주문 내역 확인
               </Button>
             </Link>
-            <Link href={`/chat/room-${paymentResult?.orderId}`}>
+            <Link href="/chat">
               <Button variant="outline" className="w-full">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 공급자와 채팅하기
               </Button>
             </Link>
-            <Link href="/buyer/orders">
+            <Link href="/buyer/rfqs">
               <Button variant="ghost" className="w-full">
-                주문 내역으로 이동
+                메인으로 돌아가기
               </Button>
             </Link>
           </div>

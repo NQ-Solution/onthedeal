@@ -16,7 +16,8 @@ import {
   LogOut,
   Bell,
   ChevronDown,
-  Coins
+  Coins,
+  Megaphone,
 } from 'lucide-react'
 
 // 로고 컴포넌트 (fallback 포함)
@@ -58,6 +59,7 @@ const adminMenus = [
   { href: '/admin/quotes', label: '제안 관리', icon: Receipt },
   { href: '/admin/orders', label: '주문 관리', icon: Package },
   { href: '/admin/chats', label: '채팅 관리', icon: MessageSquare },
+  { href: '/admin/announcements', label: '공지사항 관리', icon: Megaphone },
   { href: '/admin/inquiries', label: '문의 관리', icon: Mail },
   { href: '/admin/content', label: '콘텐츠 관리', icon: FileEdit },
   { href: '/admin/settings', label: '사이트 설정', icon: Settings },

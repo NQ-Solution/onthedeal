@@ -103,7 +103,7 @@ export default function AdminChatsPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">전체 채팅방</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">전체 채팅방</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats?.total || 0}</p>
               </div>
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -116,7 +116,7 @@ export default function AdminChatsPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">활성 채팅</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">활성 채팅</p>
                 <p className="text-3xl font-bold text-green-600 mt-1">{stats?.active || 0}</p>
               </div>
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center">
@@ -129,7 +129,7 @@ export default function AdminChatsPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">거래 확정</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">거래 확정</p>
                 <p className="text-3xl font-bold text-primary-600 mt-1">{stats?.dealConfirmed || 0}</p>
               </div>
               <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -142,7 +142,7 @@ export default function AdminChatsPage() {
           <CardContent className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">총 메시지</p>
+                <p className="text-sm text-gray-500 whitespace-nowrap">총 메시지</p>
                 <p className="text-3xl font-bold text-purple-600 mt-1">{stats?.totalMessages || 0}</p>
               </div>
               <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center">
@@ -195,13 +195,13 @@ export default function AdminChatsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">채팅방</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">구매자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">공급자</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">메시지</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">상태</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700">만료일</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700">관리</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">채팅방</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">구매자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">공급자</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">메시지</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">상태</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 whitespace-nowrap">만료일</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 whitespace-nowrap">관리</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, ShoppingBag, PackageCheck, HandCoins, Loader2 } from 'lucide-react'
+import { Search, Package, Truck, CheckCircle, Clock, Building2, Calendar, CreditCard, ShoppingBag, PackageCheck, HandCoins, Loader2, FileText } from 'lucide-react'
+import Link from 'next/link'
 import { Input, Select, Card, CardContent, Badge, Button } from '@/components/ui'
 
 interface Order {
@@ -36,6 +37,10 @@ interface Order {
     bankAccount?: string
     bankHolder?: string
   }
+  invoice?: {
+    id: string
+    invoiceNumber: string
+  } | null
 }
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info'; icon: any; step: number }> = {
@@ -92,6 +97,33 @@ export default function BuyerOrdersPage() {
   const completedCount = orders.filter(o => o.status === 'completed' || o.status === 'confirmed').length
   const totalSpent = orders.reduce((sum, o) => sum + o.totalAmount, 0)
 
+  const [invoiceLoading, setInvoiceLoading] = useState<string | null>(null)
+
+  const handleGenerateInvoice = async (orderId: string) => {
+    setInvoiceLoading(orderId)
+    try {
+      const res = await fetch('/api/invoices/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      })
+      if (res.ok) {
+        alert('명세표가 발행되었습니다.')
+        fetchOrders()
+      } else if (res.status === 409) {
+        alert('이미 명세표가 발행되었습니다.')
+        fetchOrders()
+      } else {
+        const data = await res.json()
+        alert(data.error || '명세표 발행에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('명세표 발행에 실패했습니다.')
+    } finally {
+      setInvoiceLoading(null)
+    }
+  }
+
   const handleConfirmReceipt = async (orderId: string) => {
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -120,8 +152,8 @@ export default function BuyerOrdersPage() {
     <div className="space-y-8">
       {/* 페이지 헤더 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">주문 내역</h1>
-        <p className="text-lg text-gray-500 mt-1">주문 상태를 확인하고 관리하세요</p>
+        <h1 className="text-3xl font-bold text-gray-900 break-keep">주문 내역</h1>
+        <p className="text-lg text-gray-500 mt-1 break-keep">주문 상태를 확인하고 관리하세요</p>
       </div>
 
       {/* 벤토 그리드 - 통계 카드 */}
@@ -131,7 +163,7 @@ export default function BuyerOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">배송중</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">배송중</p>
                 <p className="text-4xl font-bold text-yellow-600 mt-2">{shippingCount}</p>
               </div>
               <div className="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center">
@@ -146,7 +178,7 @@ export default function BuyerOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">완료됨</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">완료됨</p>
                 <p className="text-4xl font-bold text-green-600 mt-2">{completedCount}</p>
               </div>
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
@@ -161,7 +193,7 @@ export default function BuyerOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">총 주문 금액</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">총 주문 금액</p>
                 <p className="text-4xl font-bold text-primary-600 mt-2">{formatPrice(totalSpent)}</p>
               </div>
               <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center">
@@ -176,7 +208,7 @@ export default function BuyerOrdersPage() {
           <CardContent className="py-8">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg text-gray-500">총 주문</p>
+                <p className="text-lg text-gray-500 whitespace-nowrap">총 주문</p>
                 <p className="text-4xl font-bold text-blue-600 mt-2">{orders.length}건</p>
               </div>
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -240,7 +272,7 @@ export default function BuyerOrdersPage() {
                     {/* 상단 */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <Badge variant={status.variant} className="text-base px-4 py-2">
+                        <Badge variant={status.variant} className="text-base px-4 py-2 whitespace-nowrap shrink-0">
                           <StatusIcon className="w-4 h-4 mr-2" />
                           {status.label}
                         </Badge>
@@ -249,7 +281,7 @@ export default function BuyerOrdersPage() {
                     </div>
 
                     {/* 제목 */}
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">{order.rfq?.title}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4 break-keep">{order.rfq?.title}</h3>
 
                     {/* 공급자 정보 */}
                     <div className="flex items-center gap-3 text-lg text-gray-600 mb-4">
@@ -260,17 +292,17 @@ export default function BuyerOrdersPage() {
                     {/* 결제 금액 정보 */}
                     <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                       <div className="flex justify-between text-base text-gray-600">
-                        <span>상품 금액</span>
+                        <span className="whitespace-nowrap">상품 금액</span>
                         <span>{formatPrice(order.productAmount)}</span>
                       </div>
                       {order.buyerFee && order.buyerFee > 0 && (
                         <div className="flex justify-between text-base text-gray-500">
-                          <span>안전거래 수수료</span>
+                          <span className="whitespace-nowrap">안전거래 수수료</span>
                           <span>+{order.buyerFee.toLocaleString()}원</span>
                         </div>
                       )}
                       <div className="flex justify-between text-xl font-bold text-primary-600 pt-2 border-t border-gray-200">
-                        <span>총 결제금액</span>
+                        <span className="whitespace-nowrap">총 결제금액</span>
                         <span>{formatPrice(order.totalAmount)}</span>
                       </div>
                     </div>
@@ -278,7 +310,7 @@ export default function BuyerOrdersPage() {
                     {/* 공급자 계좌 정보 */}
                     {order.supplier?.bankName && order.supplier?.bankAccount && (
                       <div className="bg-blue-50 rounded-xl p-4 mt-4">
-                        <p className="text-sm font-medium text-blue-700 mb-2">결제 계좌 정보</p>
+                        <p className="text-sm font-medium text-blue-700 mb-2 whitespace-nowrap">결제 계좌 정보</p>
                         <div className="space-y-1 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-500">은행</span>
@@ -299,23 +331,49 @@ export default function BuyerOrdersPage() {
                     {/* 하단 */}
                     <div className="mt-4 pt-4 border-t-2 border-gray-100 flex justify-between items-center">
                       <div className="space-y-1">
-                        <span className="flex items-center gap-2 text-base text-gray-500">
-                          <Truck className="w-5 h-5" />
+                        <span className="flex items-center gap-2 text-base text-gray-500 whitespace-nowrap">
+                          <Truck className="w-5 h-5 shrink-0" />
                           납품예정: {formatDate(order.rfq?.deliveryDate)}
                         </span>
-                        <span className="flex items-center gap-2 text-base text-gray-400">
-                          <Calendar className="w-5 h-5" />
+                        <span className="flex items-center gap-2 text-base text-gray-400 whitespace-nowrap">
+                          <Calendar className="w-5 h-5 shrink-0" />
                           주문일: {formatDate(order.createdAt)}
                         </span>
                       </div>
-                      {order.status === 'delivered' && (
-                        <Button size="md" onClick={() => handleConfirmReceipt(order.id)}>
-                          수령 확인
-                        </Button>
-                      )}
-                      {order.status === 'shipping' && (
-                        <Button size="md" variant="outline">배송 추적</Button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {order.status === 'delivered' && (
+                          <Button size="md" className="whitespace-nowrap shrink-0" onClick={() => handleConfirmReceipt(order.id)}>
+                            수령 확인
+                          </Button>
+                        )}
+                        {order.status === 'shipping' && (
+                          <Button size="md" variant="outline" className="whitespace-nowrap shrink-0" onClick={() => alert('배송 추적 기능은 준비 중입니다.')}>배송 추적</Button>
+                        )}
+                        {['confirmed', 'completed', 'delivered'].includes(order.status) && !order.invoice && (
+                          <Button
+                            size="md"
+                            variant="outline"
+                            className="whitespace-nowrap shrink-0"
+                            onClick={() => handleGenerateInvoice(order.id)}
+                            disabled={invoiceLoading === order.id}
+                          >
+                            {invoiceLoading === order.id ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <FileText className="w-4 h-4 mr-2" />
+                            )}
+                            명세표 발행
+                          </Button>
+                        )}
+                        {order.invoice && (
+                          <Link href={`/invoices/${order.invoice.id}`}>
+                            <Button size="md" variant="outline" className="whitespace-nowrap shrink-0">
+                              <FileText className="w-4 h-4 mr-2" />
+                              명세표 보기
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

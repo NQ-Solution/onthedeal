@@ -39,13 +39,13 @@ export function Footer({ variant = 'default' }: FooterProps) {
     return (
       <footer className="bg-white border-t border-gray-200 py-4 px-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-gray-500">
-          <div className="flex gap-4">
-            <Link href="/terms" className="hover:text-primary-600 transition-colors">이용약관</Link>
-            <Link href="/privacy" className="hover:text-primary-600 transition-colors">개인정보처리방침</Link>
-            <Link href="/about" className="hover:text-primary-600 transition-colors">회사소개</Link>
-            <Link href="/contact" className="hover:text-primary-600 transition-colors">문의하기</Link>
+          <div className="flex flex-wrap gap-4">
+            <Link href="/terms" className="hover:text-primary-600 transition-colors whitespace-nowrap">이용약관</Link>
+            <Link href="/privacy" className="hover:text-primary-600 transition-colors whitespace-nowrap">개인정보처리방침</Link>
+            <Link href="/about" className="hover:text-primary-600 transition-colors whitespace-nowrap">회사소개</Link>
+            <Link href="/contact" className="hover:text-primary-600 transition-colors whitespace-nowrap">문의하기</Link>
           </div>
-          <p>© 2026 (주) 티투알웍스</p>
+          <p className="whitespace-nowrap">© 2026 (주) 티투알웍스</p>
         </div>
       </footer>
     )
@@ -56,15 +56,15 @@ export function Footer({ variant = 'default' }: FooterProps) {
       <div className="flex flex-col gap-6">
         {/* 상단: 로고와 링크 */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 shrink-0">
             <LogoImage size="md" />
-            <span className="font-bold text-2xl text-gray-900">OnTheDeal</span>
+            <span className="font-bold text-2xl text-gray-900 whitespace-nowrap">OnTheDeal</span>
           </Link>
-          <div className="flex gap-8">
-            <Link href="/terms" className="text-lg text-gray-600 hover:text-primary-600">이용약관</Link>
-            <Link href="/privacy" className="text-lg text-gray-600 hover:text-primary-600">개인정보처리방침</Link>
-            <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600">소개</Link>
-            <Link href="/contact" className="text-lg text-gray-600 hover:text-primary-600">문의하기</Link>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">
+            <Link href="/terms" className="text-lg text-gray-600 hover:text-primary-600 whitespace-nowrap">이용약관</Link>
+            <Link href="/privacy" className="text-lg text-gray-600 hover:text-primary-600 whitespace-nowrap">개인정보처리방침</Link>
+            <Link href="/about" className="text-lg text-gray-600 hover:text-primary-600 whitespace-nowrap">소개</Link>
+            <Link href="/contact" className="text-lg text-gray-600 hover:text-primary-600 whitespace-nowrap">문의하기</Link>
           </div>
         </div>
 

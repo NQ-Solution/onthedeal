@@ -291,8 +291,8 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 <Clock className="w-7 h-7 text-yellow-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-yellow-800">승인 대기 중</h3>
-                <p className="text-yellow-700">이 회원의 가입 요청을 검토해주세요.</p>
+                <h3 className="text-lg font-bold text-yellow-800 whitespace-nowrap">승인 대기 중</h3>
+                <p className="text-yellow-700 break-keep">이 회원의 가입 요청을 검토해주세요.</p>
               </div>
             </div>
           </CardContent>
@@ -323,7 +323,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 <Ban className="w-7 h-7 text-red-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-red-800">계정 정지됨</h3>
+                <h3 className="text-lg font-bold text-red-800 whitespace-nowrap">계정 정지됨</h3>
                 <p className="text-red-700">사유: {user.rejectionReason}</p>
               </div>
             </div>
@@ -731,7 +731,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
               </button>
             </div>
             <p className="text-center text-white/80 text-sm mt-4">
-              클릭하여 닫기 · 다운로드 버튼으로 저장
+              <span className="whitespace-nowrap">클릭하여 닫기</span> · <span className="whitespace-nowrap">다운로드 버튼으로 저장</span>
             </p>
           </div>
         </div>

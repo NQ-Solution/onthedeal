@@ -49,9 +49,9 @@ export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
 
 export type RFQStatus = 'open' | 'in_progress' | 'closed' | 'cancelled'
 export type QuoteStatus = 'pending' | 'accepted' | 'rejected' | 'expired'
-// 새로운 주문 상태 플로우: pending → paid → preparing → shipping → delivered → confirmed → completed
-export type OrderStatus = 'pending' | 'paid' | 'preparing' | 'shipping' | 'delivered' | 'confirmed' | 'completed' | 'cancelled'
-export type PaymentMethod = 'escrow' | 'direct'
+// 새로운 주문 상태 플로우: pending → payment_pending → paid → preparing → shipping → delivered → confirmed → completed
+export type OrderStatus = 'pending' | 'payment_pending' | 'paid' | 'preparing' | 'shipping' | 'delivered' | 'confirmed' | 'completed' | 'cancelled'
+export type PaymentMethod = 'escrow' | 'direct' | 'card' | 'bank_transfer'
 export type CreditLogType = 'charge' | 'use' | 'refund'
 
 // RFQ 품목 타입
@@ -146,7 +146,7 @@ export interface ChatRoom {
   quote_id: string
   buyer_id: string
   supplier_id: string
-  status: 'active' | 'deal_confirmed' | 'closed'
+  status: 'active' | 'deal_confirmed' | 'payment_requested' | 'payment_confirmed' | 'delivery_completed' | 'closed'
   deal_confirmed_at?: string
   created_at: string
   // Relations
@@ -177,8 +177,8 @@ export interface Order {
   product_amount: number           // 상품 금액
   total_amount: number             // 총 금액 (상품 + 구매자 수수료)
   commission_amount: number        // 기존 호환용
-  buyer_fee?: number               // 구매자 수수료 (3.5%)
-  supplier_fee?: number            // 공급자 수수료 (3%)
+  buyer_fee?: number               // 구매자 수수료
+  supplier_fee?: number            // 공급자 수수료
   status: OrderStatus
   payment_method: PaymentMethod
   created_at: string
@@ -237,42 +237,24 @@ export interface QuoteOption {
   isActive: boolean
 }
 
-// 플랫폼 수수료 설정
+// 플랫폼 수수료 설정 (DB SiteSettings 기반)
 export interface FeeSettings {
-  // 구매자 수수료
-  buyer: {
-    cardPaymentRate: number      // 카드 결제 수수료 (기본 3%)
-    bankTransferRate: number     // 계좌이체 수수료 (기본 0%)
-  }
-  // 공급자 수수료 (제안 옵션별)
-  supplier: {
-    basic: number                // 기본 제안 수수료 (기본 3%)
-    premium: number              // 프리미엄 제안 수수료 (기본 5%)
-  }
-  // 채팅 관련 설정
-  chat: {
-    expiryDays: number           // 채팅 만료일 (기본 3일)
-    maxProposalsPerHour: number  // 시간당 최대 제안 수 (0 = 무제한)
-  }
-  updatedAt: string
-  updatedBy?: string
+  firstTradeCommissionRate: number    // 첫 거래 수수료율 (%) - 기본 3%
+  repeatTradeCommissionRate: number   // 연속 거래 수수료율 (%) - 기본 1%
+  buyerCardPaymentRate: number        // 구매자 카드결제 수수료율 (%) - 기본 3%
+  buyerBankTransferRate: number       // 구매자 계좌이체 수수료율 (%) - 기본 0%
+  chatExpiryDays: number              // 채팅방 만료일 - 기본 3일
+  maxProposalsPerHour: number         // 시간당 최대 제안수 (0=무제한)
 }
 
 // 기본 수수료 설정값
 export const DEFAULT_FEE_SETTINGS: FeeSettings = {
-  buyer: {
-    cardPaymentRate: 3,
-    bankTransferRate: 0,
-  },
-  supplier: {
-    basic: 3,
-    premium: 5,
-  },
-  chat: {
-    expiryDays: 3,
-    maxProposalsPerHour: 0,  // 0 = 무제한 (초기 오픈)
-  },
-  updatedAt: new Date().toISOString(),
+  firstTradeCommissionRate: 3.0,
+  repeatTradeCommissionRate: 1.0,
+  buyerCardPaymentRate: 3.0,
+  buyerBankTransferRate: 0.0,
+  chatExpiryDays: 3,
+  maxProposalsPerHour: 0,
 }
 
 // 기본 제안 옵션

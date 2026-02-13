@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/Footer'
 import { LogoImage } from '@/components/ui/Logo'
 import { FileText, ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/db'
+import { sanitizeContent } from '@/lib/sanitize'
 
 // CMS 업데이트 실시간 반영을 위해 동적 렌더링 강제
 export const dynamic = 'force-dynamic'
@@ -64,8 +65,8 @@ export default async function TermsPage() {
           <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <FileText className="w-10 h-10 text-primary-600" />
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">{page?.title || '이용약관'}</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4 text-balance">{page?.title || '이용약관'}</h1>
+          <p className="text-xl text-gray-600 text-pretty">
             최종 수정일: {page ? new Date(page.updatedAt).toLocaleDateString('ko-KR') : '2026년 1월 1일'}
           </p>
         </div>
@@ -77,7 +78,7 @@ export default async function TermsPage() {
           ) : (
             <div
               className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-h2:text-2xl prose-h2:mb-4 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-700 prose-ul:space-y-2"
-              dangerouslySetInnerHTML={{ __html: formatContent(page.content) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeContent(formatContent(page.content)) }}
             />
           )}
         </div>
@@ -104,7 +105,7 @@ function DefaultTermsContent() {
     <div className="space-y-10">
       <section>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">제1조 (목적)</h2>
-        <p className="text-lg text-gray-700 leading-relaxed">
+        <p className="text-lg text-gray-700 leading-relaxed text-pretty">
           본 약관은 온더딜(OnTheDeal, 이하 "회사")이 제공하는 B2B 식자재 거래 플랫폼 서비스(이하 "서비스")의 이용과 관련하여
           회사와 이용자 간의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
         </p>
@@ -137,7 +138,7 @@ function DefaultTermsContent() {
         <ul className="text-lg text-gray-700 leading-relaxed space-y-3">
           <li className="flex gap-3">
             <span className="font-bold text-primary-600">1.</span>
-            <span>거래 성사 시 거래 금액의 3%가 수수료로 부과됩니다.</span>
+            <span>거래 성사 시 거래 금액에 소정의 수수료가 부과됩니다. 수수료율은 관리자 설정에 따릅니다.</span>
           </li>
           <li className="flex gap-3">
             <span className="font-bold text-primary-600">2.</span>

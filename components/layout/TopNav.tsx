@@ -10,6 +10,9 @@ import {
   MessageSquare,
   User,
   Search,
+  ShoppingBag,
+  Package,
+  Megaphone,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { Button } from '@/components/ui'
@@ -25,12 +28,18 @@ const buyerMenus = [
   { href: '/buyer/rfqs', label: '내 발주', icon: FileText },
   { href: '/buyer/rfqs/new', label: '새 발주', icon: PlusCircle },
   { href: '/chat', label: '채팅', icon: MessageSquare },
+  { href: '/buyer/orders', label: '주문 내역', icon: ShoppingBag },
+  { href: '/buyer/invoices', label: '명세표', icon: FileText },
+  { href: '/announcements', label: '공지사항', icon: Megaphone },
   { href: '/profile', label: '내 정보', icon: User },
 ]
 
 const supplierMenus = [
   { href: '/supplier/rfqs', label: '발주 찾기', icon: Search },
   { href: '/chat', label: '채팅', icon: MessageSquare },
+  { href: '/supplier/orders', label: '주문 관리', icon: Package },
+  { href: '/supplier/invoices', label: '명세표', icon: FileText },
+  { href: '/announcements', label: '공지사항', icon: Megaphone },
   { href: '/profile', label: '내 정보', icon: User },
 ]
 
@@ -78,7 +87,7 @@ export function TopNav({ userRole, userName, userEmail, onLogout }: TopNavProps)
               </div>
               <span className="font-bold text-lg text-gray-900 hidden sm:block">OnTheDeal</span>
             </Link>
-            <div className={`hidden sm:flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+            <div className={`hidden sm:flex items-center whitespace-nowrap px-3 py-1 rounded-full text-sm font-medium ${
               userRole === 'buyer'
                 ? 'bg-primary-100 text-primary-700'
                 : 'bg-green-100 text-green-700'
@@ -103,8 +112,8 @@ export function TopNav({ userRole, userName, userEmail, onLogout }: TopNavProps)
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{menu.label}</span>
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">{menu.label}</span>
                 </Link>
               )
             })}
@@ -159,7 +168,7 @@ export function TopNav({ userRole, userName, userEmail, onLogout }: TopNavProps)
           <nav className="max-w-7xl mx-auto px-4 py-2">
             {/* 역할 표시 (모바일) */}
             <div className="flex items-center justify-between py-2 mb-2 border-b border-gray-100">
-              <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              <div className={`flex items-center whitespace-nowrap px-3 py-1 rounded-full text-sm font-medium ${
                 userRole === 'buyer'
                   ? 'bg-primary-100 text-primary-700'
                   : 'bg-green-100 text-green-700'
@@ -199,8 +208,8 @@ export function TopNav({ userRole, userName, userEmail, onLogout }: TopNavProps)
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{menu.label}</span>
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="font-medium whitespace-nowrap">{menu.label}</span>
                   </Link>
                 )
               })}
@@ -215,8 +224,8 @@ export function TopNav({ userRole, userName, userEmail, onLogout }: TopNavProps)
                 }}
                 className="flex items-center gap-3 px-3 py-2.5 w-full text-left text-gray-600 hover:bg-gray-50 rounded-lg"
               >
-                <LogOut className="w-5 h-5" />
-                <span className="font-medium">로그아웃</span>
+                <LogOut className="w-5 h-5 shrink-0" />
+                <span className="font-medium whitespace-nowrap">로그아웃</span>
               </button>
             </div>
           </nav>

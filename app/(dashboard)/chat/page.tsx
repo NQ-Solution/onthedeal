@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Badge, Button, Input } from '@/components/ui'
-import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText, ChevronDown, ChevronUp, Eye, Plus } from 'lucide-react'
+import { MessageSquare, Loader2, Send, CreditCard, Truck, CheckCircle, Clock, ImagePlus, X, ArrowLeft, Building, Calendar, FileText, ChevronDown, ChevronUp, Eye, Plus, Package, ExternalLink } from 'lucide-react'
 
 interface ChatRoom {
   id: string
@@ -52,6 +52,18 @@ interface ChatRoom {
   unreadCount: number
   currentUserId?: string
   currentUserRole?: string
+  orderId?: string | null
+  orderStatus?: string | null
+  orderSummary?: {
+    productAmount: number
+    commissionAmount: number
+    totalAmount: number
+  } | null
+  invoice?: {
+    id: string
+    invoiceNumber: string
+    status: string
+  } | null
 }
 
 interface Message {
@@ -98,9 +110,31 @@ const getStatusLabel = (status: string) => {
     case 'deal_confirmed': return { label: '거래확정 - 입금대기', color: 'bg-orange-100 text-orange-800' }
     case 'payment_requested': return { label: '입금 확인 대기', color: 'bg-yellow-100 text-yellow-800' }
     case 'payment_confirmed': return { label: '납품 진행중', color: 'bg-blue-100 text-blue-800' }
-    case 'delivery_completed': return { label: '거래 완료', color: 'bg-green-100 text-green-800' }
+    case 'delivery_completed': return { label: '수령 확인 대기', color: 'bg-purple-100 text-purple-800' }
+    case 'closed': return { label: '거래 완료', color: 'bg-green-100 text-green-800' }
     case 'expired': return { label: '만료됨', color: 'bg-gray-100 text-gray-600' }
     default: return { label: '협의중', color: 'bg-primary-100 text-primary-800' }
+  }
+}
+
+// 거래 진행 단계 정의
+const DEAL_STEPS = [
+  { key: 'negotiation', label: '협의중' },
+  { key: 'confirmed', label: '거래확정' },
+  { key: 'payment', label: '결제' },
+  { key: 'delivery', label: '배송/납품' },
+  { key: 'completed', label: '완료' },
+]
+
+const getActiveStep = (status: string): number => {
+  switch (status) {
+    case 'active': return 0
+    case 'deal_confirmed': return 1
+    case 'payment_requested': return 2
+    case 'payment_confirmed': return 3
+    case 'delivery_completed': return 4
+    case 'closed': return 5
+    default: return 0
   }
 }
 
@@ -323,7 +357,7 @@ export default function ChatPage() {
   // 판매자: 납품 완료
   const handleCompleteDelivery = async () => {
     if (isConfirming || !selectedRoomId) return
-    if (!confirm('납품이 완료되었습니까? 거래가 완료 처리됩니다.')) return
+    if (!confirm('납품이 완료되었습니까? 구매자의 수령 확인을 기다립니다.')) return
     setIsConfirming(true)
     try {
       const res = await fetch(`/api/chat/rooms/${selectedRoomId}`, {
@@ -332,7 +366,61 @@ export default function ChatPage() {
         body: JSON.stringify({ action: 'complete_delivery' }),
       })
       if (res.ok) {
-        alert('납품 완료! 거래가 완료되었습니다.')
+        alert('납품 완료! 구매자의 수령 확인을 기다립니다.')
+        fetchRoomDetail(selectedRoomId)
+        fetchMessages(selectedRoomId)
+      } else {
+        const data = await res.json()
+        alert(data.error || '요청에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('요청 중 오류가 발생했습니다.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }
+
+  // 판매자: 배송 시작
+  const handleStartShipping = async () => {
+    if (isConfirming || !selectedRoomId) return
+    if (!confirm('배송을 시작하시겠습니까?')) return
+    setIsConfirming(true)
+    try {
+      const res = await fetch(`/api/chat/rooms/${selectedRoomId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start_shipping' }),
+      })
+      if (res.ok) {
+        alert('배송이 시작되었습니다.')
+        fetchRoomDetail(selectedRoomId)
+        fetchMessages(selectedRoomId)
+      } else {
+        const data = await res.json()
+        alert(data.error || '요청에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('요청 중 오류가 발생했습니다.')
+    } finally {
+      setIsConfirming(false)
+    }
+  }
+
+  // 구매자: 수령 확인
+  const handleConfirmReceipt = async () => {
+    if (isConfirming || !selectedRoomId) return
+    if (!confirm('수령을 확인하시겠습니까? 확인 후 거래가 완료됩니다.')) return
+    setIsConfirming(true)
+    try {
+      const res = await fetch(`/api/chat/rooms/${selectedRoomId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'confirm_receipt' }),
+      })
+      if (res.ok) {
+        alert('수령 확인 완료! 거래가 완료되었습니다.')
         fetchRoomDetail(selectedRoomId)
         fetchMessages(selectedRoomId)
       } else {
@@ -431,7 +519,8 @@ export default function ChatPage() {
   const isDealConfirmed = status === 'deal_confirmed' // 거래확정 - 입금 전
   const isPaymentRequested = status === 'payment_requested' // 입금 확인 요청됨
   const isPaymentConfirmed = status === 'payment_confirmed' // 입금 확인 완료
-  const isDeliveryCompleted = status === 'delivery_completed' // 납품 완료
+  const isDeliveryCompleted = status === 'delivery_completed' // 납품 완료 (수령 확인 대기)
+  const isClosed = status === 'closed' // 거래 완료
   const isQuotePending = selectedRoom?.quote?.status === 'pending' // 제안 아직 미수락
 
   if (loading) {
@@ -459,7 +548,7 @@ export default function ChatPage() {
           {activeRooms.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <MessageSquare className="w-10 h-10 mx-auto text-gray-300 mb-2" />
-              <p>진행 중인 채팅이 없습니다</p>
+              <p className="break-keep">진행 중인 채팅이 없습니다</p>
             </div>
           ) : (
             activeRooms.map((room) => {
@@ -516,21 +605,72 @@ export default function ChatPage() {
         ) : (
           <>
             {/* 헤더 */}
-            <div className="p-3 border-b flex items-center justify-between bg-white">
-              <div className="flex items-center gap-3">
-                <button onClick={handleBackToList} className="lg:hidden p-1 hover:bg-gray-100 rounded">
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div>
-                  <p className="font-bold text-lg">
-                    {isBuyer ? selectedRoom.supplier?.companyName : selectedRoom.buyer?.companyName}
-                  </p>
-                  <p className="text-xs text-gray-500">{selectedRoom.rfq?.title}</p>
+            <div className="p-3 border-b bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button onClick={handleBackToList} className="lg:hidden p-1 hover:bg-gray-100 rounded">
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <div>
+                    <p className="font-bold text-lg">
+                      {isBuyer ? selectedRoom.supplier?.companyName : selectedRoom.buyer?.companyName}
+                    </p>
+                    <p className="text-xs text-gray-500">{selectedRoom.rfq?.title}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedRoom.orderId && (
+                    <button
+                      onClick={() => router.push(isBuyer ? `/buyer/orders` : `/supplier/orders`)}
+                      className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex items-center gap-1"
+                    >
+                      <Package className="w-3 h-3" />
+                      주문 상세
+                    </button>
+                  )}
+                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusLabel(status).color}`}>
+                    {getStatusLabel(status).label}
+                  </span>
                 </div>
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full ${getStatusLabel(status).color}`}>
-                {getStatusLabel(status).label}
-              </span>
+
+              {/* 진행 단계 표시 (Progress Stepper) - 거래 확정 후부터 */}
+              {status !== 'active' && status !== 'expired' && (
+                <div className="mt-3 flex items-center justify-between">
+                  {DEAL_STEPS.map((step, idx) => {
+                    const activeStep = getActiveStep(status)
+                    const isCompleted = idx < activeStep
+                    const isCurrent = idx === activeStep
+                    const isLast = idx === DEAL_STEPS.length - 1
+
+                    return (
+                      <div key={step.key} className="flex items-center flex-1">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            isCompleted
+                              ? 'bg-green-500 text-white'
+                              : isCurrent
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-gray-200 text-gray-500'
+                          }`}>
+                            {isCompleted ? <CheckCircle className="w-4 h-4" /> : idx + 1}
+                          </div>
+                          <span className={`text-[10px] mt-1 whitespace-nowrap ${
+                            isCompleted ? 'text-green-600 font-medium' : isCurrent ? 'text-primary-600 font-medium' : 'text-gray-400'
+                          }`}>
+                            {step.label}
+                          </span>
+                        </div>
+                        {!isLast && (
+                          <div className={`flex-1 h-0.5 mx-1 ${
+                            isCompleted ? 'bg-green-500' : 'bg-gray-200'
+                          }`} />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {/* 거래 요약 영역 - 항상 표시 (최대 높이 제한으로 채팅 영역 확보) */}
@@ -540,7 +680,7 @@ export default function ChatPage() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-4">
                     <div>
-                      <span className="text-xs text-gray-500">거래금액</span>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">거래금액</span>
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-xl text-primary-600">
                           {selectedRoom.quote.totalPrice.toLocaleString()}원
@@ -847,7 +987,7 @@ export default function ChatPage() {
                     <CheckCircle className="w-4 h-4" />
                     거래가 확정되었습니다
                   </p>
-                  <p className="text-sm text-orange-600 mb-4">
+                  <p className="text-sm text-orange-600 mb-4 break-keep">
                     아래에서 결제 수단을 선택하고 입금 후 확인을 요청해주세요
                   </p>
 
@@ -909,9 +1049,24 @@ export default function ChatPage() {
                       <div className="text-blue-600 mb-2">
                         <CreditCard className="w-8 h-8 mx-auto" />
                       </div>
-                      <p className="font-medium text-blue-800">카드결제 연결 준비중</p>
-                      <p className="text-sm text-blue-600 mt-1">현재 PG사 연동을 준비하고 있습니다.</p>
-                      <p className="text-xs text-blue-500 mt-2">빠른 시일 내에 서비스될 예정입니다.</p>
+                      {selectedRoom.orderId ? (
+                        <>
+                          <p className="font-medium text-blue-800">카드결제</p>
+                          <p className="text-sm text-blue-600 mt-1">아래 버튼을 눌러 결제를 진행하세요.</p>
+                          <Button
+                            onClick={() => router.push(`/checkout/${selectedRoom.orderId}`)}
+                            className="mt-3 bg-blue-600 hover:bg-blue-700"
+                          >
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            카드결제 진행하기
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-medium text-blue-800">카드결제 준비중</p>
+                          <p className="text-sm text-blue-600 mt-1">주문이 생성되면 카드결제를 진행할 수 있습니다.</p>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -940,7 +1095,7 @@ export default function ChatPage() {
                     <CheckCircle className="w-4 h-4" />
                     거래가 확정되었습니다
                   </p>
-                  <p className="text-sm text-orange-600">
+                  <p className="text-sm text-orange-600 break-keep">
                     구매자의 입금과 확인 요청을 기다리고 있습니다
                   </p>
                 </div>
@@ -953,7 +1108,7 @@ export default function ChatPage() {
                     <Clock className="w-4 h-4" />
                     입금 확인 대기 중
                   </p>
-                  <p className="text-sm text-yellow-700 mt-1">판매자가 입금을 확인하면 납품이 시작됩니다</p>
+                  <p className="text-sm text-yellow-700 mt-1 break-keep">판매자가 입금을 확인하면 납품이 시작됩니다</p>
                 </div>
               )}
 
@@ -983,11 +1138,11 @@ export default function ChatPage() {
                     <Truck className="w-4 h-4" />
                     입금 확인 완료 - 납품 진행중
                   </p>
-                  <p className="text-sm text-blue-700 mt-1">판매자가 납품을 준비하고 있습니다</p>
+                  <p className="text-sm text-blue-700 mt-1 break-keep">판매자가 납품을 준비하고 있습니다</p>
                 </div>
               )}
 
-              {/* 3. 납품 진행중 - 판매자: 납품완료 버튼 */}
+              {/* 3. 납품 진행중 - 판매자: 배송시작 + 납품완료 버튼 */}
               {isPaymentConfirmed && isSupplier && (
                 <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
                   <div className="flex items-center justify-between">
@@ -1000,17 +1155,52 @@ export default function ChatPage() {
                         납품예정일: {selectedRoom.quote && new Date(selectedRoom.quote.deliveryDate).toLocaleDateString('ko-KR')}
                       </p>
                     </div>
-                    <Button onClick={handleCompleteDelivery} disabled={isConfirming} className="bg-green-600 hover:bg-green-700">
-                      {isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Truck className="w-4 h-4 mr-1" />}
-                      납품 완료
+                    <div className="flex gap-2">
+                      <Button onClick={handleStartShipping} disabled={isConfirming} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                        {isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Truck className="w-4 h-4 mr-1" />}
+                        배송 시작
+                      </Button>
+                      <Button onClick={handleCompleteDelivery} disabled={isConfirming} className="bg-green-600 hover:bg-green-700">
+                        {isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                        납품 완료
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. 수령 확인 대기 (delivery_completed) */}
+              {isDeliveryCompleted && isBuyer && (
+                <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-purple-800 flex items-center gap-2">
+                        <Package className="w-4 h-4" />
+                        납품이 완료되었습니다
+                      </p>
+                      <p className="text-sm text-purple-700 mt-1">상품을 확인하고 수령 확인을 해주세요</p>
+                    </div>
+                    <Button onClick={handleConfirmReceipt} disabled={isConfirming} className="bg-purple-600 hover:bg-purple-700">
+                      {isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                      수령 확인
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* 4. 거래 완료 */}
-              {isDeliveryCompleted && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              {isDeliveryCompleted && isSupplier && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <p className="font-medium text-purple-800 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    납품 완료 - 구매자의 수령 확인을 기다리고 있습니다
+                  </p>
+                  <p className="text-sm text-purple-700 mt-1">구매자가 수령을 확인하면 거래가 완료됩니다</p>
+                </div>
+              )}
+
+              {/* 5. 거래 완료 (closed) */}
+              {isClosed && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-green-800 flex items-center gap-2">
@@ -1037,6 +1227,39 @@ export default function ChatPage() {
                       </Button>
                     )}
                   </div>
+
+                  {/* 금액 요약 */}
+                  {selectedRoom.orderSummary && (
+                    <div className="bg-white rounded-lg p-3 border border-green-200">
+                      <p className="text-sm font-medium text-gray-700 mb-2">거래 요약</p>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">상품금액</span>
+                          <span className="text-gray-900">{selectedRoom.orderSummary.productAmount.toLocaleString()}원</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">수수료</span>
+                          <span className="text-gray-500">{selectedRoom.orderSummary.commissionAmount.toLocaleString()}원</span>
+                        </div>
+                        <div className="flex justify-between border-t pt-1 mt-1">
+                          <span className="font-medium text-gray-700">총액</span>
+                          <span className="font-bold text-primary-600">{selectedRoom.orderSummary.totalAmount.toLocaleString()}원</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 명세표 링크 */}
+                  {selectedRoom.invoice && (
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push(`/invoices/${selectedRoom.invoice!.id}`)}
+                      className="w-full"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      명세표 보기 ({selectedRoom.invoice.invoiceNumber})
+                    </Button>
+                  )}
                 </div>
               )}
 
